@@ -1,0 +1,28 @@
+node_modules/
+dist/
+.vercel/
+.output/
+.nitro/
+.tanstack/
+.wrangler/
+coverage/
+
+# Local / sandbox
+.grok/app-env.json
+.env
+.env.*
+!.env.example
+*.pem
+.DS_Store
+Thumbs.db
+
+# Large source manuals and local QA (not needed to run the app)
+attachments/
+screenshots/
+artifacts/
+*.pdf
+
+# Generated
+*.local
+.project_id
+.node_modules.lock

@@ -1,0 +1,1157 @@
+{
+  "sheets": [
+    {
+      "id": "iq-main",
+      "title": "IQ System \u2014 main wiring diagram",
+      "manualRef": "2006\u201307 Precedent IQ M&S, Wiring Diagrams 11-2 / 11-3",
+      "src": "/wiring/iq-main.jpg",
+      "kind": "full",
+      "packs": [
+        "club-car-precedent-iq",
+        "club-car-ds-iq"
+      ],
+      "pdfPage": "94-95",
+      "bytes": 252418,
+      "width": 2400,
+      "height": 1552,
+      "landscape": true
+    },
+    {
+      "id": "iq-accessories",
+      "title": "IQ System \u2014 accessory / lighting wiring",
+      "manualRef": "2006\u201307 Precedent IQ M&S, Wiring Diagrams 11-4 / 11-5",
+      "src": "/wiring/iq-accessories.jpg",
+      "kind": "accessory",
+      "packs": [
+        "club-car-precedent-iq",
+        "club-car-ds-iq"
+      ],
+      "pdfPage": "96-97",
+      "bytes": 205319,
+      "width": 2400,
+      "height": 1552,
+      "landscape": true
+    },
+    {
+      "id": "iq-sonic",
+      "title": "IQ System \u2014 sonic weld / diode locations",
+      "manualRef": "2006\u201307 Precedent IQ M&S, Wiring Diagrams 11-6",
+      "src": "/wiring/iq-sonic.jpg",
+      "kind": "pinout",
+      "packs": [
+        "club-car-precedent-iq",
+        "club-car-ds-iq"
+      ],
+      "pdfPage": "98",
+      "bytes": 88765,
+      "width": 1316,
+      "height": 1703,
+      "landscape": false
+    },
+    {
+      "id": "excel-main",
+      "title": "Excel System \u2014 main wiring diagram",
+      "manualRef": "2008 Precedent IQ/Excel M&S, Figure 12-1 Excel wiring",
+      "src": "/wiring/excel-main.jpg",
+      "kind": "full",
+      "packs": [
+        "club-car-precedent-excel",
+        "club-car-villager-iqplus"
+      ],
+      "pdfPage": "144-145",
+      "bytes": 234953,
+      "width": 2400,
+      "height": 1552,
+      "landscape": true
+    },
+    {
+      "id": "excel-accessories",
+      "title": "Excel System \u2014 accessory / lighting wiring",
+      "manualRef": "2008 Precedent IQ/Excel M&S, Excel wiring diagrams 12",
+      "src": "/wiring/excel-accessories.jpg",
+      "kind": "accessory",
+      "packs": [
+        "club-car-precedent-excel",
+        "club-car-villager-iqplus"
+      ],
+      "pdfPage": "146-147",
+      "bytes": 204608,
+      "width": 2400,
+      "height": 1552,
+      "landscape": true
+    },
+    {
+      "id": "excel-sonic",
+      "title": "Excel System \u2014 sonic weld / diode locations",
+      "manualRef": "2008 Precedent IQ/Excel M&S, Excel wiring diagrams 12",
+      "src": "/wiring/excel-sonic.jpg",
+      "kind": "pinout",
+      "packs": [
+        "club-car-precedent-excel",
+        "club-car-villager-iqplus"
+      ],
+      "pdfPage": "148",
+      "bytes": 93363,
+      "width": 1316,
+      "height": 1703,
+      "landscape": false
+    },
+    {
+      "id": "eric-main",
+      "title": "ERIC Excel \u2014 main wiring diagram",
+      "manualRef": "2017 Precedent M&S, Figures 12-1 / 12-2 ERIC Excel",
+      "src": "/wiring/eric-main.jpg",
+      "kind": "full",
+      "packs": [
+        "club-car-precedent-eric",
+        "club-car-tempo-eric"
+      ],
+      "pdfPage": "154-155",
+      "bytes": 271188,
+      "width": 2400,
+      "height": 1552,
+      "landscape": true
+    },
+    {
+      "id": "eric-instrument",
+      "title": "ERIC Excel \u2014 instrument panel wiring",
+      "manualRef": "2017 Precedent M&S, Figure 12-3",
+      "src": "/wiring/eric-instrument.jpg",
+      "kind": "harness",
+      "packs": [
+        "club-car-precedent-eric",
+        "club-car-tempo-eric"
+      ],
+      "pdfPage": "156",
+      "bytes": 109543,
+      "width": 1316,
+      "height": 1703,
+      "landscape": false
+    },
+    {
+      "id": "eric-batteries",
+      "title": "ERIC Excel \u2014 6\u00d78 V battery / ERIC charge wiring",
+      "manualRef": "2017 Precedent M&S, Figure 12-4 WD_6x8V_Batteries_ERIC",
+      "src": "/wiring/eric-batteries.jpg",
+      "kind": "charge",
+      "packs": [
+        "club-car-precedent-eric",
+        "club-car-tempo-eric"
+      ],
+      "pdfPage": "157",
+      "bytes": 81117,
+      "width": 1316,
+      "height": 1703,
+      "landscape": false
+    },
+    {
+      "id": "eric-lights",
+      "title": "ERIC Excel \u2014 lighting harness",
+      "manualRef": "2017 Precedent M&S, Figures 12-5 / 12-6",
+      "src": "/wiring/eric-lights.jpg",
+      "kind": "accessory",
+      "packs": [
+        "club-car-precedent-eric",
+        "club-car-tempo-eric"
+      ],
+      "pdfPage": "158-159",
+      "bytes": 206558,
+      "width": 2400,
+      "height": 1552,
+      "landscape": true
+    },
+    {
+      "id": "tempo-battery",
+      "title": "Tempo electric \u2014 battery wiring diagram (2-page pack)",
+      "manualRef": "2021 Tempo M&S \u00a712 Battery wiring diagram",
+      "src": "/wiring/tempo-battery.jpg",
+      "kind": "charge",
+      "packs": [
+        "club-car-tempo-eric"
+      ],
+      "pdfPage": "231",
+      "bytes": 140587,
+      "width": 1316,
+      "height": 1703,
+      "landscape": false
+    },
+    {
+      "id": "tempo-e-main",
+      "title": "Tempo electric \u2014 two-passenger main harness",
+      "manualRef": "2021 Tempo M&S \u00a732 Electric: two passenger main harness",
+      "src": "/wiring/tempo-e-main.jpg",
+      "kind": "full",
+      "packs": [
+        "club-car-tempo-eric"
+      ],
+      "pdfPage": "759",
+      "bytes": 220403,
+      "width": 2322,
+      "height": 1703,
+      "landscape": true
+    },
+    {
+      "id": "tempo-e-4p",
+      "title": "Tempo electric \u2014 four-passenger main harness",
+      "manualRef": "2021 Tempo M&S \u00a732 Electric: four passenger main harness",
+      "src": "/wiring/tempo-e-4p.jpg",
+      "kind": "harness",
+      "packs": [
+        "club-car-tempo-eric"
+      ],
+      "pdfPage": "761",
+      "bytes": 220986,
+      "width": 2322,
+      "height": 1703,
+      "landscape": true
+    },
+    {
+      "id": "tempo-kohler-engine",
+      "title": "Tempo gasoline \u2014 Kohler ECH440 engine harness",
+      "manualRef": "2021 Tempo M&S \u00a732 Kohler ECH440 engine harness",
+      "src": "/wiring/tempo-kohler-engine.jpg",
+      "kind": "harness",
+      "packs": [
+        "club-car-tempo-gas"
+      ],
+      "pdfPage": "745",
+      "bytes": 191954,
+      "width": 2322,
+      "height": 1703,
+      "landscape": true
+    },
+    {
+      "id": "tempo-kohler-main",
+      "title": "Tempo gasoline \u2014 Kohler ECH440 main harness",
+      "manualRef": "2021 Tempo M&S \u00a732 Kohler ECH440 main harness",
+      "src": "/wiring/tempo-kohler-main.jpg",
+      "kind": "full",
+      "packs": [
+        "club-car-tempo-gas"
+      ],
+      "pdfPage": "747",
+      "bytes": 242236,
+      "width": 2322,
+      "height": 1703,
+      "landscape": true
+    },
+    {
+      "id": "tempo-kohler-dash",
+      "title": "Tempo gasoline \u2014 Kohler ECH440 instrument panel harness",
+      "manualRef": "2021 Tempo M&S \u00a732 Kohler ECH440 instrument panel",
+      "src": "/wiring/tempo-kohler-dash.jpg",
+      "kind": "harness",
+      "packs": [
+        "club-car-tempo-gas"
+      ],
+      "pdfPage": "749",
+      "bytes": 132824,
+      "width": 2322,
+      "height": 1703,
+      "landscape": true
+    },
+    {
+      "id": "tempo-ex40-main",
+      "title": "Subaru EX40 \u2014 main harness",
+      "manualRef": "2021 Tempo M&S \u00a732 Subaru EX-40 main harness",
+      "src": "/wiring/tempo-ex40-main.jpg",
+      "kind": "full",
+      "packs": [
+        "club-car-precedent-gas"
+      ],
+      "pdfPage": "753",
+      "bytes": 242713,
+      "width": 2322,
+      "height": 1703,
+      "landscape": true
+    },
+    {
+      "id": "tempo-ex40-dash",
+      "title": "Subaru EX40 \u2014 instrument panel dash harness",
+      "manualRef": "2021 Tempo M&S \u00a732 Subaru EX-40 dash harness",
+      "src": "/wiring/tempo-ex40-dash.jpg",
+      "kind": "harness",
+      "packs": [
+        "club-car-precedent-gas"
+      ],
+      "pdfPage": "755",
+      "bytes": 109921,
+      "width": 2322,
+      "height": 1703,
+      "landscape": true
+    },
+    {
+      "id": "tempo-ex40-engine",
+      "title": "Subaru EX40 \u2014 engine harness",
+      "manualRef": "2021 Tempo M&S \u00a732 Subaru EX-40 engine harness",
+      "src": "/wiring/tempo-ex40-engine.jpg",
+      "kind": "harness",
+      "packs": [
+        "club-car-precedent-gas"
+      ],
+      "pdfPage": "757",
+      "bytes": 148680,
+      "width": 2322,
+      "height": 1703,
+      "landscape": true
+    },
+    {
+      "id": "ex40-main",
+      "title": "Subaru EX40 \u2014 electrical wiring diagram",
+      "manualRef": "2017 Precedent M&S, Figures 18-1 / 18-2 EX40",
+      "src": "/wiring/ex40-main.jpg",
+      "kind": "full",
+      "packs": [
+        "club-car-precedent-gas",
+        "club-car-villager-gas"
+      ],
+      "pdfPage": "284-285",
+      "bytes": 295942,
+      "width": 2400,
+      "height": 1552,
+      "landscape": true
+    },
+    {
+      "id": "ex40-alt",
+      "title": "Subaru EX40 \u2014 wiring diagram (alt sheet)",
+      "manualRef": "2017 Precedent M&S, Figure 18-3",
+      "src": "/wiring/ex40-alt.jpg",
+      "kind": "harness",
+      "packs": [
+        "club-car-precedent-gas",
+        "club-car-villager-gas"
+      ],
+      "pdfPage": "286",
+      "bytes": 99107,
+      "width": 1316,
+      "height": 1703,
+      "landscape": false
+    },
+    {
+      "id": "fe350-main",
+      "title": "Kawasaki FE350 \u2014 electrical / TPS wiring",
+      "manualRef": "2015 Precedent M&S \u00a713 FE350 wiring diagrams",
+      "src": "/wiring/fe350-main.jpg",
+      "kind": "full",
+      "packs": [
+        "club-car-ds-gas",
+        "club-car-ds-fe290",
+        "club-car-villager-gas",
+        "club-car-precedent-gas"
+      ],
+      "pdfPage": "141-142",
+      "bytes": 267734,
+      "width": 2400,
+      "height": 1552,
+      "landscape": true
+    },
+    {
+      "id": "fe350-accessories",
+      "title": "Kawasaki FE350 \u2014 accessory wiring",
+      "manualRef": "2015 Precedent M&S \u00a713 FE350 wiring diagrams",
+      "src": "/wiring/fe350-accessories.jpg",
+      "kind": "accessory",
+      "packs": [
+        "club-car-ds-gas",
+        "club-car-ds-fe290",
+        "club-car-villager-gas",
+        "club-car-precedent-gas"
+      ],
+      "pdfPage": "143-144",
+      "bytes": 199284,
+      "width": 2400,
+      "height": 1552,
+      "landscape": true
+    },
+    {
+      "id": "vglide-schematic",
+      "title": "V-Glide 36 V \u2014 control, power, and charge schematic (Fig. 19-2)",
+      "manualRef": "1995\u201396 DS M&S, Figure 19-2, page 19-3",
+      "src": "/wiring/vglide-schematic.jpg",
+      "kind": "full",
+      "packs": [
+        "club-car-ds-vglide"
+      ],
+      "pdfPage": "319",
+      "bytes": 219229,
+      "width": 1316,
+      "height": 1703,
+      "landscape": false
+    },
+    {
+      "id": "vglide-control",
+      "title": "V-Glide 36 V \u2014 control circuit test diagram (Fig. 19-4)",
+      "manualRef": "1995\u201396 DS M&S, Figure 19-4, page 19-7",
+      "src": "/wiring/vglide-control.jpg",
+      "kind": "control",
+      "packs": [
+        "club-car-ds-vglide"
+      ],
+      "pdfPage": "323",
+      "bytes": 221756,
+      "width": 1316,
+      "height": 1703,
+      "landscape": false
+    },
+    {
+      "id": "vglide-power",
+      "title": "V-Glide 36 V \u2014 power circuit test diagram (Fig. 19-5)",
+      "manualRef": "1995\u201396 DS M&S, Figure 19-5, page 19-9",
+      "src": "/wiring/vglide-power.jpg",
+      "kind": "power",
+      "packs": [
+        "club-car-ds-vglide"
+      ],
+      "pdfPage": "325",
+      "bytes": 252534,
+      "width": 1316,
+      "height": 1703,
+      "landscape": false
+    },
+    {
+      "id": "pd48-multistep",
+      "title": "PowerDrive System 48 \u2014 multi-step potentiometer wiring (Fig. 20-2)",
+      "manualRef": "1995\u201396 DS M&S, Figure 20-2, page 20-3",
+      "src": "/wiring/pd48-multistep.jpg",
+      "kind": "full",
+      "packs": [
+        "club-car-ds-electric"
+      ],
+      "pdfPage": "353",
+      "bytes": 270766,
+      "width": 1316,
+      "height": 1703,
+      "landscape": false
+    },
+    {
+      "id": "pd48-cvpot",
+      "title": "PowerDrive System 48 \u2014 continuously variable potentiometer wiring (Fig. 20-3)",
+      "manualRef": "1995\u201396 DS M&S, Figure 20-3, page 20-4",
+      "src": "/wiring/pd48-cvpot.jpg",
+      "kind": "full",
+      "packs": [
+        "club-car-ds-electric"
+      ],
+      "pdfPage": "354",
+      "bytes": 277171,
+      "width": 1316,
+      "height": 1703,
+      "landscape": false
+    },
+    {
+      "id": "pdplus-main",
+      "title": "PowerDrive Plus \u2014 regenerative / shunt wiring (Fig. 21-1)",
+      "manualRef": "1995\u201396 DS M&S, Figure 21-1, page 21-2",
+      "src": "/wiring/pdplus-main.jpg",
+      "kind": "full",
+      "packs": [
+        "club-car-ds-pdplus"
+      ],
+      "pdfPage": "394",
+      "bytes": 272892,
+      "width": 1316,
+      "height": 1703,
+      "landscape": false
+    },
+    {
+      "id": "pdplus-zplug",
+      "title": "PowerDrive Plus \u2014 Z-plug connection chart (Fig. 21-4)",
+      "manualRef": "1995\u201396 DS M&S, Figure 21-4, page 21-4",
+      "src": "/wiring/pdplus-zplug.jpg",
+      "kind": "pinout",
+      "packs": [
+        "club-car-ds-pdplus"
+      ],
+      "pdfPage": "396",
+      "bytes": 244925,
+      "width": 1316,
+      "height": 1703,
+      "landscape": false
+    },
+    {
+      "id": "dsgas-circuits",
+      "title": "DS gasoline \u2014 generator / starter circuit (Fig. 12-4)",
+      "manualRef": "1995\u201396 DS M&S, Section 12, page 12-4",
+      "src": "/wiring/dsgas-circuits.jpg",
+      "kind": "control",
+      "packs": [
+        "club-car-ds-gas",
+        "club-car-ds-fe290"
+      ],
+      "pdfPage": "140",
+      "bytes": 240524,
+      "width": 1316,
+      "height": 1703,
+      "landscape": false
+    },
+    {
+      "id": "dsgas-kill",
+      "title": "DS gasoline \u2014 ignition / kill circuit (Fig. 12-7)",
+      "manualRef": "1995\u201396 DS M&S, Section 12, page 12-5",
+      "src": "/wiring/dsgas-kill.jpg",
+      "kind": "control",
+      "packs": [
+        "club-car-ds-gas",
+        "club-car-ds-fe290"
+      ],
+      "pdfPage": "141",
+      "bytes": 263953,
+      "width": 1316,
+      "height": 1703,
+      "landscape": false
+    },
+    {
+      "id": "dsgas-oil",
+      "title": "DS gasoline \u2014 low oil warning circuit (Fig. 12-9)",
+      "manualRef": "1995\u201396 DS M&S, Section 12, page 12-6",
+      "src": "/wiring/dsgas-oil.jpg",
+      "kind": "control",
+      "packs": [
+        "club-car-ds-gas",
+        "club-car-ds-fe290"
+      ],
+      "pdfPage": "142",
+      "bytes": 279227,
+      "width": 1316,
+      "height": 1703,
+      "landscape": false
+    },
+    {
+      "id": "txt-electrical-1",
+      "title": "TXT 48 V \u2014 electrical system wiring (M-1)",
+      "manualRef": "48 V TXT Service Manual, Section M page M-1",
+      "src": "/wiring/txt-electrical-1.jpg",
+      "kind": "full",
+      "packs": [
+        "ezgo-txt-tct"
+      ],
+      "pdfPage": "133",
+      "bytes": 342806,
+      "width": 1316,
+      "height": 1703,
+      "landscape": false
+    },
+    {
+      "id": "txt-electrical-2",
+      "title": "TXT 48 V \u2014 electrical system wiring (M-2)",
+      "manualRef": "48 V TXT Service Manual, Section M page M-2",
+      "src": "/wiring/txt-electrical-2.jpg",
+      "kind": "harness",
+      "packs": [
+        "ezgo-txt-tct"
+      ],
+      "pdfPage": "134",
+      "bytes": 191753,
+      "width": 1316,
+      "height": 1703,
+      "landscape": false
+    },
+    {
+      "id": "txt-electrical-3",
+      "title": "TXT 48 V \u2014 electrical system wiring (M-3)",
+      "manualRef": "48 V TXT Service Manual, Section M page M-3",
+      "src": "/wiring/txt-electrical-3.jpg",
+      "kind": "harness",
+      "packs": [
+        "ezgo-txt-tct"
+      ],
+      "pdfPage": "135",
+      "bytes": 134622,
+      "width": 1316,
+      "height": 1703,
+      "landscape": false
+    },
+    {
+      "id": "txt-electrical-4",
+      "title": "TXT 48 V \u2014 electrical system wiring (M-4)",
+      "manualRef": "48 V TXT Service Manual, Section M page M-4",
+      "src": "/wiring/txt-electrical-4.jpg",
+      "kind": "full",
+      "packs": [
+        "ezgo-txt-tct"
+      ],
+      "pdfPage": "136",
+      "bytes": 312096,
+      "width": 1316,
+      "height": 1703,
+      "landscape": false
+    },
+    {
+      "id": "txt-tct-esc",
+      "title": "TXT TCT \u2014 electronic speed control wiring",
+      "manualRef": "48 V TXT Service Manual, Section E page E-6",
+      "src": "/wiring/txt-tct-esc.jpg",
+      "kind": "control",
+      "packs": [
+        "ezgo-txt-tct",
+        "ezgo-express-s4"
+      ],
+      "pdfPage": "46",
+      "bytes": 298842,
+      "width": 1316,
+      "height": 1703,
+      "landscape": false
+    },
+    {
+      "id": "rxv-k1",
+      "title": "RXV \u2014 electrical components & wiring (K-2)",
+      "manualRef": "RXV Electric Service Manual, Section K page K-2",
+      "src": "/wiring/rxv-k1.jpg",
+      "kind": "full",
+      "packs": [
+        "ezgo-rxv-ac"
+      ],
+      "pdfPage": "114",
+      "bytes": 382979,
+      "width": 1316,
+      "height": 1703,
+      "landscape": false
+    },
+    {
+      "id": "rxv-k2",
+      "title": "RXV \u2014 electrical components & wiring (K-7)",
+      "manualRef": "RXV Electric Service Manual, Section K page K-7",
+      "src": "/wiring/rxv-k2.jpg",
+      "kind": "harness",
+      "packs": [
+        "ezgo-rxv-ac"
+      ],
+      "pdfPage": "119",
+      "bytes": 344858,
+      "width": 1316,
+      "height": 1703,
+      "landscape": false
+    },
+    {
+      "id": "rxv-k3",
+      "title": "RXV \u2014 electrical components & wiring (K-10)",
+      "manualRef": "RXV Electric Service Manual, Section K page K-10",
+      "src": "/wiring/rxv-k3.jpg",
+      "kind": "control",
+      "packs": [
+        "ezgo-rxv-ac"
+      ],
+      "pdfPage": "122",
+      "bytes": 322758,
+      "width": 1316,
+      "height": 1703,
+      "landscape": false
+    },
+    {
+      "id": "rxv-k4",
+      "title": "RXV \u2014 electrical components & wiring (K-18)",
+      "manualRef": "RXV Electric Service Manual, Section K page K-18",
+      "src": "/wiring/rxv-k4.jpg",
+      "kind": "pinout",
+      "packs": [
+        "ezgo-rxv-ac"
+      ],
+      "pdfPage": "130",
+      "bytes": 359269,
+      "width": 1316,
+      "height": 1703,
+      "landscape": false
+    },
+    {
+      "id": "s4-electrical-1",
+      "title": "Express S4 \u2014 electrical system (sheet 1)",
+      "manualRef": "Express S4 High Output manual, Electrical System",
+      "src": "/wiring/s4-electrical-1.jpg",
+      "kind": "full",
+      "packs": [
+        "ezgo-express-s4"
+      ],
+      "pdfPage": "91",
+      "bytes": 318113,
+      "width": 1316,
+      "height": 1703,
+      "landscape": false
+    },
+    {
+      "id": "s4-electrical-2",
+      "title": "Express S4 \u2014 electrical system (sheet 2)",
+      "manualRef": "Express S4 High Output manual, Electrical System",
+      "src": "/wiring/s4-electrical-2.jpg",
+      "kind": "harness",
+      "packs": [
+        "ezgo-express-s4"
+      ],
+      "pdfPage": "92",
+      "bytes": 191771,
+      "width": 1316,
+      "height": 1703,
+      "landscape": false
+    },
+    {
+      "id": "s4-electrical-3",
+      "title": "Express S4 \u2014 electrical system (sheet 3)",
+      "manualRef": "Express S4 High Output manual, Electrical System",
+      "src": "/wiring/s4-electrical-3.jpg",
+      "kind": "control",
+      "packs": [
+        "ezgo-express-s4"
+      ],
+      "pdfPage": "93",
+      "bytes": 195469,
+      "width": 1316,
+      "height": 1703,
+      "landscape": false
+    },
+    {
+      "id": "s4-electrical-4",
+      "title": "Express S4 \u2014 electrical system (sheet 4)",
+      "manualRef": "Express S4 High Output manual, Electrical System",
+      "src": "/wiring/s4-electrical-4.jpg",
+      "kind": "pinout",
+      "packs": [
+        "ezgo-express-s4"
+      ],
+      "pdfPage": "94",
+      "bytes": 391454,
+      "width": 1316,
+      "height": 1703,
+      "landscape": false
+    },
+    {
+      "id": "ezgas-l2",
+      "title": "TXT gasoline \u2014 electrical (L-2)",
+      "manualRef": "EZ-GO Gas repair manual, Section L page L-2",
+      "src": "/wiring/ezgas-l2.jpg",
+      "kind": "full",
+      "packs": [
+        "ezgo-txt-gas"
+      ],
+      "pdfPage": "120",
+      "bytes": 140105,
+      "width": 1316,
+      "height": 1703,
+      "landscape": false
+    },
+    {
+      "id": "ezgas-l9",
+      "title": "TXT gasoline \u2014 electrical (L-9)",
+      "manualRef": "EZ-GO Gas repair manual, Section L page L-9",
+      "src": "/wiring/ezgas-l9.jpg",
+      "kind": "harness",
+      "packs": [
+        "ezgo-txt-gas"
+      ],
+      "pdfPage": "127",
+      "bytes": 369965,
+      "width": 1316,
+      "height": 1703,
+      "landscape": false
+    },
+    {
+      "id": "ezgas-l10",
+      "title": "TXT gasoline \u2014 electrical (L-10)",
+      "manualRef": "EZ-GO Gas repair manual, Section L page L-10",
+      "src": "/wiring/ezgas-l10.jpg",
+      "kind": "control",
+      "packs": [
+        "ezgo-txt-gas"
+      ],
+      "pdfPage": "128",
+      "bytes": 197610,
+      "width": 1316,
+      "height": 1703,
+      "landscape": false
+    },
+    {
+      "id": "ezgas-l11",
+      "title": "TXT gasoline \u2014 electrical (L-11)",
+      "manualRef": "EZ-GO Gas repair manual, Section L page L-11",
+      "src": "/wiring/ezgas-l11.jpg",
+      "kind": "pinout",
+      "packs": [
+        "ezgo-txt-gas"
+      ],
+      "pdfPage": "129",
+      "bytes": 180526,
+      "width": 1316,
+      "height": 1703,
+      "landscape": false
+    },
+    {
+      "id": "dcs-connector",
+      "title": "TXT DCS \u2014 ten-pin controller connector voltages",
+      "manualRef": "TXT 96\u201301 DCS Service Manual, Section E",
+      "src": "/wiring/dcs-connector.jpg",
+      "kind": "pinout",
+      "packs": [
+        "ezgo-txt-dcs"
+      ],
+      "pdfPage": "56",
+      "bytes": 456642,
+      "width": 1316,
+      "height": 1703,
+      "landscape": false
+    },
+    {
+      "id": "dcs-wiring",
+      "title": "TXT DCS \u2014 electronic speed control wiring",
+      "manualRef": "TXT 96\u201301 DCS Service Manual, Section E",
+      "src": "/wiring/dcs-wiring.jpg",
+      "kind": "full",
+      "packs": [
+        "ezgo-txt-dcs"
+      ],
+      "pdfPage": "64",
+      "bytes": 229461,
+      "width": 1316,
+      "height": 1703,
+      "landscape": false
+    },
+    {
+      "id": "pds36-1",
+      "title": "36 V PDS \u2014 electrical (scanned manual p. 98)",
+      "manualRef": "EZ-GO 36 V Technicians Repair Manual",
+      "src": "/wiring/pds36-1.jpg",
+      "kind": "full",
+      "packs": [
+        "ezgo-pds-36"
+      ],
+      "pdfPage": "98",
+      "bytes": 429381,
+      "width": 1316,
+      "height": 1703,
+      "landscape": false
+    },
+    {
+      "id": "pds36-2",
+      "title": "36 V PDS \u2014 motor / controller wiring (scanned p. 100)",
+      "manualRef": "EZ-GO 36 V Technicians Repair Manual",
+      "src": "/wiring/pds36-2.jpg",
+      "kind": "power",
+      "packs": [
+        "ezgo-pds-36"
+      ],
+      "pdfPage": "100",
+      "bytes": 363649,
+      "width": 1316,
+      "height": 1703,
+      "landscape": false
+    },
+    {
+      "id": "pds36-3",
+      "title": "36 V PDS \u2014 electrical (scanned manual p. 106)",
+      "manualRef": "EZ-GO 36 V Technicians Repair Manual",
+      "src": "/wiring/pds36-3.jpg",
+      "kind": "control",
+      "packs": [
+        "ezgo-pds-36"
+      ],
+      "pdfPage": "106",
+      "bytes": 432831,
+      "width": 1316,
+      "height": 1703,
+      "landscape": false
+    },
+    {
+      "id": "ydra-carb",
+      "title": "YDRA \u2014 wiring diagram, carburetor models",
+      "manualRef": "YDRA/E Service Manual, page 8-5",
+      "src": "/wiring/ydra-carb.jpg",
+      "kind": "full",
+      "packs": [
+        "yamaha-ydra"
+      ],
+      "pdfPage": "80",
+      "bytes": 168146,
+      "width": 1316,
+      "height": 1703,
+      "landscape": false
+    },
+    {
+      "id": "ydra-efi",
+      "title": "YDRA \u2014 wiring diagram, fuel injection models (sheet 1)",
+      "manualRef": "YDRA/E Service Manual, page 8-6",
+      "src": "/wiring/ydra-efi.jpg",
+      "kind": "full",
+      "packs": [
+        "yamaha-ydra"
+      ],
+      "pdfPage": "81",
+      "bytes": 142609,
+      "width": 1316,
+      "height": 1703,
+      "landscape": false
+    },
+    {
+      "id": "ydra-efi-2",
+      "title": "YDRA \u2014 wiring diagram, fuel injection models (sheet 2)",
+      "manualRef": "YDRA/E Service Manual, page 8-7",
+      "src": "/wiring/ydra-efi-2.jpg",
+      "kind": "harness",
+      "packs": [
+        "yamaha-ydra"
+      ],
+      "pdfPage": "82",
+      "bytes": 134750,
+      "width": 1316,
+      "height": 1703,
+      "landscape": false
+    },
+    {
+      "id": "ydre-dc-1",
+      "title": "YDRE DC \u2014 vehicle wiring diagram (sheet 1)",
+      "manualRef": "YDRA/E Service Manual, page 8-15",
+      "src": "/wiring/ydre-dc-1.jpg",
+      "kind": "full",
+      "packs": [
+        "yamaha-ydre-dc"
+      ],
+      "pdfPage": "90",
+      "bytes": 134294,
+      "width": 1316,
+      "height": 1703,
+      "landscape": false
+    },
+    {
+      "id": "ydre-dc-2",
+      "title": "YDRE DC \u2014 vehicle wiring diagram (sheet 2)",
+      "manualRef": "YDRA/E Service Manual, page 8-16",
+      "src": "/wiring/ydre-dc-2.jpg",
+      "kind": "harness",
+      "packs": [
+        "yamaha-ydre-dc"
+      ],
+      "pdfPage": "91",
+      "bytes": 144739,
+      "width": 1316,
+      "height": 1703,
+      "landscape": false
+    },
+    {
+      "id": "ydre-dc-mcu",
+      "title": "YDRE DC \u2014 main controller wiring diagram",
+      "manualRef": "YDRA/E Service Manual, page 8-20",
+      "src": "/wiring/ydre-dc-mcu.jpg",
+      "kind": "control",
+      "packs": [
+        "yamaha-ydre-dc"
+      ],
+      "pdfPage": "95",
+      "bytes": 131703,
+      "width": 1316,
+      "height": 1703,
+      "landscape": false
+    },
+    {
+      "id": "ydre-ac-1",
+      "title": "YDRE AC \u2014 vehicle wiring diagram",
+      "manualRef": "YDRA/E Service Manual, page 8-17",
+      "src": "/wiring/ydre-ac-1.jpg",
+      "kind": "full",
+      "packs": [
+        "yamaha-ydre-ac"
+      ],
+      "pdfPage": "92",
+      "bytes": 129552,
+      "width": 1316,
+      "height": 1703,
+      "landscape": false
+    },
+    {
+      "id": "ydre-ac-mcu-1",
+      "title": "YDRE AC \u2014 main controller wiring (sheet 1)",
+      "manualRef": "YDRA/E Service Manual, page 8-18",
+      "src": "/wiring/ydre-ac-mcu-1.jpg",
+      "kind": "control",
+      "packs": [
+        "yamaha-ydre-ac"
+      ],
+      "pdfPage": "93",
+      "bytes": 153781,
+      "width": 1316,
+      "height": 1703,
+      "landscape": false
+    },
+    {
+      "id": "ydre-ac-mcu-2",
+      "title": "YDRE AC \u2014 main controller wiring (sheet 2)",
+      "manualRef": "YDRA/E Service Manual, page 8-19",
+      "src": "/wiring/ydre-ac-mcu-2.jpg",
+      "kind": "pinout",
+      "packs": [
+        "yamaha-ydre-ac"
+      ],
+      "pdfPage": "94",
+      "bytes": 158007,
+      "width": 1316,
+      "height": 1703,
+      "landscape": false
+    },
+    {
+      "id": "prec19-e-main",
+      "title": "2019 Precedent electric \u2014 main harness",
+      "manualRef": "Club Car Precedent M&S, \u00a726 Electric: Main Harness",
+      "src": "/wiring/prec19-e-main.jpg",
+      "kind": "full",
+      "packs": [
+        "club-car-precedent-eric",
+        "club-car-tempo-eric"
+      ],
+      "pdfPage": "569",
+      "bytes": 140626,
+      "width": 1703,
+      "height": 1316,
+      "landscape": true
+    },
+    {
+      "id": "prec19-g-main",
+      "title": "2019 Precedent gasoline \u2014 main harness",
+      "manualRef": "Club Car Precedent M&S, \u00a726 Gasoline: Main Harness",
+      "src": "/wiring/prec19-g-main.jpg",
+      "kind": "full",
+      "packs": [
+        "club-car-precedent-gas",
+        "club-car-villager-gas"
+      ],
+      "pdfPage": "563",
+      "bytes": 165156,
+      "width": 1703,
+      "height": 1316,
+      "landscape": true
+    }
+  ],
+  "byPack": {
+    "club-car-precedent-iq": [
+      "iq-main",
+      "iq-accessories",
+      "iq-sonic"
+    ],
+    "club-car-ds-iq": [
+      "iq-main",
+      "iq-accessories",
+      "iq-sonic"
+    ],
+    "club-car-precedent-excel": [
+      "excel-main",
+      "excel-accessories",
+      "excel-sonic"
+    ],
+    "club-car-villager-iqplus": [
+      "excel-main",
+      "excel-accessories",
+      "excel-sonic"
+    ],
+    "club-car-precedent-eric": [
+      "eric-main",
+      "eric-instrument",
+      "eric-batteries",
+      "eric-lights",
+      "prec19-e-main"
+    ],
+    "club-car-tempo-eric": [
+      "eric-main",
+      "eric-instrument",
+      "eric-batteries",
+      "eric-lights",
+      "tempo-battery",
+      "tempo-e-main",
+      "tempo-e-4p",
+      "prec19-e-main"
+    ],
+    "club-car-tempo-gas": [
+      "tempo-kohler-engine",
+      "tempo-kohler-main",
+      "tempo-kohler-dash"
+    ],
+    "club-car-precedent-gas": [
+      "tempo-ex40-main",
+      "tempo-ex40-dash",
+      "tempo-ex40-engine",
+      "ex40-main",
+      "ex40-alt",
+      "fe350-main",
+      "fe350-accessories",
+      "prec19-g-main"
+    ],
+    "club-car-villager-gas": [
+      "ex40-main",
+      "ex40-alt",
+      "fe350-main",
+      "fe350-accessories",
+      "prec19-g-main"
+    ],
+    "club-car-ds-gas": [
+      "fe350-main",
+      "fe350-accessories",
+      "dsgas-circuits",
+      "dsgas-kill",
+      "dsgas-oil"
+    ],
+    "club-car-ds-fe290": [
+      "fe350-main",
+      "fe350-accessories",
+      "dsgas-circuits",
+      "dsgas-kill",
+      "dsgas-oil"
+    ],
+    "club-car-ds-vglide": [
+      "vglide-schematic",
+      "vglide-control",
+      "vglide-power"
+    ],
+    "club-car-ds-electric": [
+      "pd48-multistep",
+      "pd48-cvpot"
+    ],
+    "club-car-ds-pdplus": [
+      "pdplus-main",
+      "pdplus-zplug"
+    ],
+    "ezgo-txt-tct": [
+      "txt-electrical-1",
+      "txt-electrical-2",
+      "txt-electrical-3",
+      "txt-electrical-4",
+      "txt-tct-esc"
+    ],
+    "ezgo-express-s4": [
+      "txt-tct-esc",
+      "s4-electrical-1",
+      "s4-electrical-2",
+      "s4-electrical-3",
+      "s4-electrical-4"
+    ],
+    "ezgo-rxv-ac": [
+      "rxv-k1",
+      "rxv-k2",
+      "rxv-k3",
+      "rxv-k4"
+    ],
+    "ezgo-txt-gas": [
+      "ezgas-l2",
+      "ezgas-l9",
+      "ezgas-l10",
+      "ezgas-l11"
+    ],
+    "ezgo-txt-dcs": [
+      "dcs-connector",
+      "dcs-wiring"
+    ],
+    "ezgo-pds-36": [
+      "pds36-1",
+      "pds36-2",
+      "pds36-3"
+    ],
+    "yamaha-ydra": [
+      "ydra-carb",
+      "ydra-efi",
+      "ydra-efi-2"
+    ],
+    "yamaha-ydre-dc": [
+      "ydre-dc-1",
+      "ydre-dc-2",
+      "ydre-dc-mcu"
+    ],
+    "yamaha-ydre-ac": [
+      "ydre-ac-1",
+      "ydre-ac-mcu-1",
+      "ydre-ac-mcu-2"
+    ]
+  },
+  "errors": []
+}

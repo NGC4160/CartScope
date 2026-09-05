@@ -1,0 +1,135 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "IBM Plex Sans", "Segoe UI", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "IBM Plex Sans Condensed", "IBM Plex Sans", "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  --color-paper: #f3efe4;
+  --color-paper-sunken: #e7e1d2;
+  --color-surface: #fffdf8;
+  --color-surface-2: #f7f3ea;
+  --color-ink: #1a1916;
+  --color-ink-muted: #5c584e;
+  --color-ink-subtle: #8a8578;
+  --color-line: #d4cec0;
+  --color-line-strong: #b7b09e;
+  --color-navy: #1e3a5f;
+  --color-navy-fg: #f4f0e6;
+  --color-navy-deep: #152a46;
+  --color-power: #b42318;
+  --color-control: #185fa5;
+  --color-ground: #1f6b3a;
+  --color-warn: #8a5a00;
+  --color-warn-bg: #f8e6b8;
+  --color-ok: #1b6b38;
+  --color-ok-bg: #d8efe0;
+  --color-danger: #9b1c1c;
+  --color-danger-bg: #f8d4d0;
+  --color-focus: #1e3a5f;
+
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --radius-xl: 24px;
+
+  --shadow-border:
+    0px 0px 0px 1px rgba(26, 25, 22, 0.08),
+    0px 1px 2px -1px rgba(26, 25, 22, 0.06),
+    0px 2px 6px 0px rgba(26, 25, 22, 0.04);
+  --shadow-border-hover:
+    0px 0px 0px 1px rgba(26, 25, 22, 0.12),
+    0px 1px 2px -1px rgba(26, 25, 22, 0.08),
+    0px 4px 10px 0px rgba(26, 25, 22, 0.06);
+}
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background: var(--color-paper);
+    color: var(--color-ink);
+  }
+
+  body {
+    margin: 0;
+    min-height: 100dvh;
+    background: var(--color-paper);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+  }
+
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+    font-family: var(--font-display);
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-navy);
+    outline-offset: 2px;
+  }
+
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@media print {
+  html,
+  body {
+    background: white !important;
+    color: black !important;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  .print-only {
+    display: block !important;
+  }
+
+  svg {
+    width: 100% !important;
+    height: auto !important;
+    max-height: 7.4in;
+  }
+
+  img.wiring-print {
+    width: 100% !important;
+    max-height: 9.2in;
+    object-fit: contain;
+  }
+
+  @page {
+    size: letter landscape;
+    margin: 0.45in;
+  }
+}
+
+.print-only {
+  display: none;
+}
