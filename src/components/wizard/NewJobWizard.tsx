@@ -25,7 +25,6 @@ export function NewJobWizard({ onCancel }: { onCancel?: () => void }) {
   const [batteryType, setBatteryType] = useState<BatteryType | "">("");
   const [complaintNote, setComplaintNote] = useState("");
   const [fuelNote, setFuelNote] = useState("");
-  const [headerAttempted, setHeaderAttempted] = useState(false);
 
   const models = useMemo(() => (mfg ? packsFor(mfg) : []), [mfg]);
   const electric = models.filter((p) => p.powertrain === "electric");
@@ -42,11 +41,7 @@ export function NewJobWizard({ onCancel }: { onCancel?: () => void }) {
   const headerMessage = jobHeaderSummary(gaps);
 
   function start() {
-    if (!model || !symptomId) return;
-    if (!headerReady) {
-      setHeaderAttempted(true);
-      return;
-    }
+    if (!model || !symptomId || !headerReady) return;
     const symptom = getSymptom(model, symptomId);
     if (!symptom) return;
     const job = createJob({
@@ -187,9 +182,9 @@ export function NewJobWizard({ onCancel }: { onCancel?: () => void }) {
                 onChange={(e) => setLastName(e.target.value)}
                 className={inputClass}
                 aria-label="Customer last name"
-                aria-invalid={headerAttempted && gaps.includes("lastName")}
+                aria-invalid={gaps.includes("lastName")}
               />
-              {headerAttempted && gaps.includes("lastName") ? (
+              {gaps.includes("lastName") ? (
                 <span className="mt-1 block text-sm text-danger">{JOB_HEADER_MESSAGES.lastName}</span>
               ) : null}
             </Field>
@@ -199,9 +194,9 @@ export function NewJobWizard({ onCancel }: { onCancel?: () => void }) {
                 onChange={(e) => setHcp(e.target.value)}
                 className={inputClass}
                 aria-label="Housecall Pro job number"
-                aria-invalid={headerAttempted && gaps.includes("hcpJobNumber")}
+                aria-invalid={gaps.includes("hcpJobNumber")}
               />
-              {headerAttempted && gaps.includes("hcpJobNumber") ? (
+              {gaps.includes("hcpJobNumber") ? (
                 <span className="mt-1 block text-sm text-danger">{JOB_HEADER_MESSAGES.hcpJobNumber}</span>
               ) : null}
             </Field>
@@ -235,7 +230,7 @@ export function NewJobWizard({ onCancel }: { onCancel?: () => void }) {
                     </button>
                   ))}
                 </div>
-                {headerAttempted && gaps.includes("batteryType") ? (
+                {gaps.includes("batteryType") ? (
                   <p className="mt-2 text-sm text-danger">{JOB_HEADER_MESSAGES.batteryType}</p>
                 ) : null}
               </div>
@@ -262,7 +257,7 @@ export function NewJobWizard({ onCancel }: { onCancel?: () => void }) {
             </Field>
           </div>
           <p className="mt-2 text-xs text-ink-subtle">{model.years}</p>
-          {headerAttempted && headerMessage ? (
+          {headerMessage ? (
             <p className="mt-3 text-sm text-danger" role="alert">
               {headerMessage}
             </p>
@@ -277,7 +272,7 @@ export function NewJobWizard({ onCancel }: { onCancel?: () => void }) {
                 Cancel
               </Button>
             ) : null}
-            <Button className="ml-auto min-w-44" onClick={start}>
+            <Button className="ml-auto min-w-44" disabled={!headerReady} onClick={start}>
               Start checks
               <ChevronRight className="size-4" />
             </Button>
