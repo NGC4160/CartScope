@@ -11,7 +11,7 @@ export const yamahaYdra = buildGas({
   diagramTitle: "Starting and spark picture — Yamaha YDRA",
   diagramNotes: [
     "YDRA is the gas Drive / G29. YDRE (battery) is a different electric pack. Do not use this tree on a 48 V YDRE.",
-    "Chapter 9 gas troubleshooting: battery and fuse, main switch, starter click switch (solenoid), spark, carburetor.",
+    "Chapter 9 gas troubleshooting: battery and fuse, main switch, starter solenoid, spark, carburetor.",
     "Yamaha TCI kill must be open to ground. Reverse buzzer and shift switch are not in the start path on YDRA.",
   ],
   engineName: "YDRA gasoline engine",

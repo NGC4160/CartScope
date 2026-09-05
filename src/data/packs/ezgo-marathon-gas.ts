@@ -11,7 +11,7 @@ export const ezgoMarathonGas = buildGas({
   diagramTitle: "Starting and spark picture — Marathon / GX-444 4-cycle",
   diagramNotes: [
     "1991–1996 4-cycle family. Not a TXT and not a 2-cycle Marathon. Use this tree only on the 4-cycle engine.",
-    "Will-not-start: battery, ignition switch, click switch (solenoid), starter-generator, spark, carburetor — in that order.",
+    "Will-not-start: battery, ignition switch, solenoid, starter-generator, spark, carburetor — in that order.",
     "Governor changes above factory 12–15 mph cancel the warranty.",
   ],
   engineName: "Marathon / GX-444 4-cycle engine",

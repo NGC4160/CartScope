@@ -1,7 +1,8 @@
 import { useMemo, useState } from "react";
 import { AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Field, inputClass } from "@/components/case/fields";
+import { InFlowGuidance } from "@/components/case/InFlowGuidance";
+import { Field, inputClass, VoltageInput } from "@/components/case/fields";
 import type { JobRecord, ModelPack, PackCheckRecord, PackCellReading } from "@/data/types";
 import { packLayout, scaledLeadAcidLimits } from "@/lib/pack-layout";
 import {
@@ -219,12 +220,12 @@ export function PackGate({ job, pack }: { job: JobRecord; pack: ModelPack }) {
               not use the lead-acid shop voltage rules on this pack. Lead-acid internal resistance is not applicable.
             </div>
             <Field label="Monitor or battery-management pack voltage">
-              <input
-                inputMode="decimal"
+              <VoltageInput
                 value={monitorV}
-                onChange={(e) => setMonitorV(e.target.value)}
+                onChange={setMonitorV}
                 className={inputClass}
                 placeholder="48.2"
+                aria-label="Monitor pack voltage"
               />
             </Field>
             <Field label="Lowest cell (if shown)">
@@ -267,16 +268,16 @@ export function PackGate({ job, pack }: { job: JobRecord; pack: ModelPack }) {
             ) : null}
             <div className="grid gap-3">
               {cells.map((c, i) => (
-                <div key={i} className="rounded-md border border-line p-3">
+                <div key={`battery-${i}`} className="rounded-md border border-line p-3">
                   <p className="mb-2 font-medium text-ink">Battery {i + 1}</p>
                   <div className="grid gap-2 sm:grid-cols-3">
                     <Field label={`Battery ${i + 1} resting volts`}>
-                      <input
-                        inputMode="decimal"
+                      <VoltageInput
                         value={c.volts}
-                        onChange={(e) => patchCell(i, { volts: e.target.value })}
+                        onChange={(next) => patchCell(i, { volts: next })}
                         className={inputClass + " font-mono"}
                         placeholder={String(lim.chargeTarget)}
+                        aria-label={`Battery ${i + 1} resting volts`}
                       />
                     </Field>
                     <Field
@@ -321,12 +322,12 @@ export function PackGate({ job, pack }: { job: JobRecord; pack: ModelPack }) {
               label="Short load drop percent (optional)"
               hint="Wheels up. Pack should not drop more than about 5 percent."
             >
-              <input
-                inputMode="decimal"
+              <VoltageInput
                 value={loadDrop}
-                onChange={(e) => setLoadDrop(e.target.value)}
+                onChange={setLoadDrop}
                 className={inputClass + " font-mono"}
                 placeholder="3.2"
+                aria-label="Short load drop percent"
               />
             </Field>
           </div>
@@ -382,6 +383,8 @@ export function PackGate({ job, pack }: { job: JobRecord; pack: ModelPack }) {
         ) : null}
 
         {error ? <p className="mt-3 text-sm text-danger">{error}</p> : null}
+
+        <InFlowGuidance job={job} pack={pack} phaseLabel="Pack check" />
 
         <div className="mt-5 flex flex-wrap gap-2">
           {lithium || evalr.pass || numericCells.length < layout.count ? (

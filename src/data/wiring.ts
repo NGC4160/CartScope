@@ -260,7 +260,7 @@ export const WIRING_SHEETS: WiringSheet[] = [
   },
   {
     id: "pdplus-zplug",
-    title: "PowerDrive Plus — speed-box plug pins (Fig. 21-4)",
+    title: "PowerDrive Plus — controller plug pins (Fig. 21-4)",
     manualRef: "1995–96 DS M&S, Figure 21-4, page 21-4",
     src: "/wiring/pdplus-zplug.jpg",
     kind: "pinout",
@@ -324,7 +324,7 @@ export const WIRING_SHEETS: WiringSheet[] = [
   },
   {
     id: "txt-tct-esc",
-    title: "TXT TCT — speed-box wires",
+    title: "TXT TCT — controller wires",
     manualRef: "48 V TXT Service Manual, Section E page E-6",
     src: "/wiring/txt-tct-esc.jpg",
     kind: "control",
@@ -428,7 +428,7 @@ export const WIRING_SHEETS: WiringSheet[] = [
   },
   {
     id: "dcs-connector",
-    title: "TXT DCS — speed-box 10-pin power numbers",
+    title: "TXT DCS — controller 10-pin power numbers",
     manualRef: "TXT 96–01 DCS Service Manual, Section E",
     src: "/wiring/dcs-connector.jpg",
     kind: "pinout",
@@ -436,7 +436,7 @@ export const WIRING_SHEETS: WiringSheet[] = [
   },
   {
     id: "dcs-wiring",
-    title: "TXT DCS — speed-box wires",
+    title: "TXT DCS — controller wires",
     manualRef: "TXT 96–01 DCS Service Manual, Section E",
     src: "/wiring/dcs-wiring.jpg",
     kind: "full",
@@ -452,7 +452,7 @@ export const WIRING_SHEETS: WiringSheet[] = [
   },
   {
     id: "pds36-2",
-    title: "36 V PDS — click-switch wires (I-3)",
+    title: "36 V PDS — solenoid wires (I-3)",
     manualRef: "EZ-GO 36 V Technicians Repair Manual, Electrical System I-3",
     src: "/wiring/pds36-2.jpg",
     kind: "control",
@@ -468,7 +468,7 @@ export const WIRING_SHEETS: WiringSheet[] = [
   },
   {
     id: "pds36-4",
-    title: "36 V PDS — speed-box wires (I-15)",
+    title: "36 V PDS — controller wires (I-15)",
     manualRef: "EZ-GO 36 V Technicians Repair Manual, Electrical System I-15",
     src: "/wiring/pds36-4.jpg",
     kind: "full",
@@ -532,7 +532,7 @@ export const WIRING_SHEETS: WiringSheet[] = [
   },
   {
     id: "ydre-dc-mcu",
-    title: "YDRE DC — speed-box wire map",
+    title: "YDRE DC — controller wire map",
     manualRef: "YDRA/E Service Manual, page 8-20",
     src: "/wiring/ydre-dc-mcu.jpg",
     kind: "control",
@@ -548,7 +548,7 @@ export const WIRING_SHEETS: WiringSheet[] = [
   },
   {
     id: "ydre-ac-mcu-1",
-    title: "YDRE AC — speed-box wires (sheet 1)",
+    title: "YDRE AC — controller wires (sheet 1)",
     manualRef: "YDRA/E Service Manual, page 8-18",
     src: "/wiring/ydre-ac-mcu-1.jpg",
     kind: "control",
@@ -556,7 +556,7 @@ export const WIRING_SHEETS: WiringSheet[] = [
   },
   {
     id: "ydre-ac-mcu-2",
-    title: "YDRE AC — speed-box wires (sheet 2)",
+    title: "YDRE AC — controller wires (sheet 2)",
     manualRef: "YDRA/E Service Manual, page 8-19",
     src: "/wiring/ydre-ac-mcu-2.jpg",
     kind: "pinout",
@@ -588,7 +588,7 @@ export const WIRING_SHEETS: WiringSheet[] = [
   },
   {
     id: "marathon-solenoid",
-    title: "Marathon 4-cycle — click-switch and resistor wires (I-39)",
+    title: "Marathon 4-cycle — solenoid and resistor wires (I-39)",
     manualRef: "EZ-GO Marathon 4-cycle 1991–96, Electrical System I-39",
     src: "/wiring/marathon-solenoid.jpg",
     kind: "full",
@@ -596,7 +596,7 @@ export const WIRING_SHEETS: WiringSheet[] = [
   },
   {
     id: "marathon-solenoid-2",
-    title: "Marathon 4-cycle — click-switch wires (I-44)",
+    title: "Marathon 4-cycle — solenoid wires (I-44)",
     manualRef: "EZ-GO Marathon 4-cycle 1991–96, Electrical System I-44",
     src: "/wiring/marathon-solenoid-2.jpg",
     kind: "control",

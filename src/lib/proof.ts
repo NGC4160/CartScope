@@ -13,7 +13,7 @@ export interface Proof {
 }
 
 const CONTROLLER_HINT =
-  /speed box|controller|inverter|mcu|1206|iq speed|power box/i;
+  /speed box|speedbox|controller|inverter|mcu|1206|iq speed|power box/i;
 
 export function evaluateProof(job: JobRecord, pack: ModelPack): Proof {
   const conflicts: string[] = [];
@@ -42,7 +42,7 @@ export function evaluateProof(job: JobRecord, pack: ModelPack): Proof {
 
   if (packStatus === "fail" && blamesController) {
     conflicts.push(
-      "The pack failed the shop battery rules. Do not blame the speed box (controller) until the pack is charged or fixed, or you continue on a known-good test battery and write that note.",
+      "The pack failed the shop battery rules. Do not blame the controller until the pack is charged or fixed, or you continue on a known-good test battery and write that note.",
     );
   }
 
@@ -107,7 +107,7 @@ function nextHintFor(
     return "Block the wheels. Measure each battery at rest. Then measure internal resistance with the IR meter. Write month and year from each date code. Do not invent a reading or an age.";
   }
   if (job.casePhase === "codes") {
-    return "Connect the handheld. Save a program file before you clear. Present codes and history codes live in that program file. If you did not use the logger, check that box. Write fault counters and odometer if the screen shows them. Do not replace a speed box from counters alone.";
+    return "Connect the handheld. Save a program file before you clear. Present codes and history codes live in that program file. If you did not use the logger, check that box. Write fault counters and odometer if the screen shows them. Do not replace a controller from counters alone.";
   }
   const step = pack.steps[job.currentStepId];
   if (step) {

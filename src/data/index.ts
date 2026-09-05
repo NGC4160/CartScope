@@ -1,4 +1,5 @@
 import type { ManufacturerId, ModelPack, Powertrain } from "@/data/types";
+import { applyShopTermsToPack } from "@/data/shop-terms";
 import { clubCarDsElectric } from "@/data/packs/club-car-ds-electric";
 import { clubCarDsFe290 } from "@/data/packs/club-car-ds-fe290";
 import { clubCarDsGas } from "@/data/packs/club-car-ds-gas";
@@ -49,7 +50,7 @@ export const MODEL_PACKS: ModelPack[] = [
   yamahaYdra,
   yamahaG29,
   yamahaYdreAc,
-];
+].map((p) => applyShopTermsToPack(p));
 
 export const MANUFACTURERS: { id: ManufacturerId; label: string; blurb: string }[] = [
   {

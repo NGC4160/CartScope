@@ -131,7 +131,7 @@ export function buildBrainCase(job: JobRecord, pack: ModelPack, proof: Proof): B
       });
       rows.push({
         test: "Fault counters / odometer / fault odometer",
-        setup: "As shown on the handheld. Do not invent numbers. Do not replace a speed box from counters alone.",
+        setup: "As shown on the handheld. Do not invent numbers. Do not replace a controller from counters alone.",
         result: `counters ${R(hh.counters)} · odometer ${R(hh.odometer)} · fault odometer ${R(hh.faultOdometer)}`,
       });
     }

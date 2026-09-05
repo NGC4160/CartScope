@@ -11,15 +11,15 @@ export const clubCarTempoEric = buildClubCarIq({
     "Tempo is the cart after Precedent. Electric Tempo, Tempo Connect, and Tempo 2+2 share the ERIC Excel power and control tree.",
     "The Tow/Run switch is in the battery negative path. Turn it to Tow before you take battery cables off. Never tow a Tempo electric in Run.",
     "Gas Tempo (Kohler ECH440 EFI) is a different pack. Do not use this electric tree on a gas Tempo.",
-    "Factory values: click-switch coil 180–190 Ω, MCOR 0.32–4.65 V / 5.67–7.43 kΩ, pack 48–50 V ready window.",
+    "Factory values: solenoid coil 180–190 Ω, MCOR 0.32–4.65 V / 5.67–7.43 kΩ, pack 48–50 V ready window.",
   ],
-  controllerName: "Tempo ERIC speed box (controller)",
+  controllerName: "Tempo ERIC controller",
   controllerDesc:
-    "This is the Excel-family speed box on Tempo electric, Tempo Connect, and Tempo 2+2. ERIC charging and drive safety lock are built in. It uses the same MCOR / solenoid / 16-pin path as 2015–2019 Precedent ERIC. Tow/Run is still in the battery negative path. Never tow a Tempo electric in Run.",
+    "This is the Excel-family controller on Tempo electric, Tempo Connect, and Tempo 2+2. ERIC charging and drive safety lock are built in. It uses the same MCOR / solenoid / 16-pin path as 2015–2019 Precedent ERIC. Tow/Run is still in the battery negative path. Never tow a Tempo electric in Run.",
   computerName: "ERIC charge module",
   computerKind: "charger",
   computerDesc:
-    "This is the ERIC module on Tempo electric. Cord-in safety lock is the first no-power check. Connect-capable Tempo still uses this charge path. The connect system will not click a big click switch that ERIC has locked.",
+    "This is the ERIC module on Tempo electric. Cord-in safety lock is the first no-power check. Connect-capable Tempo still uses this charge path. The connect system will not click a solenoid that ERIC has locked.",
   computerFailures: [
     "ERIC safety lock with the cord latched",
     "Failed charger talk / no charge",

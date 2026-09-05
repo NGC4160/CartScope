@@ -59,6 +59,7 @@ interface JobState {
   appendAiTurn: (jobId: string, turn: Omit<AiTurn, "at"> & { at?: string }) => void;
   setIncludeAiInReport: (jobId: string, include: boolean) => void;
   confirmReport: (jobId: string) => void;
+  jumpToStep: (jobId: string, stepId: string, reason: string) => void;
 }
 
 function touch(job: JobRecord, patch: Partial<JobRecord>): JobRecord {
@@ -309,6 +310,32 @@ export const useJobStore = create<JobState>()(
                   reportConfirmed: true,
                   status: "complete",
                   casePhase: "report",
+                })
+              : j,
+          ),
+        });
+      },
+      jumpToStep: (jobId, stepId, reason) => {
+        const job = get().jobs.find((j) => j.id === jobId);
+        if (!job) return;
+        const pack = getPack(job.modelId);
+        if (!pack?.steps[stepId]) return;
+        set({
+          jobs: get().jobs.map((j) =>
+            j.id === jobId
+                ? touch(j, {
+                  currentStepId: stepId,
+                  casePhase: j.casePhase === "report" ? "steps" : j.casePhase,
+                  pending: undefined,
+                  pathRedirects: [
+                    ...(j.pathRedirects ?? []),
+                    {
+                      at: new Date().toISOString(),
+                      fromStepId: j.currentStepId,
+                      toStepId: stepId,
+                      reason,
+                    },
+                  ],
                 })
               : j,
           ),

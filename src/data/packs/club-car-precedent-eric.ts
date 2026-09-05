@@ -10,12 +10,12 @@ export const clubCarPrecedentEric = buildClubCarIq({
   diagramNotes: [
     "2015+ Precedent electric uses ERIC charging. ERIC stands for Efficient Reliable Intelligent Charging. It replaces the older PowerDrive cart computer charge path.",
     "The Tow/Run switch is in the battery negative path. Turn it to Tow before you take battery cables off.",
-    "The big click switch (solenoid) is the main power switch. It sends big power to the motor. Drive lockout with the charger plugged in is still the first check. Do not test a dead cart with the ERIC cord latched.",
+    "The solenoid is the main power switch. It sends big power to the motor. Drive lockout with the charger plugged in is still the first check. Do not test a dead cart with the ERIC cord latched.",
     "MCOR (gas pedal sensor) and solenoid coil numbers match IQ/Excel: 180–190 Ω coil, MCOR 0.32–4.65 V / 5.67–7.43 kΩ.",
   ],
-  controllerName: "Excel / ERIC speed box (controller)",
+  controllerName: "Excel / ERIC controller",
   controllerDesc:
-    "This is the Excel-family electric speed box used with ERIC charging on 2015–2019 Precedent. It uses the same MCOR and solenoid path as earlier Excel. ERIC charger talk replaces the older PowerDrive cart computer talk. Heat cutback still starts above 85 °C on the heat sink.",
+    "This is the Excel-family electric controller used with ERIC charging on 2015–2019 Precedent. It uses the same MCOR and solenoid path as earlier Excel. ERIC charger talk replaces the older PowerDrive cart computer talk. Heat cutback still starts above 85 °C on the heat sink.",
   computerName: "ERIC charge module",
   computerKind: "charger",
   computerDesc:
@@ -27,7 +27,7 @@ export const clubCarPrecedentEric = buildClubCarIq({
   ],
   throttleName: "MCOR (gas pedal sensor)",
   throttleDesc:
-    "The MCOR is the gas pedal sensor on the pedal box. Same factory windows as IQ/Excel: yellow 0.32 V pedal up, 4.65 V full. Yellow to purple 1 kΩ up, 5.67–7.43 kΩ full. The limit switch must close so the big click switch can turn on.",
+    "The MCOR is the gas pedal sensor on the pedal box. Same factory windows as IQ/Excel: yellow 0.32 V pedal up, 4.65 V full. Yellow to purple 1 kΩ up, 5.67–7.43 kΩ full. The limit switch must close so the solenoid can turn on.",
   manualPrefix: "2015 Precedent M&S Electric (105157201) electrical troubleshooting",
   packCells: "Six 8 V batteries in a row (48 V total)",
   lockoutNote: "ERIC drive safety lock is on whenever the charger cord is latched. Unplug and wait 30 seconds.",

@@ -192,6 +192,20 @@ export function CaseReport({
           </section>
         ) : null}
 
+        {job.pathRedirects?.length ? (
+          <section className="mt-6 border border-line p-4">
+            <h2 className="font-display text-lg font-semibold">Path changes from what the tech saw</h2>
+            <ul className="mt-2 list-disc space-y-1 pl-5 text-sm">
+              {job.pathRedirects.map((r, i) => (
+                <li key={`${r.at}-${i}`}>
+                  {r.fromStepId} → {r.toStepId}
+                  {r.reason ? ` — ${r.reason}` : ""}
+                </li>
+              ))}
+            </ul>
+          </section>
+        ) : null}
+
         <h2 className="mt-6 font-display text-lg font-semibold">Checks</h2>
         <table className="mt-2 w-full border-collapse text-left text-sm">
           <thead>
