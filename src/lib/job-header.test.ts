@@ -25,3 +25,25 @@ test("gas cart does not require battery type", () => {
   assert.deepEqual(gaps, []);
   assert.equal(jobHeaderSummary(gaps), null);
 });
+
+test("empty gas header lists last name and job number only", () => {
+  const gaps = jobHeaderGaps({
+    lastName: "",
+    hcpJobNumber: "",
+    powertrain: "gasoline",
+    batteryType: "",
+  });
+  assert.deepEqual(gaps, ["lastName", "hcpJobNumber"]);
+  assert.doesNotMatch(jobHeaderSummary(gaps) ?? "", /battery type/);
+});
+
+test("filled electric header has no gaps", () => {
+  const gaps = jobHeaderGaps({
+    lastName: "Smith",
+    hcpJobNumber: "17411",
+    powertrain: "electric",
+    batteryType: "lead-acid",
+  });
+  assert.deepEqual(gaps, []);
+  assert.equal(jobHeaderSummary(gaps), null);
+});
