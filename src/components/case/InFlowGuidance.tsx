@@ -24,7 +24,11 @@ export function InFlowGuidance({
   const setInclude = useJobStore((s) => s.setIncludeAiInReport);
   const propose = useManualStore((s) => s.propose);
   const setStatus = useManualStore((s) => s.setStatus);
-  const candidates = useManualStore((s) => s.candidates.filter((c) => c.packId === pack.id));
+  const allCandidates = useManualStore((s) => s.candidates);
+  const candidates = useMemo(
+    () => allCandidates.filter((c) => c.packId === pack.id),
+    [allCandidates, pack.id],
+  );
 
   const proof = evaluateProof(job, pack);
   const coverage = useMemo(() => manualsOnFile(pack, sheetsForPack(pack.id)), [pack]);
