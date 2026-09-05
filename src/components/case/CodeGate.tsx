@@ -1,13 +1,14 @@
 import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Field, inputClass } from "@/components/case/fields";
-import type { JobRecord } from "@/data/types";
+import { InFlowGuidance } from "@/components/case/InFlowGuidance";
+import type { JobRecord, ModelPack } from "@/data/types";
 import { suggestedHandheldName } from "@/lib/handheld";
 import { useJobStore } from "@/store/jobs";
 
 type CounterRow = { fault: string; count: string };
 
-export function CodeGate({ job }: { job: JobRecord }) {
+export function CodeGate({ job, pack }: { job: JobRecord; pack: ModelPack }) {
   const save = useJobStore((s) => s.saveCodeSave);
   const prior = job.codeSave;
   const suggestProgram = useMemo(() => suggestedHandheldName(job, "Program"), [job.id, job.lastName, job.hcpJobNumber, job.createdAt]);
@@ -51,7 +52,7 @@ export function CodeGate({ job }: { job: JobRecord }) {
       setError(
         noConnect
           ? "Write a short reason that the handheld could not connect or could not save."
-          : "Save a program file name, present codes, and history codes. Check logger not used, or enter the log file name. Write the odometer screens, or check that this speed box does not show them.",
+          : "Save a program file name, present codes, and history codes. Check logger not used, or enter the log file name. Write the odometer screens, or check that this controller does not show them.",
       );
       return;
     }
@@ -184,9 +185,9 @@ export function CodeGate({ job }: { job: JobRecord }) {
         <div className={"mt-5 " + (noConnect ? "opacity-50" : "")}>
           <p className="font-display text-lg font-semibold text-ink">Fault counters and odometer</p>
           <p className="mt-1 text-sm leading-relaxed text-ink">
-            While connected, open the screens that show fault counters, odometer, and fault odometer if this speed box
+            While connected, open the screens that show fault counters, odometer, and fault odometer if this controller
             has them. Write each fault and its count. Write the odometer and fault odometer exactly as shown. If they
-            are not shown, check the box. Do not invent numbers. Do not replace a speed box from counters alone.
+            are not shown, check the box. Do not invent numbers. Do not replace a controller from counters alone.
           </p>
           <label className="mt-3 flex min-h-12 items-start gap-2 text-sm text-ink">
             <input
@@ -287,6 +288,8 @@ export function CodeGate({ job }: { job: JobRecord }) {
         <Button className="mt-5 min-w-44" onClick={go} disabled={!captured}>
           Save codes and go on
         </Button>
+
+        <InFlowGuidance job={job} pack={pack} phaseLabel="Handheld Program and Log" />
       </div>
     </div>
   );

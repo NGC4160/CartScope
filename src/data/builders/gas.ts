@@ -43,23 +43,23 @@ export function buildGas(spec: GasSpec): ModelPack {
     fuse: {
       name: "Main fuse",
       description: "This fuse feeds the key with 12 V. If the fuse is open (broken), the key, spark, and start all go dead together.",
-      commonFailures: ["Opens after a starter click switch short", "Dirty fuse holder"],
+      commonFailures: ["Opens after a starter solenoid short", "Dirty fuse holder"],
       expectedValues: [{ label: "Continuity (is it connected all the way)", value: "Closed" }],
     },
     key: {
       name: "Key / ignition switch",
       description:
-        "OFF / ON / START. ON sends power to spark, the kill switch (stop-spark switch), oil, and (if this cart has fuel injection) the fuel-injection computer (ECU). START turns on the starter click switch (solenoid). That is the main power switch for the starter. A worn key drops power on START. Then the click switch chatters.",
+        "OFF / ON / START. ON sends power to spark, the kill switch (stop-spark switch), oil, and (if this cart has fuel injection) the fuel-injection computer (ECU). START turns on the starter solenoid. That is the main power switch for the starter. A worn key drops power on START. Then the solenoid chatters.",
       commonFailures: ["Worn START contacts", "Loose plug"],
       expectedValues: [
         { label: "ON", value: "12 V" },
-        { label: "START (held)", value: "12 V at click switch coil+" },
+        { label: "START (held)", value: "12 V at solenoid coil+" },
       ],
     },
     solenoid: {
-      name: "Starter click switch (solenoid)",
+      name: "Starter solenoid",
       description:
-        "The starter click switch (solenoid) is the main power switch for the starter. It has four posts. The two big posts send battery power to the starter. The two small posts are the coil (small magnet wires that pull the click switch in). Key START feeds them through the kill/oil path. A click does not mean the big posts closed.",
+        "The starter solenoid is the main power switch for the starter. It has four posts. The two big posts send battery power to the starter. The two small posts are the coil (small magnet wires that pull the solenoid in). Key START feeds them through the kill/oil path. A click does not mean the big posts closed.",
       commonFailures: ["Pitted metal pads (click, no crank)", "Open coil", "Stuck plunger"],
       expectedValues: [
         { label: "Coil", value: "3–8 Ω typical" },
@@ -136,7 +136,7 @@ export function buildGas(spec: GasSpec): ModelPack {
     "g-bat": volt(
       "g-bat",
       "12 V battery, sitting",
-      "Key OFF. Now do this. Measure voltage (how strong the electric power is) across the 12 V battery posts. Do not measure at the click switch. Look at this number. Below 12.2 V: charge first. A battery that is 12.6 V sitting and then drops when the starter turns is still a battery problem.",
+      "Key OFF. Now do this. Measure voltage (how strong the electric power is) across the 12 V battery posts. Do not measure at the solenoid. Look at this number. Below 12.2 V: charge first. A battery that is 12.6 V sitting and then drops when the starter turns is still a battery problem.",
       `Factory book: ${M} — Battery`,
       ["bt1"],
       "12 V battery, key off",
@@ -192,15 +192,15 @@ export function buildGas(spec: GasSpec): ModelPack {
     ),
     "g-click": obs(
       "g-click",
-      "Starter click switch click",
-      "Key to START. Listen at the starter click switch (solenoid). That is the main power switch for the starter. No click = coil path (key START, kill, click-switch coil). Click with no crank = metal pads inside, starter, or ground at the engine.",
+      "Starter solenoid click",
+      "Key to START. Listen at the starter solenoid. That is the main power switch for the starter. No click = coil path (key START, kill, solenoid coil). Click with no crank = metal pads inside, starter, or ground at the engine.",
       `Factory book: ${M} — Starter solenoid`,
       ["k1", "s2"],
-      "Did the click switch click on START?",
+      "Did the solenoid click on START?",
       "Listen at K1 while a helper holds START. Do not crank more than 5 s.",
       "You can hear a click",
       [
-        { id: "click", label: "Click switch clicked", result: "pass" },
+        { id: "click", label: "Solenoid clicked", result: "pass" },
         { id: "noclick", label: "No click", result: "fail" },
       ],
       { kind: "step", id: "g-crank-v" },
@@ -208,8 +208,8 @@ export function buildGas(spec: GasSpec): ModelPack {
     ),
     "g-coil-v": volt(
       "g-coil-v",
-      "Click-switch coil power on START",
-      "Key held in START. Now check if the power is flowing. Voltage is how strong the electric power is. Measure across the two small coil posts. Pack power there and no click = replace the click switch. Dark coil = key START or kill path.",
+      "Solenoid coil power on START",
+      "Key held in START. Now check if the power is flowing. Voltage is how strong the electric power is. Measure across the two small coil posts. Pack power there and no click = replace the solenoid. Dark coil = key START or kill path.",
       `Factory book: ${M} — Solenoid coil`,
       ["k1", "s2", "s5"],
       "Coil power while START is held",
@@ -321,11 +321,11 @@ export function buildGas(spec: GasSpec): ModelPack {
   const diagnoses: Record<string, Diagnosis> = {
     "gdx-setup": dx("gdx-setup", "The cart is not set up yet", "The engine is not allowed to crank or run with the switches like this.", "Kill in OFF, seat up, fuel off, or cables off.", "Set kill to RUN. Seat down. Fuel on. Cables tight.", [], "info"),
     "gdx-battery": dx("gdx-battery", "12 V battery is too low", "Sitting power is below 12.4 V, or the battery drops when the starter turns.", "Dead or weak battery, or dirty cables.", "Charge and load-test. Replace the 12 V battery if it will not hold 9.5 V while the starter turns. Clean cable ends at the engine.", [{ name: "12 V starting battery" }], "replace"),
-    "gdx-fuse": dx("gdx-fuse", "Main fuse is open", "The 12 V fuse is open, so key, spark, and START are all dark.", "Shorted click-switch coil or a pinched wire.", "Find the short. Then replace the fuse.", [{ name: "Main 12 V fuse" }], "replace"),
+    "gdx-fuse": dx("gdx-fuse", "Main fuse is open", "The 12 V fuse is open, so key, spark, and START are all dark.", "Shorted solenoid coil or a pinched wire.", "Find the short. Then replace the fuse.", [{ name: "Main 12 V fuse" }], "replace"),
     "gdx-key": dx("gdx-key", "Key switch or feed", "12 V is not leaving the key in ON.", "Worn key switch or open fuse holder.", "Check the fuse feed first. If the feed is good, replace the key switch.", [{ name: "Key / ignition switch" }], "replace"),
     "gdx-kill": dx("gdx-kill", spec.oilSensor ? "Kill / oil / seat path" : "Kill / seat path", "The spark kill wire is grounded, or the oil/seat switch is open, so the engine is not allowed to spark or stay running.", spec.oilSensor ? "Low oil, failed oil switch, or seat/kill switch." : "Kill switch stuck or seat switch open.", spec.oilSensor ? "Fill oil to the dipstick. If oil is full and the kill wire is still grounded, unplug the oil switch first, then the seat/kill switch." : "Set kill to RUN. Replace the switch that is grounding the coil.", [{ name: spec.killName }], "service"),
-    "gdx-start-circuit": dx("gdx-start-circuit", "START path is open", "Click-switch coil is dark while START is held.", "Key START contact, kill path, or broken coil wire.", "Check 12 V at key START. Then follow through the kill/oil path to coil+.", [{ name: "Key switch" }, { name: spec.killName }], "replace"),
-    "gdx-solenoid": dx("gdx-solenoid", "Starter click switch (solenoid) failed", "Coil power is there. The unit does not click — or it clicks and L2 stays dark.", "Open coil, stuck plunger, or pitted metal pads inside.", "Replace the 12 V 4-post starter click switch (solenoid). Move cables one at a time.", [{ name: "12 V starter click switch (solenoid)" }], "replace"),
+    "gdx-start-circuit": dx("gdx-start-circuit", "START path is open", "Solenoid coil is dark while START is held.", "Key START contact, kill path, or broken coil wire.", "Check 12 V at key START. Then follow through the kill/oil path to coil+.", [{ name: "Key switch" }, { name: spec.killName }], "replace"),
+    "gdx-solenoid": dx("gdx-solenoid", "Starter solenoid failed", "Coil power is there. The unit does not click — or it clicks and L2 stays dark.", "Open coil, stuck plunger, or pitted metal pads inside.", "Replace the 12 V 4-post starter solenoid. Move cables one at a time.", [{ name: "12 V starter solenoid" }], "replace"),
     "gdx-starter": dx("gdx-starter", "Starter-generator or engine is stuck", "≥ 9.5 V at the starter stud and the engine does not spin.", "Worn starter, painted mount, or a stuck engine.", "Check starter ground at the engine (scrape paint). If the engine will not turn by hand at the flywheel (spark plug out), the engine is stuck — do not keep cranking.", [{ name: "Starter that also makes power (starter-generator)" }], "replace"),
     "gdx-ignition": dx("gdx-ignition", "No spark — coil / spark box / computer / trigger", "Kill path is open and there is no spark while cranking.", spec.efi ? "Failed spark coil, fuel-injection computer (ECU), or crank/cam trigger." : "Failed spark coil, spark box (TCI), or trigger / flywheel magnet.", `Replace the ${spec.ignitionName} if the numbers are not in the factory book range. If the coil is good, replace the ${spec.moduleName}. Fit a new plug if the old one is fouled.`, [{ name: spec.ignitionName }, { name: spec.moduleName }, { name: "Spark plug" }], "replace"),
     "gdx-fuel": dx("gdx-fuel", spec.efi ? "EFI fuel delivery" : "Fuel / carb (mixes gas and air)", spec.efi ? "Pump did not run, or fuel is old / missing." : "No fresh fuel at the bowl, or the engine is flooded.", spec.efi ? "Pump fuse, pump, or ECU enable." : "Empty tank, clogged filter, stuck float, or old fuel.", spec.efi ? "Check pump fuse and 12 V at the pump on key-on. Replace the pump if it is silent with power. Use fresh fuel." : "Drain old fuel. Replace the filter. Rebuild or replace the carb if the float sticks. Dry a flooded plug.", [{ name: spec.fuelName }, { name: "Fuel filter" }], "replace"),
@@ -336,7 +336,7 @@ export function buildGas(spec: GasSpec): ModelPack {
   };
 
   const symptoms: SymptomDef[] = [
-    { id: "no-crank", label: "Engine will not crank", summary: "Key START does nothing, or the click switch clicks with no spin. Check 12 V battery → fuse → key → kill → click switch → starter.", manualSection: `Factory book: ${M} — Will not crank`, startStepId: "g-setup" },
+    { id: "no-crank", label: "Engine will not crank", summary: "Key START does nothing, or the solenoid clicks with no spin. Check 12 V battery → fuse → key → kill → solenoid → starter.", manualSection: `Factory book: ${M} — Will not crank`, startStepId: "g-setup" },
     { id: "no-start", label: "Cranks, will not start", summary: "Engine spins. Spark, then fuel, then compression — factory order.", manualSection: `Factory book: ${M} — Cranks, will not start`, startStepId: "g-spark" },
     { id: "no-spark", label: "No spark", summary: "Kill/oil path first, then spark coil / spark box (TCI) / fuel-injection computer (ECU).", manualSection: `Factory book: ${M} — Ignition`, startStepId: "g-kill" },
     { id: "starts-dies", label: "Starts then dies", summary: "Kill path grounding after start, or the engine is starving for fuel.", manualSection: `Factory book: ${M} — Starts then dies`, startStepId: "g-dies" },

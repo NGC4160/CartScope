@@ -1,4 +1,5 @@
-import type { ReactNode } from "react";
+import type { InputHTMLAttributes, ReactNode } from "react";
+import { sanitizeVoltageInput } from "@/lib/voltage-input";
 
 export const inputClass =
   "min-h-12 w-full rounded-md bg-surface px-3 text-ink shadow-[var(--shadow-border)] outline-none";
@@ -20,6 +21,31 @@ export function Field({
       {children}
       {hint ? <span className="mt-1 block text-xs text-ink-muted">{hint}</span> : null}
     </label>
+  );
+}
+
+export function VoltageInput({
+  value,
+  onChange,
+  className = "",
+  ...rest
+}: Omit<InputHTMLAttributes<HTMLInputElement>, "value" | "onChange" | "type"> & {
+  value: string;
+  onChange: (next: string) => void;
+}) {
+  return (
+    <input
+      {...rest}
+      type="text"
+      inputMode="decimal"
+      autoComplete="off"
+      autoCorrect="off"
+      spellCheck={false}
+      value={value}
+      onFocus={(e) => e.currentTarget.select()}
+      onChange={(e) => onChange(sanitizeVoltageInput(e.target.value))}
+      className={className}
+    />
   );
 }
 

@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import type { JobRecord, ModelPack } from "@/data/types";
 import { termHints, unitHelp } from "@/data/plain-terms";
+import { InFlowGuidance } from "@/components/case/InFlowGuidance";
 import { Button } from "@/components/ui/button";
 import { isMotorIsolationStep } from "@/lib/case-flow";
 import { formatClock } from "@/lib/utils";
@@ -64,7 +65,7 @@ export function StepPanel({ job, pack }: { job: JobRecord; pack: ModelPack }) {
     if (!step || !spec) return;
     setError(null);
     if (motorStep && !motorReady) {
-      setError("Unlock this motor check first. The speed box must be unplugged from the motor.");
+      setError("Unlock this motor check first. The controller must be unplugged from the motor.");
       return;
     }
     if (numeric) {
@@ -161,7 +162,7 @@ export function StepPanel({ job, pack }: { job: JobRecord; pack: ModelPack }) {
           <div className="mt-4 rounded-md bg-warn-bg px-3 py-3 text-sm text-ink">
             <p className="font-medium text-warn">Motor electrical test lock</p>
             <p className="mt-1">
-              Never megger or take milli-ohm readings with the speed box (controller) still connected. Unlock only if
+              Never megger or take milli-ohm readings with the controller still connected. Unlock only if
               the drive was commanded and the cart still will not move.
             </p>
             <label className="mt-2 flex min-h-10 items-start gap-2">
@@ -178,7 +179,7 @@ export function StepPanel({ job, pack }: { job: JobRecord; pack: ModelPack }) {
                   })
                 }
               />
-              The contactor closed, the speed box asked the motor to run, and the cart still did not move.
+              The contactor closed, the controller asked the motor to run, and the cart still did not move.
             </label>
             <label className="mt-2 flex min-h-10 items-start gap-2">
               <input
@@ -194,7 +195,7 @@ export function StepPanel({ job, pack }: { job: JobRecord; pack: ModelPack }) {
                   })
                 }
               />
-              The speed box is unplugged from the motor.
+              The controller is unplugged from the motor.
             </label>
           </div>
         ) : null}
@@ -331,6 +332,8 @@ export function StepPanel({ job, pack }: { job: JobRecord; pack: ModelPack }) {
             </div>
           ) : null}
         </div>
+
+        <InFlowGuidance job={job} pack={pack} phaseLabel={step.title} />
 
         <LogList job={job} />
       </div>

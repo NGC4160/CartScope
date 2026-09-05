@@ -3,8 +3,8 @@
 export const KIND_WORDS: Record<string, string> = {
   battery: "batteries",
   switch: "switch",
-  solenoid: "big click switch",
-  controller: "speed box (power box)",
+  solenoid: "solenoid",
+  controller: "controller",
   motor: "motor",
   sensor: "gas pedal sensor",
   charger: "charger",
@@ -40,10 +40,10 @@ export function termHints(text: string): string[] {
   };
   add(/volt|\bv\b|power is flowing/.test(t), "Voltage is how strong the electric power is.");
   add(/ohm|Ω/.test(t), "Ohms (Ω) tell you how hard it is for power to flow. OL means the path is broken.");
-  add(/solenoid|click switch/.test(t), "The big click switch (solenoid) is the main power switch. It sends power to the motor.");
-  add(/controller|speed box|power box|\bmcu\b/.test(t), "The speed box (controller) is the power box that sets how fast the cart goes.");
-  add(/throttle|\bmcor\b|\btps\b|\bits\b|gas pedal|potentiometer|\bpot\b/.test(t), "The gas pedal sensor tells the cart how hard you press the pedal.");
-  add(/tow\/run|tow-run|tow =/.test(t), "Tow/Run: Tow = off for work. Run = ready to drive.");
+  add(/solenoid/.test(t), "The solenoid is the main power switch. It sends power to the motor.");
+  add(/controller|power box|\bmcu\b/.test(t), "The controller sets how fast the cart goes.");
+  add(/throttle|\bmcor\b|\btps\b|\bits\b|gas pedal|potentiometer|\bpot\b/.test(t), "The throttle is the gas pedal sensor. It tells the cart how hard you press the pedal.");
+  add(/tow\/run|tow-run|tow =|run-storage/.test(t), "Tow/Run (or Run-Storage): Tow/Storage = off for work. Run = ready to drive.");
   add(/lockout/.test(t), "Lockout is a safety lock that stops the cart.");
   add(/f&r|forward\/reverse|direction switch/.test(t), "The direction switch (F&R) picks Forward, Reverse, or Neutral.");
   return hints.slice(0, 4);

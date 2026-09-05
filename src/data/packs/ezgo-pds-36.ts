@@ -9,13 +9,13 @@ export const ezgoPds36 = buildEzgoDc({
   diagramTitle: "Power and control picture — 36 V PDS",
   diagramNotes: [
     "36 V PDS: six 6 V batteries. Do not use 48 V ITS windows. Scale pack limits to 36 V.",
-    "The big click switch (solenoid) is the main power switch. It sends big power to the motor. The speed box (controller) is the PDS unit on the 16-pin plug. PDS 16-pin: red = logic power in RUN; yellow = ITS; black = ITS reference (typically 14–16 V on 36/48 V PDS).",
-    "The Run/Tow switch is a safety switch. Towing in Run will take out a PDS speed box.",
+    "The solenoid is the main power switch. It sends big power to the motor. The controller is the PDS unit on the 16-pin plug. PDS 16-pin: red = logic power in RUN; yellow = ITS; black = ITS reference (typically 14–16 V on 36/48 V PDS).",
+    "The Run/Tow switch is a safety switch. Towing in Run will take out a PDS controller.",
   ],
   voltage: 36,
-  controllerName: "PDS 36 V speed box (controller)",
+  controllerName: "PDS 36 V controller",
   controllerDesc:
-    "This is the Precision Drive System speed box on a 36 V TXT/Medalist. It uses a 16-pin plug. Red is logic power in RUN. If the gas pedal sensor (ITS) is out of range, the click switch will not click and the cart may limp. Dragging brakes plus a low 36 V pack often make it limp from heat.",
+    "This is the Precision Drive System controller on a 36 V TXT/Medalist. It uses a 16-pin plug. Red is logic power in RUN. If the gas pedal sensor (ITS) is out of range, the solenoid will not click and the cart may limp. Dragging brakes plus a low 36 V pack often make it limp from heat.",
   throttleName: "ITS (gas pedal sensor)",
   throttleDesc:
     "Gas pedal sensor (ITS) on the 36 V PDS pedal box. Typical PDS yellow: about 0.4 V pedal up and about 4.5 V full pedal (not the TCT 1.0 / 2.7 V window). Confirm against the 36 V technicians manual pin test on the unit in front of you.",

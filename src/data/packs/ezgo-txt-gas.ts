@@ -11,8 +11,8 @@ export const ezgoTxtGas = buildGas({
   diagramTitle: "Starting and spark picture — TXT / Freedom / Shuttle gasoline",
   diagramNotes: [
     "2007+ TXT-family gas: Fleet, Freedom (SE/LE/HP), Shuttle 2+2, all 9 hp 4-cycle. Electrical wiring is Section L of manual 605586.",
-    "Will-not-start order: battery and cables, fuse, key, big click switch click, crank, spark, fuel (carb / Section H), then engine (Section G).",
-    "A solenoid is a click switch that sends big power to the starter. Electric TXT (DCS / PDS / TCT) is a different pack. Marathon 4-cycle 1991–96 is a different pack.",
+    "Will-not-start order: battery and cables, fuse, key, solenoid click, crank, spark, fuel (carb / Section H), then engine (Section G).",
+    "The solenoid is the main power switch that sends big power to the starter. Electric TXT (DCS / PDS / TCT) is a different pack. Marathon 4-cycle 1991–96 is a different pack.",
   ],
   engineName: "TXT 9 hp 4-cycle",
   engineDesc:

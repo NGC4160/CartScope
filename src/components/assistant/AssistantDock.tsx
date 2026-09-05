@@ -2,14 +2,13 @@ import { useMemo, useRef, useState } from "react";
 import { ChevronDown, ChevronUp, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { askBenchAssistant } from "@/lib/assistant";
-import { caseBrief, evaluateProof } from "@/lib/proof";
-import { getPack } from "@/data/index";
+import { runJobAssistant } from "@/lib/run-assistant";
 import type { JobRecord } from "@/data/types";
 import { useJobStore } from "@/store/jobs";
 
 const EXAMPLES = [
   "What should I do next?",
-  "The big click switch clicks but the motor does not spin",
+  "The solenoid clicks but the motor does not spin",
   "Batteries look low. Can I keep testing?",
   "Not enough proof yet — what is missing?",
 ];
@@ -45,33 +44,21 @@ export function AssistantDock({
     if (job) appendAiTurn(job.id, { role: "user", text: question });
     else setLocal((t) => [...t, { role: "user", text: question }]);
 
-    const pack = job ? getPack(job.modelId) : undefined;
-    const proof = job && pack ? evaluateProof(job, pack) : undefined;
     const history = (job ? [...(job.aiLog ?? []), { role: "user" as const, text: question }] : [...local, { role: "user" as const, text: question }]).map(
       (t) => ({ role: t.role, text: t.text }),
     );
 
     try {
-      const res = await askBenchAssistant({
-        data: {
-          question,
-          modelId,
-          symptomId: job?.symptomId,
-          currentStepId: job?.currentStepId,
-          diagnosisId: job?.diagnosisId,
-          measurements: (job?.log ?? []).map((e) => ({
-            step: e.stepTitle,
-            expected: e.expectedLabel,
-            reading: e.confirmedRaw,
-            result: e.result,
-          })),
-          history,
-          caseBrief: job && pack && proof ? caseBrief(job, pack, proof) : undefined,
-          proofEnough: proof?.enoughProof,
-          mayBlameController: proof?.mayBlameController,
-          mayShowParts: proof?.mayShowParts,
-        },
-      });
+      const res = job
+        ? await runJobAssistant(job, question)
+        : await askBenchAssistant({
+            data: {
+              question,
+              modelId,
+              measurements: [],
+              history,
+            },
+          });
       if (!res.ok) {
         setError(res.error);
       } else if (job) {
@@ -96,9 +83,9 @@ export function AssistantDock({
         className="flex min-h-12 w-full items-center gap-2 px-4 text-left"
         onClick={() => setOpen((o) => !o)}
       >
-        <span className="font-mono text-[11px] font-semibold tracking-[0.16em] uppercase">Helper</span>
+        <span className="font-mono text-[11px] font-semibold tracking-[0.16em] uppercase">More helper chat</span>
         <span className="truncate text-sm text-navy-fg/75">
-          Tell me what you see, or type a fault code
+          Extra thread. The check on this screen is the main helper.
         </span>
         {open ? <ChevronDown className="ml-auto size-4 shrink-0" /> : <ChevronUp className="ml-auto size-4 shrink-0" />}
       </button>

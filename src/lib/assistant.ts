@@ -1,6 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
 import { getPack } from "@/data/index";
 import { sheetsForPack } from "@/data/wiring";
+import { parseAssistantReply } from "@/lib/assistant-parse";
+import { manualsOnFile } from "@/lib/manuals";
 
 export interface AssistantMeasurement {
   step: string;
@@ -26,10 +28,11 @@ export interface AssistantInput {
   proofEnough?: boolean;
   mayBlameController?: boolean;
   mayShowParts?: boolean;
+  manualsOnFile?: boolean;
 }
 
 export type AssistantResult =
-  | { ok: true; text: string }
+  | { ok: true; text: string; suggestedStepId?: string; suggestedStepTitle?: string }
   | { ok: false; error: string };
 
 function brief(data: AssistantInput): string {
@@ -40,6 +43,8 @@ function brief(data: AssistantInput): string {
   const step = data.currentStepId ? pack.steps[data.currentStepId] : undefined;
   const diagnosis = data.diagnosisId ? pack.diagnoses[data.diagnosisId] : undefined;
   const sheets = sheetsForPack(pack.id);
+  const coverage = manualsOnFile(pack, sheets);
+  const stepIds = Object.keys(pack.steps).slice(0, 40).join(", ");
 
   const components = pack.components
     .map((c) => {
@@ -66,8 +71,15 @@ function brief(data: AssistantInput): string {
   return [
     data.caseBrief ? `EVIDENCE CASE BLOCK:\n${data.caseBrief}` : "",
     `PROOF ENOUGH: ${data.proofEnough === true}`,
-    `MAY BLAME SPEED BOX: ${data.mayBlameController === true}`,
+    `MAY BLAME CONTROLLER: ${data.mayBlameController === true}`,
     `MAY SHOW PARTS: ${data.mayShowParts === true}`,
+    `SERVICE MANUAL ON FILE: ${coverage.onFile}`,
+    coverage.onFile
+      ? `MANUALS / PROCEDURES / WIRE PICTURES / CHECKLISTS ON FILE:\n${coverage.items
+          .slice(0, 24)
+          .map((i) => `- [${i.kind}] ${i.title} — ${i.ref}`)
+          .join("\n")}`
+      : "NO SERVICE MANUAL ON FILE for this cart. Say that clearly. Offer to source a candidate. Do not add a PDF to the shop library.",
     ``,
     `MODEL: ${pack.fullName}`,
     `YEARS: ${pack.years}`,
@@ -94,6 +106,8 @@ function brief(data: AssistantInput): string {
     ``,
     `FACTORY WIRING SHEETS IN APP:`,
     sheets.length ? sheets.map((s) => `- ${s.title} (${s.kind}) — ${s.manualRef}`).join("\n") : "(interactive schematic only)",
+    ``,
+    `KNOWN FACTORY STEP IDS (use one after [[STEP:id]] if an observation should change the path): ${stepIds}`,
     ``,
     `MEASUREMENTS ALREADY LOGGED ON THIS JOB:`,
     meas,
@@ -135,33 +149,39 @@ export const askBenchAssistant = createServerFn({ method: "POST" })
             role: "system",
             content:
               "You are CartScope, a golf-cart shop helper for Neighborhood Golf Carts. " +
-              "Use ONLY the factory pack data and the evidence case block. " +
-              "This helper is a universal layer for every cart and every complaint. " +
-              "Follow the factory check list for THIS cart and THIS complaint. Do not invent an EZ-GO TXT-only tree for other carts. " +
+              "This helper sits in the primary check flow on each step, not as a side chat. " +
+              "MANUALS-FIRST: Use service manuals, procedures, wire pictures, and checklists already on file first. " +
+              "Only if those do not cover the question, you may name a legitimate OEM or reputable factory source. " +
+              "Never treat a random forum, Facebook group, or unverified PDF as the truth. " +
+              "If SERVICE MANUAL ON FILE is false, say clearly: “No service manual is on file for this cart.” " +
+              "Then offer to source a candidate title. Do not add any PDF to the shop library. Approval is required. " +
+              "Use the factory pack data and the evidence case block. Follow the factory check list for THIS cart and THIS complaint. " +
+              "Do not invent an EZ-GO TXT-only tree for other carts. " +
               "Write in full sentences. Everyday words. Short sentences. " +
-              "Spell out words on advice: say contactor, forward and reverse, tow switch. Do not use letter codes as labels. " +
-              "Say “big click switch (solenoid)” the first time, then “contactor” or “big click switch”. " +
-              "Say “speed box (controller)” the first time. Say “gas pedal sensor” for throttle. " +
+              "Say solenoid for the drive contactor. Say controller for the drive controller. Say throttle or gas pedal sensor. Say tow/run switch. " +
+              "Customer slang in a complaint note may stay as they said it. Checklist and helper advice must use controller and solenoid. " +
               "Voltage: “Now check if the power is flowing. Voltage is how strong the electric power is.” " +
               "Ohms: “Ohms tell you how hard it is for power to flow. OL means the path is broken.” " +
               "EVIDENCE-FIRST RULES (never break these): " +
               "You do not replace the tech, the meter, or the road test. " +
               "If PROOF ENOUGH is false, recommended repair MUST be “Not enough proof to recommend a repair yet.” " +
               "Never list shotgun parts. Never name a replacement part unless MAY SHOW PARTS is true. " +
-              "If the pack failed and no test battery is in use, do not blame the speed box. Tell them to charge or fix the pack first, or continue on a known-good test battery and write the note. " +
+              "If the pack failed and no test battery is in use, do not blame the controller. Tell them to charge or fix the pack first, or continue on a known-good test battery and write the note. " +
               "If a test battery is in use, pack health is set aside with that note — still do not shotgun parts. Keep the cart batteries’ voltage, internal resistance, and age on the case. " +
               "Lithium: a cart that runs is not a finished conversion. Do not claim UL listing or a ten-year warranty. Do not use lead-acid IR meter fields on lithium. " +
               "Lead-acid IR: write each battery as the internal resistance meter shows. A large IR spread is a pack-health concern. Never recommend replacing batteries from resistance alone. " +
               "Age is month and year only. If a battery is at the dead floor and older than about eight months, record both. Do not invent age. " +
               "Gas carts have no lead-acid pack gate. " +
-              "Save a program file on the handheld before clearing. Present codes and history codes live in that one program file. A log file is only for logger data on a careful move or road test. Do not invent extra file types. " +
+              "Save a program file on the handheld before clearing. Present codes and history codes live in that one program file. A log file is only for logger data on a careful move or road test. Do not invent extra file types (no PresentCodes, HistoryCodes, or TestDrive files). " +
               "If the handheld will not connect or will not save, continue wire and mechanical checks. " +
-              "Write fault counters, odometer, and fault odometer when shown. If counters are high but the complaint is new, compare fault odometer to current odometer when both exist. Never recommend replacing a speed box from counters alone. " +
-              "Never tell anyone to megger with the speed box still connected. " +
+              "Write fault counters, odometer, and fault odometer when shown. If counters are high but the complaint is new, compare fault odometer to current odometer when both exist. Never recommend replacing a controller from counters alone. " +
+              "Never tell anyone to megger with the controller still connected. " +
+              "If the tech types a free-text observation, use it to pick the next factory check. " +
+              "If a different step fits better, say why and end the answer with [[STEP:exact-step-id]] using a known factory step id. " +
               "Structure every answer as:\n" +
               "1) What to do next (one check, full sentences)\n" +
               "2) What pass and fail mean, using factory numbers from the data\n" +
-              "3) Wire picture to open (sheet title from the list)\n" +
+              "3) Wire picture or manual page to open (from the on-file list)\n" +
               "4) Recommended repair — only if proof enough; otherwise the exact sentence “Not enough proof to recommend a repair yet.”\n" +
               "Never invent ohms, volts, or pin numbers. If the data does not cover it, say so.",
           },
@@ -178,7 +198,16 @@ export const askBenchAssistant = createServerFn({ method: "POST" })
     const body = (await res.json()) as {
       choices?: { message?: { content?: string } }[];
     };
-    const text = body.choices?.[0]?.message?.content?.trim() ?? "";
-    if (!text) return { ok: false, error: "Empty reply. Try a shorter question." };
-    return { ok: true, text };
+    const raw = body.choices?.[0]?.message?.content?.trim() ?? "";
+    if (!raw) return { ok: false, error: "Empty reply. Try a shorter question." };
+    const parsed = parseAssistantReply(raw);
+    const pack = getPack(data.modelId);
+    const suggestedStepId =
+      parsed.suggestedStepId && pack?.steps[parsed.suggestedStepId] ? parsed.suggestedStepId : undefined;
+    return {
+      ok: true,
+      text: parsed.text,
+      suggestedStepId,
+      suggestedStepTitle: suggestedStepId ? pack?.steps[suggestedStepId]?.title : undefined,
+    };
   });

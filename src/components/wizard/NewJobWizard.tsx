@@ -5,6 +5,7 @@ import { Field, inputClass } from "@/components/case/fields";
 import { Button } from "@/components/ui/button";
 import { MANUFACTURERS, getSymptom, packsFor } from "@/data/index";
 import type { BatteryType, ManufacturerId, ModelPack } from "@/data/types";
+import { JOB_HEADER_MESSAGES, jobHeaderGaps, jobHeaderSummary } from "@/lib/job-header";
 import { useJobStore } from "@/store/jobs";
 
 const STEPS = ["Brand", "Which cart", "What’s wrong", "Job header"] as const;
@@ -24,19 +25,28 @@ export function NewJobWizard({ onCancel }: { onCancel?: () => void }) {
   const [batteryType, setBatteryType] = useState<BatteryType | "">("");
   const [complaintNote, setComplaintNote] = useState("");
   const [fuelNote, setFuelNote] = useState("");
+  const [headerAttempted, setHeaderAttempted] = useState(false);
 
   const models = useMemo(() => (mfg ? packsFor(mfg) : []), [mfg]);
   const electric = models.filter((p) => p.powertrain === "electric");
   const gas = models.filter((p) => p.powertrain === "gasoline");
   const electricCart = model?.powertrain === "electric";
 
-  const headerReady =
-    lastName.trim().length > 0 &&
-    hcp.trim().length > 0 &&
-    (!electricCart || batteryType === "lead-acid" || batteryType === "lithium");
+  const gaps = jobHeaderGaps({
+    lastName,
+    hcpJobNumber: hcp,
+    powertrain: model?.powertrain,
+    batteryType,
+  });
+  const headerReady = gaps.length === 0;
+  const headerMessage = jobHeaderSummary(gaps);
 
   function start() {
-    if (!model || !symptomId || !headerReady) return;
+    if (!model || !symptomId) return;
+    if (!headerReady) {
+      setHeaderAttempted(true);
+      return;
+    }
     const symptom = getSymptom(model, symptomId);
     if (!symptom) return;
     const job = createJob({
@@ -172,10 +182,28 @@ export function NewJobWizard({ onCancel }: { onCancel?: () => void }) {
           </p>
           <div className="grid gap-3 sm:grid-cols-2">
             <Field label="Customer last name">
-              <input value={lastName} onChange={(e) => setLastName(e.target.value)} className={inputClass} />
+              <input
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                className={inputClass}
+                aria-label="Customer last name"
+                aria-invalid={headerAttempted && gaps.includes("lastName")}
+              />
+              {headerAttempted && gaps.includes("lastName") ? (
+                <span className="mt-1 block text-sm text-danger">{JOB_HEADER_MESSAGES.lastName}</span>
+              ) : null}
             </Field>
             <Field label="Housecall Pro job number">
-              <input value={hcp} onChange={(e) => setHcp(e.target.value)} className={inputClass} />
+              <input
+                value={hcp}
+                onChange={(e) => setHcp(e.target.value)}
+                className={inputClass}
+                aria-label="Housecall Pro job number"
+                aria-invalid={headerAttempted && gaps.includes("hcpJobNumber")}
+              />
+              {headerAttempted && gaps.includes("hcpJobNumber") ? (
+                <span className="mt-1 block text-sm text-danger">{JOB_HEADER_MESSAGES.hcpJobNumber}</span>
+              ) : null}
             </Field>
             <Field label="Year">
               <input value={year} onChange={(e) => setYear(e.target.value)} className={inputClass} placeholder="2018" />
@@ -207,6 +235,9 @@ export function NewJobWizard({ onCancel }: { onCancel?: () => void }) {
                     </button>
                   ))}
                 </div>
+                {headerAttempted && gaps.includes("batteryType") ? (
+                  <p className="mt-2 text-sm text-danger">{JOB_HEADER_MESSAGES.batteryType}</p>
+                ) : null}
               </div>
             ) : (
               <Field label="Fuel note (optional)" className="sm:col-span-2">
@@ -231,6 +262,11 @@ export function NewJobWizard({ onCancel }: { onCancel?: () => void }) {
             </Field>
           </div>
           <p className="mt-2 text-xs text-ink-subtle">{model.years}</p>
+          {headerAttempted && headerMessage ? (
+            <p className="mt-3 text-sm text-danger" role="alert">
+              {headerMessage}
+            </p>
+          ) : null}
           <div className="mt-5 flex flex-wrap gap-2">
             <Button variant="ghost" onClick={() => setStep(3)}>
               <ChevronLeft className="size-4" />
@@ -241,7 +277,7 @@ export function NewJobWizard({ onCancel }: { onCancel?: () => void }) {
                 Cancel
               </Button>
             ) : null}
-            <Button className="ml-auto min-w-44" disabled={!headerReady} onClick={start}>
+            <Button className="ml-auto min-w-44" onClick={start}>
               Start checks
               <ChevronRight className="size-4" />
             </Button>

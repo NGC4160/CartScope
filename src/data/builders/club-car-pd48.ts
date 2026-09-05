@@ -33,7 +33,7 @@ export function buildClubCarPd48(spec: Pd48Spec): ModelPack {
     battery: {
       name: "48 V PowerDrive pack",
       description:
-        "This pack is six 8 V Trojan PowerDrive batteries. Book test 1: at least 48 V sitting still. The warning light turns on below 48 V with no load. It also turns on below 25 % charge. Unplug at battery 1 minus first. Then drain leftover power in the speed box (controller). Turn the key ON. Set the direction switch (F&R) to Reverse. Hold the pedal until the reverse buzzer stops. Then you can unplug the speed box.",
+        "This pack is six 8 V Trojan PowerDrive batteries. Book test 1: at least 48 V sitting still. The warning light turns on below 48 V with no load. It also turns on below 25 % charge. Unplug at battery 1 minus first. Then drain leftover power in the controller. Turn the key ON. Set the direction switch (F&R) to Reverse. Hold the pedal until the reverse buzzer stops. Then you can unplug the controller.",
       commonFailures: ["Pack below 48 V with no load (warning light on)", "Rusty cables between batteries", "One 8 V battery drops when you drive"],
       expectedValues: [
         { label: "Sitting-still pack (book test 1)", value: "≥ 48 V" },
@@ -44,7 +44,7 @@ export function buildClubCarPd48(spec: Pd48Spec): ModelPack {
       name: plus ? "Direction switch rocker (F&R enable)" : "Direction switch anti-spark limit (F&R)",
       description: plus
         ? "PowerDrive Plus uses a rocker direction switch (F&R), not a lever. Neutral means neither side is down. Neutral opens the control path. Zero Speed Detect fights roll with the key ON, even in Neutral. That is normal. Do not mix this up with later IQ carts. There is no Tow/Run switch (Tow = off for work. Run = ready to drive.) in the B− path on Plus."
-        : "PowerDrive System 48 has no Tow/Run switch (Tow = off for work. Run = ready to drive.). The direction switch (F&R) has an anti-spark limit. It opens the big click switch (solenoid) before the metal pads inside (contacts) split. Book test 3: COM–NO is closed in gear. It is open in Neutral.",
+        : "PowerDrive System 48 has no Tow/Run switch (Tow = off for work. Run = ready to drive.). The direction switch (F&R) has an anti-spark limit. It opens the solenoid before the metal pads inside (contacts) split. Book test 3: COM–NO is closed in gear. It is open in Neutral.",
       commonFailures: plus
         ? ["Rocker stuck in Neutral", "Failed Forward or Reverse side"]
         : ["Cam not pressing the lever", "Failed COM–NO"],
@@ -56,11 +56,11 @@ export function buildClubCarPd48(spec: Pd48Spec): ModelPack {
           ],
     },
     solenoid: {
-      name: plus ? "Main big click switch (solenoid) — Plus" : "Main big click switch (solenoid)",
+      name: plus ? "Main solenoid — Plus" : "Main solenoid",
       description:
-        "Book test 5: take the diode and yellow wire off the small posts. Then read 190–250 Ω across the coil (small magnet wires that pull the click switch in). The one-way diode must pass power one way only. The red insulated diode end goes on the red-wire small post. A 250 Ω resistor sits across the big posts. It keeps leftover power in the speed box (controller). Check this resistor whenever a big click switch (solenoid) fails. " +
+        "Book test 5: take the diode and yellow wire off the small posts. Then read 190–250 Ω across the coil (small magnet wires that pull the solenoid in). The one-way diode must pass power one way only. The red insulated diode end goes on the red-wire small post. A 250 Ω resistor sits across the big posts. It keeps leftover power in the controller. Check this resistor whenever a solenoid fails. " +
         (plus
-          ? "Plus also has a brake click switch (Z5 brown). It also has an energy-dump module. The speed box drops the main click switch after 2 seconds of no use. Some early cars wait 20 seconds."
+          ? "Plus also has a brake solenoid (Z5 brown). It also has an energy-dump module. The controller drops the main solenoid after 2 seconds of no use. Some early cars wait 20 seconds."
           : "Early 1995 multi-step cars have the 250 Ω resistor. They also have a 3.9 kΩ half-speed reverse resistor."),
       commonFailures: ["Coil not 190–250 Ω", "Shorted or open one-way diode", "Open 250 Ω pre-charge resistor", "Welded big posts"],
       expectedValues: [
@@ -77,12 +77,12 @@ export function buildClubCarPd48(spec: Pd48Spec): ModelPack {
         : ["Failed after skipping the drain step", "Rusty terminal face (leak power)", "No M− sweep with a good gas pedal sensor"],
       expectedValues: plus
         ? [
-            { label: "Z1 red from main big click switch (solenoid) L2", value: "48 V leftover power stored, key ON or OFF" },
+            { label: "Z1 red from main solenoid L2", value: "48 V leftover power stored, key ON or OFF" },
             { label: "Z9 yellow gas pedal sensor wiper", value: "Changes with the pedal. HPD if below 3 V at key ON" },
             { label: "B+ to M− full pedal (book test 10)", value: "Full pack" },
           ]
         : [
-            { label: "Terminal 1 / A input (book test 10.3)", value: "Full pack with big click switch (solenoid) closed" },
+            { label: "Terminal 1 / A input (book test 10.3)", value: "Full pack with solenoid closed" },
             { label: "B+ to M−, pedal down (book test 10.4)", value: "Rises to full pack" },
             { label: "Leftover power B+ to M−, pedal up", value: "~48 V" },
           ],
@@ -106,7 +106,7 @@ export function buildClubCarPd48(spec: Pd48Spec): ModelPack {
     key: {
       name: "Key switch",
       description:
-        "This is an ON–OFF key. Book test 2 is shared with Section 20. Drain leftover power this way. Turn the key ON. Set Reverse. Hold the pedal until the reverse buzzer dies. That dumps leftover power in the speed box (controller).",
+        "This is an ON–OFF key. Book test 2 is shared with Section 20. Drain leftover power this way. Turn the key ON. Set Reverse. Hold the pedal until the reverse buzzer dies. That dumps leftover power in the controller.",
       commonFailures: ["Open ON metal pads (contacts)"],
       expectedValues: [
         { label: "Key OFF", value: "Control path open" },
@@ -116,15 +116,15 @@ export function buildClubCarPd48(spec: Pd48Spec): ModelPack {
     fr: {
       name: plus ? "Direction switch rocker (F&R)" : "Direction switch (F&R)",
       description: plus
-        ? "Rocker picks Forward, Neutral, or Reverse. Z6 white is forward to the speed box (controller). Z7 blue is reverse. Neutral is neither side down. The cart will not run if you press the gas pedal in Neutral. Plus changes motor direction inside the speed box. It does not swap field cables through a rotor."
+        ? "Rocker picks Forward, Neutral, or Reverse. Z6 white is forward to the controller. Z7 blue is reverse. Neutral is neither side down. The cart will not run if you press the gas pedal in Neutral. Plus changes motor direction inside the controller. It does not swap field cables through a rotor."
         : "Lever picks Forward, Neutral, or Reverse. It has three limit switches. One is anti-spark. One is the reverse buzzer. One is half-speed reverse. Book test 6: is the field path connected all the way. The half-speed reverse resistor is 3900 Ω ±10 % (multi-step gas pedal sensor). Or it is 5100 Ω ±10 % (smooth gas pedal sensor, serial A9529-445799+).",
       commonFailures: plus
         ? ["Rocker Neutral gap too wide", "Open white Z6 or blue Z7"]
         : ["Burned direction switch metal pads (contacts)", "Half-speed reverse limit stuck closed (full speed in reverse)"],
       expectedValues: plus
         ? [
-            { label: "Forward (Z6 white)", value: "Pack V to speed box" },
-            { label: "Reverse (Z7 blue)", value: "Pack V to speed box" },
+            { label: "Forward (Z6 white)", value: "Pack V to controller" },
+            { label: "Reverse (Z7 blue)", value: "Pack V to controller" },
           ]
         : [
             { label: "Half-speed reverse resistor", value: "3900 Ω ±10 % (multi-step) or 5100 Ω ±10 % (smooth gas pedal sensor)" },
@@ -135,7 +135,7 @@ export function buildClubCarPd48(spec: Pd48Spec): ModelPack {
       description: spec.throttleDesc,
       commonFailures: plus
         ? ["HPD: gas pedal sensor below 3 V at key ON", "Open yellow Z9 / purple Z10", "Limit switch (green/white Z8) open"]
-        : ["Open step on the multi-step gas pedal sensor", "Smooth gas pedal sensor above 7000 Ω", "Gas pedal limit stuck closed (big click switch (solenoid) clicks on key-on)"],
+        : ["Open step on the multi-step gas pedal sensor", "Smooth gas pedal sensor above 7000 Ω", "Gas pedal limit stuck closed (solenoid clicks on key-on)"],
       expectedValues: plus
         ? [
             { label: "HPD threshold (Z10)", value: "> 3 V at key ON (pedal up)" },
@@ -151,29 +151,29 @@ export function buildClubCarPd48(spec: Pd48Spec): ModelPack {
       name: "Cart computer (OBC)",
       kind: "computer",
       description: plus
-        ? "The cart computer (OBC) tracks energy used and returned by motor braking. It runs the PowerDrive charger. It sets lockout (a safety lock that stops the cart) on the big click switch (solenoid) via Z12 (yellow) when the DC cord is in. Z11 green tells the speed box (controller) to switch from brake click to motor braking. That happens when the pack can take current. A 3/8 A fuse sits in the 18-gauge red from click switch L2. To reboot: unplug batteries. Drain leftover power in the speed box. Then reconnect. The warning light path is brown from the cart computer."
-        : "The cart computer (OBC) runs the PowerDrive charger. It also runs big click switch (solenoid) lockout (a safety lock that stops the cart, book test 11). It also runs the dash warning light. To reboot: unplug batteries (Figure 20-1). Drain leftover power in the speed box (controller). Then reconnect. The sense-lead fuse is in the gray from the plug. Early unsealed holders take on water. Replace those with 1018963-02. Jumper the click switch yellow-wire small post to battery 6 minus. If the cart then runs, the cart computer safety lock has failed.",
+        ? "The cart computer (OBC) tracks energy used and returned by motor braking. It runs the PowerDrive charger. It sets lockout (a safety lock that stops the cart) on the solenoid via Z12 (yellow) when the DC cord is in. Z11 green tells the controller to switch from brake click to motor braking. That happens when the pack can take current. A 3/8 A fuse sits in the 18-gauge red from solenoid L2. To reboot: unplug batteries. Drain leftover power in the controller. Then reconnect. The warning light path is brown from the cart computer."
+        : "The cart computer (OBC) runs the PowerDrive charger. It also runs solenoid lockout (a safety lock that stops the cart, book test 11). It also runs the dash warning light. To reboot: unplug batteries (Figure 20-1). Drain leftover power in the controller. Then reconnect. The sense-lead fuse is in the gray from the plug. Early unsealed holders take on water. Replace those with 1018963-02. Jumper the solenoid yellow-wire small post to battery 6 minus. If the cart then runs, the cart computer safety lock has failed.",
       commonFailures: [
         "Cart computer safety lock after a wet plug",
         "Blown sense-lead fuse",
         plus ? "3/8 A cart computer feed fuse open" : "Cart computer locked up after a pack unplug",
       ],
       expectedValues: [
-        { label: "Charger unplugged", value: "Big click switch (solenoid) safety lock off" },
+        { label: "Charger unplugged", value: "Solenoid safety lock off" },
         { label: "Warning light", value: "Off with pack ≥ 48 V no-load and above 25 % charge" },
       ],
     },
     receptacle: {
       name: "PowerDrive charger plug",
       description:
-        "Gray sense lead goes to the cart computer (OBC). Water in the metal pads (contacts) can set lockout (a safety lock that stops the cart). That lock can sit on the big click switch (solenoid). That is book test 11. Seal the gray sense lead with butyl (NAPA 4196). A hot plug means replace the plug and/or the socket.",
+        "Gray sense lead goes to the cart computer (OBC). Water in the metal pads (contacts) can set lockout (a safety lock that stops the cart). That lock can sit on the solenoid. That is book test 11. Seal the gray sense lead with butyl (NAPA 4196). A hot plug means replace the plug and/or the socket.",
       commonFailures: ["Water in metal pads (contacts)", "Unsealed sense lead", "No plug drag"],
       expectedValues: [{ label: "Sense lead", value: "Dry, sealed, fuse closed" }],
     },
     fuse: {
       name: plus ? "3/8 A cart computer + sense fuse" : "Sense-lead fuse / charger fuse link",
       description: plus
-        ? "A 3/8 A fuse sits in the 18-gauge red from big click switch (solenoid) L2 to the cart computer (OBC). There is also a gray sense-lead fuse. Either open fuse kills charging. It can also hold the safety lock that stops the cart."
+        ? "A 3/8 A fuse sits in the 18-gauge red from solenoid L2 to the cart computer (OBC). There is also a gray sense-lead fuse. Either open fuse kills charging. It can also hold the safety lock that stops the cart."
         : "Gray sense-lead fuse (waterproof holder 1018963-02 is better). Also the onboard charger fuse link. A blown fuse link means no charge.",
       commonFailures: ["Open after a wet pack", "Unsealed early holder"],
       expectedValues: [{ label: "Connected all the way", value: "Closed" }],
@@ -182,8 +182,8 @@ export function buildClubCarPd48(spec: Pd48Spec): ModelPack {
       ? {
           name: "Energy-dump / brake click path",
           description:
-            "This path is the energy-dump module plus the brake click switch. When the pack cannot take motor-braking charge, the brake click switch opens. Motor current then dumps in the energy-dump module. If pedal-up or pedal-down braking is dead, look at this path. Also look at the motor speed sensor (Z13 red / Z14 green).",
-          commonFailures: ["Open energy-dump module", "Brake click switch stuck", "Speed sensor silent"],
+            "This path is the energy-dump module plus the brake solenoid. When the pack cannot take motor-braking charge, the brake solenoid opens. Motor current then dumps in the energy-dump module. If pedal-up or pedal-down braking is dead, look at this path. Also look at the motor speed sensor (Z13 red / Z14 green).",
+          commonFailures: ["Open energy-dump module", "Brake solenoid stuck", "Speed sensor silent"],
           expectedValues: [{ label: "Pedal-up braking", value: "Slows to ~9 mph from > 12 mph" }],
         }
       : undefined,
@@ -197,7 +197,7 @@ export function buildClubCarPd48(spec: Pd48Spec): ModelPack {
       "Now set the switches. Turn the key ON. Set the direction switch (F&R) to Forward. Plus: press the rocker F down. Unplug the charger. Put the seat down. Make sure pack cables are tight. " +
         (plus
           ? "PowerDrive Plus has no Tow/Run switch (Tow = off for work. Run = ready to drive.). Zero Speed Detect will fight a push with the key ON. That is normal. It is not a dragging brake."
-          : "PowerDrive System 48 has no Tow/Run switch (Tow = off for work. Run = ready to drive.). Before you unplug the speed box (controller), do this. Unplug batteries (Figure 20-1). Then drain leftover power. Turn the key ON. Set the direction switch (F&R) to Reverse. Hold the pedal until the reverse buzzer stops."),
+          : "PowerDrive System 48 has no Tow/Run switch (Tow = off for work. Run = ready to drive.). Before you unplug the controller, do this. Unplug batteries (Figure 20-1). Then drain leftover power. Turn the key ON. Set the direction switch (F&R) to Reverse. Hold the pedal until the reverse buzzer stops."),
       `Factory book: ${M}, preliminary / controller discharge`,
       ["s2", "s3", "bt1", "j1"],
       "Are key ON, Forward, charger out, and pack cables confirmed?",
@@ -208,7 +208,7 @@ export function buildClubCarPd48(spec: Pd48Spec): ModelPack {
       { kind: "diagnosis", id: "ddx-setup" },
       {
         caution:
-          "Unplug batteries at battery 1 minus. Then drain leftover power in the speed box (controller). Turn the key ON. Set Reverse. Hold the pedal until the reverse buzzer dies. Then you can unplug speed box terminals.",
+          "Unplug batteries at battery 1 minus. Then drain leftover power in the controller. Turn the key ON. Set Reverse. Hold the pedal until the reverse buzzer dies. Then you can unplug controller terminals.",
       },
     ),
     "dno-pack": volt(
@@ -241,8 +241,8 @@ export function buildClubCarPd48(spec: Pd48Spec): ModelPack {
     ),
     "dno-lockout": obs(
       "dno-lockout",
-      "Cart computer big click switch (solenoid) safety lock (book test 11)",
-      "The charger cord in means lockout (a safety lock that stops the cart). Water in the plug can set this lock even with the cord out. Look at the plug. Dry it. Reseal the gray sense lead with butyl. Check the sense-lead fuse. If you still think the lock is on, reboot the cart computer (OBC). Unplug batteries. Drain leftover power in the speed box (controller). Then reconnect. Last step: jumper the big click switch (solenoid) small post (yellow wire) to battery 6 minus. If the cart then runs, the cart computer safety lock has failed.",
+      "Cart computer solenoid safety lock (book test 11)",
+      "The charger cord in means lockout (a safety lock that stops the cart). Water in the plug can set this lock even with the cord out. Look at the plug. Dry it. Reseal the gray sense lead with butyl. Check the sense-lead fuse. If you still think the lock is on, reboot the cart computer (OBC). Unplug batteries. Drain leftover power in the controller. Then reconnect. Last step: jumper the solenoid small post (yellow wire) to battery 6 minus. If the cart then runs, the cart computer safety lock has failed.",
       `Factory book: ${M}, Test Procedure 11 — On-board Computer Lockout Circuit`,
       ["j1", "a2", "f1", "k1"],
       "Is the charger out, the plug dry, and the sense-lead fuse closed?",
@@ -254,15 +254,15 @@ export function buildClubCarPd48(spec: Pd48Spec): ModelPack {
     ),
     "dno-click": obs(
       "dno-click",
-      "Big click switch (solenoid) click",
-      "Turn the key ON. Set the direction switch (F&R) to Forward. Press the gas pedal. Listen at the big click switch (solenoid). It sends power to the motor. No click means a control path problem. Check the key. Check the direction switch limit or rocker. Check the gas pedal limit. Check the coil (small magnet wires that pull the click switch in). Look for 190–250 Ω. Check the diode. A click with no roll means something else. Check the metal pads inside (contacts). Check the direction switch field path. Check the gas pedal sensor. Or check the speed box (controller). See book test 6 / 8–10.",
+      "Solenoid click",
+      "Turn the key ON. Set the direction switch (F&R) to Forward. Press the gas pedal. Listen at the solenoid. It sends power to the motor. No click means a control path problem. Check the key. Check the direction switch limit or rocker. Check the gas pedal limit. Check the coil (small magnet wires that pull the solenoid in). Look for 190–250 Ω. Check the diode. A click with no roll means something else. Check the metal pads inside (contacts). Check the direction switch field path. Check the gas pedal sensor. Or check the controller. See book test 6 / 8–10.",
       `Factory book: ${M}, Troubleshooting Guide — solenoid`,
       ["k1", "s4"],
-      "Did the big click switch (solenoid) click when you pressed the pedal?",
+      "Did the solenoid click when you pressed the pedal?",
       "Listen. Feel the case. If it looks wrong, check it two more times.",
       "You heard a click",
       [
-        { id: "click", label: "Big click switch (solenoid) clicked", result: "pass" },
+        { id: "click", label: "Solenoid clicked", result: "pass" },
         { id: "noclick", label: "No click", result: "fail" },
       ],
       { kind: "step", id: "dno-contacts" },
@@ -284,7 +284,7 @@ export function buildClubCarPd48(spec: Pd48Spec): ModelPack {
       "dno-frlim",
       plus ? "Direction switch rocker enable" : "Direction switch anti-spark limit (book test 3)",
       plus
-        ? "Now check if this path is connected all the way. The rocker must be F or R. Neutral (neither side down) will not close the big click switch (solenoid). Check Z6 white (forward) or Z7 blue (reverse) at the Z-plug."
+        ? "Now check if this path is connected all the way. The rocker must be F or R. Neutral (neither side down) will not close the solenoid. Check Z6 white (forward) or Z7 blue (reverse) at the Z-plug."
         : "Now check if this path is connected all the way. COM–NO of the anti-spark limit is closed in gear. It is open in Neutral. The cam must press the lever after the direction switch (F&R) rotor has seated.",
       plus ? `Factory book: ${M}, F&R rocker / Z6 / Z7` : `Factory book: ${M}, Test Procedure 3 — F&R Anti-Arcing Limit Switch`,
       ["s1", "s3"],
@@ -297,8 +297,8 @@ export function buildClubCarPd48(spec: Pd48Spec): ModelPack {
     "dno-pedal": cont(
       "dno-pedal",
       "Gas pedal limit switch (book test 4)",
-      "Now check if this path is connected all the way. Pedal up means open (no click). Pedal down means closed. Book symptom 8: the big click switch (solenoid) clicks when the key is turned ON. That means this switch is stuck closed. Or the pedal is out of adjustment. " +
-        (plus ? "Plus: green/white Z8 from the gas pedal sensor limit to the speed box (controller) must go on with the pedal down." : ""),
+      "Now check if this path is connected all the way. Pedal up means open (no click). Pedal down means closed. Book symptom 8: the solenoid clicks when the key is turned ON. That means this switch is stuck closed. Or the pedal is out of adjustment. " +
+        (plus ? "Plus: green/white Z8 from the gas pedal sensor limit to the controller must go on with the pedal down." : ""),
       `Factory book: ${M}, Test Procedure 4 — Accelerator / potentiometer limit switch`,
       ["s4", "k1"],
       "Pedal down: limit switch closed? Pedal up: open?",
@@ -309,8 +309,8 @@ export function buildClubCarPd48(spec: Pd48Spec): ModelPack {
     ),
     "dno-coil": ohm(
       "dno-coil",
-      "Big click switch (solenoid) coil 190–250 Ω (book test 5)",
-      "Ohms (Ω) tell you how hard it is for power to flow. OL means the path is broken. Take the diode terminal and the yellow wire off the small posts. Read 190–250 Ω across the coil (small magnet wires that pull the click switch in). Then check the diode. It must pass power one way only. The red insulated terminal goes on the red-wire small post. A shorted diode kills limit switches. Whenever a big click switch (solenoid) fails, also measure the 250 Ω resistor across the big posts.",
+      "Solenoid coil 190–250 Ω (book test 5)",
+      "Ohms (Ω) tell you how hard it is for power to flow. OL means the path is broken. Take the diode terminal and the yellow wire off the small posts. Read 190–250 Ω across the coil (small magnet wires that pull the solenoid in). Then check the diode. It must pass power one way only. The red insulated terminal goes on the red-wire small post. A shorted diode kills limit switches. Whenever a solenoid fails, also measure the 250 Ω resistor across the big posts.",
       `Factory book: ${M}, Test Procedure 5 — Solenoid Activating Coil / diode / 250 Ω resistor`,
       ["k1"],
       "Coil ohms (diode and yellow wire off)",
@@ -324,8 +324,8 @@ export function buildClubCarPd48(spec: Pd48Spec): ModelPack {
     ),
     "dno-contacts": cont(
       "dno-contacts",
-      "Big click switch (solenoid) metal pads (book test 7 / 10)",
-      "Now check if this path is connected all the way. Power off: the big posts must be open. Take yellow and red off the big posts. Also take off the 250 Ω resistor. Power on: raise the rear. Take off motor A2 if the book says. Press the pedal down. You should see full pack across the small posts. The big posts should be closed. Pitted metal pads inside (contacts) click but drop voltage. The coil (small magnet wires that pull the click switch in) must be off for the open check.",
+      "Solenoid metal pads (book test 7 / 10)",
+      "Now check if this path is connected all the way. Power off: the big posts must be open. Take yellow and red off the big posts. Also take off the 250 Ω resistor. Power on: raise the rear. Take off motor A2 if the book says. Press the pedal down. You should see full pack across the small posts. The big posts should be closed. Pitted metal pads inside (contacts) click but drop voltage. The coil (small magnet wires that pull the solenoid in) must be off for the open check.",
       `Factory book: ${M}, Test Procedure 7 (power off) / 10 (controller input)`,
       ["k1"],
       "Big posts closed with the pedal down, and open with the coil off?",
@@ -340,12 +340,12 @@ export function buildClubCarPd48(spec: Pd48Spec): ModelPack {
       plus ? "Smooth gas pedal sensor / HPD (Z9 / Z10)" : "Gas pedal sensor (book test 8 / 9)",
       plus
         ? "Ohms (Ω) tell you how hard it is for power to flow. OL means the path is broken. Plus HPD turns on if the gas pedal sensor input is below 3 V when the key is turned ON. Foot off the pedal, then key. The wiper (Z9 yellow) must sweep. Stationary (Z10 purple) is the reference. Full-pedal ohms still belong in the 4600–7000 Ω PowerDrive window."
-        : "Ohms (Ω) tell you how hard it is for power to flow. OL means the path is broken. Multi-step (pre A9529-445799): unplug black/white from speed box (controller) terminals 2 and 3. Unplug the half-speed reverse resistor. Then six steps: 300 / 690 / 990 / 1740 / 2740 / 4940 Ω. Full speed must be 4600–7000 Ω. Smooth gas pedal sensor (A9529-445799+): ~0–300 Ω rest to ~5500 Ω full. It must never go over ~7000 Ω. A smooth 0→5000 Ω sweep that stays under 7000 Ω is a good speed-switch assembly.",
+        : "Ohms (Ω) tell you how hard it is for power to flow. OL means the path is broken. Multi-step (pre A9529-445799): unplug black/white from controller terminals 2 and 3. Unplug the half-speed reverse resistor. Then six steps: 300 / 690 / 990 / 1740 / 2740 / 4940 Ω. Full speed must be 4600–7000 Ω. Smooth gas pedal sensor (A9529-445799+): ~0–300 Ω rest to ~5500 Ω full. It must never go over ~7000 Ω. A smooth 0→5000 Ω sweep that stays under 7000 Ω is a good speed-switch assembly.",
       plus ? `Factory book: ${M}, Z-plug Z9/Z10 / HPD < 3 V at key ON` : `Factory book: ${M}, Test Procedure 8 (multi-step) / 9 (CV pot)`,
       ["s4", "a1"],
       plus ? "Full-pedal gas pedal sensor ohms (4600–7000 Ω window)" : "Full-pedal gas pedal sensor ohms",
       plus
-        ? "Ohms yellow–purple, 16 kΩ range, pedal down. Batteries unplugged, leftover power in the speed box drained."
+        ? "Ohms yellow–purple, 16 kΩ range, pedal down. Batteries unplugged, leftover power in the controller drained."
         : "Ohms at the gas pedal sensor leads. Unplug the half-speed reverse resistor on multi-step cars. Pedal all the way down.",
       "4600–7000 Ω at full pedal",
       4600,
@@ -356,8 +356,8 @@ export function buildClubCarPd48(spec: Pd48Spec): ModelPack {
     ),
     "dno-ctrl": volt(
       "dno-ctrl",
-      "Speed box output (book test 10)",
-      "Now check if the power is flowing. Voltage is how strong the electric power is. Raise the rear. Take off 6-gauge white from motor A2. Put meter red on speed box (controller) B+. Put black on M−. You should see ~48 V leftover power at rest. Turn the key ON. Set the direction switch (F&R) to Forward. Press the pedal all the way. The reading must rise to full pack. If it does not, the speed box may be bad. That is true if the gas pedal sensor is good. The pedal adjustment must be good too. Also make sure terminal 1 / A (18-gauge red) sees full pack with the big click switch (solenoid) closed.",
+      "Controller output (book test 10)",
+      "Now check if the power is flowing. Voltage is how strong the electric power is. Raise the rear. Take off 6-gauge white from motor A2. Put meter red on controller B+. Put black on M−. You should see ~48 V leftover power at rest. Turn the key ON. Set the direction switch (F&R) to Forward. Press the pedal all the way. The reading must rise to full pack. If it does not, the controller may be bad. That is true if the gas pedal sensor is good. The pedal adjustment must be good too. Also make sure terminal 1 / A (18-gauge red) sees full pack with the solenoid closed.",
       `Factory book: ${M}, Test Procedure 10 — Solid State Speed Controller`,
       ["a1", "k1", "m1"],
       "B+ to M− at full pedal (A2 lead taken off)",
@@ -368,7 +368,7 @@ export function buildClubCarPd48(spec: Pd48Spec): ModelPack {
       "48.4",
       { kind: "diagnosis", id: "ddx-motor" },
       { kind: "diagnosis", id: "ddx-controller" },
-      { caution: "Take off motor A2. Raise the rear. Drain leftover power in the speed box (controller) before you reconnect A2." },
+      { caution: "Take off motor A2. Raise the rear. Drain leftover power in the controller before you reconnect A2." },
     ),
     "dsl-pot": ohm(
       "dsl-pot",
@@ -393,7 +393,7 @@ export function buildClubCarPd48(spec: Pd48Spec): ModelPack {
       ["s3"],
       "Half-speed reverse resistor",
       "Ohms on the dedicated black lead, unplugged from the limit switch.",
-      plus ? "Plus uses speed box (controller) reverse mapping. Check Z7 before this resistor." : "3510–4290 Ω (3.9 k) or 4590–5610 Ω (5.1 k)",
+      plus ? "Plus uses controller reverse mapping. Check Z7 before this resistor." : "3510–4290 Ω (3.9 k) or 4590–5610 Ω (5.1 k)",
       plus ? 1 : 3510,
       plus ? 10000 : 5610,
       plus ? "5100" : "3900",
@@ -430,7 +430,7 @@ export function buildClubCarPd48(spec: Pd48Spec): ModelPack {
       "dbrake",
       plus ? "Zero-speed / pedal-up / pedal-down braking" : "One direction only — direction switch (book test 6)",
       plus
-        ? "Plus: Zero Speed Detect fights roll with the key ON. Pedal-up (from > 12 mph) should motor-brake to ~9 mph. Pedal-down downhill holds ~15–16 mph. If the pack is full, energy goes to the energy-dump module (dynamic). If the pack can take charge, the cart computer (OBC) Z11 switches to motor braking. If braking is dead, check the speed sensor Z13/Z14. Then the brake click switch and energy-dump module. Then the speed box (controller)."
+        ? "Plus: Zero Speed Detect fights roll with the key ON. Pedal-up (from > 12 mph) should motor-brake to ~9 mph. Pedal-down downhill holds ~15–16 mph. If the pack is full, energy goes to the energy-dump module (dynamic). If the pack can take charge, the cart computer (OBC) Z11 switches to motor braking. If braking is dead, check the speed sensor Z13/Z14. Then the brake solenoid and energy-dump module. Then the controller."
         : "Now check if this path is connected all the way. Book symptom 5: first the direction switch (F&R) anti-spark. Then the direction switch rotor connected all the way (book test 6). Forward is M− to S1 and A2 to S2. Reverse is M− to S2 and A2 to S1.",
       plus ? `Factory book: ${M}, Zero Speed Detect / pedal-up / pedal-down motor braking` : `Factory book: ${M}, Test Procedure 6 — Forward/Reverse Switch`,
       plus ? ["m1", "a1", "f2"] : ["s3", "m1", "a1"],
@@ -445,15 +445,15 @@ export function buildClubCarPd48(spec: Pd48Spec): ModelPack {
 
   const diagnoses: Record<string, Diagnosis> = {
     "ddx-setup": dx("ddx-setup", "Switches are not set", "The key, direction switch (F&R), charger, or a pack cable was wrong.", "A switch was in the wrong place.", "Set the switches. Then start the checks again.", [], "info"),
-    "ddx-pack": dx("ddx-pack", "Pack below 48 V", "Book test 1 is under 48 V. Or the warning light is on for low charge or no-load voltage.", "Low or failed 8 V batteries.", "Charge the pack. Then load-test each 8 V battery. Do not blame the speed box (controller) on a 46 V pack.", [{ name: "PowerDrive 8 V batteries (×6)" }], "service"),
+    "ddx-pack": dx("ddx-pack", "Pack below 48 V", "Book test 1 is under 48 V. Or the warning light is on for low charge or no-load voltage.", "Low or failed 8 V batteries.", "Charge the pack. Then load-test each 8 V battery. Do not blame the controller on a 46 V pack.", [{ name: "PowerDrive 8 V batteries (×6)" }], "service"),
     "ddx-cables": dx("ddx-cables", "Pack connection", "A lug is loose or rusty.", "A cable between batteries, or a main cable.", "Clean it. Then tighten it.", [], "service"),
     "ddx-obc": dx("ddx-obc", "Cart computer safety lock / warning-light path", "Book test 11 found a problem. The plug may be wet. The sense-lead fuse may be open. The cart computer (OBC) may be locked up. Or the safety lock that stops the cart has failed. The cart runs with the yellow small-post jumpered to B−.", "Cart computer, sense fuse, or water in J1.", "Dry J1. Seal it with butyl. Replace fuse holder 1018963-02 if it is unsealed. Reboot the cart computer (OBC). Replace the cart computer if the jumper proves the safety lock failed.", [{ name: "Cart computer (OBC)" }, { name: "Sense-lead fuse holder 1018963-02" }], "replace"),
     "ddx-key": dx("ddx-key", "Key switch", "Book test 2 failed.", "Open ON metal pads (contacts).", "Replace the key switch.", [{ name: "Key switch" }], "replace"),
     "ddx-frlim": dx("ddx-frlim", plus ? "Direction switch rocker" : "Direction switch anti-spark limit", plus ? "Rocker Neutral or open Z6/Z7." : "Cam or COM–NO failed.", plus ? "Rocker not selecting Forward or Reverse, or open Z6/Z7." : "Anti-spark cam or switch.", plus ? "Replace the rocker. Check Z6 white / Z7 blue at the Z-plug." : "Adjust the cam. Replace the limit switch.", [{ name: plus ? "Direction switch rocker (F&R)" : "Direction switch anti-spark limit switch" }], "replace"),
-    "ddx-pedal": dx("ddx-pedal", "Gas pedal limit switch", "Book test 4 failed. Or the big click switch (solenoid) clicks when you turn the key ON (book symptom 8).", "The limit is stuck closed or open. Or the pedal is out of adjustment.", "Adjust the pedal (Section 6). Replace the limit if it does not change from open to closed.", [{ name: "Gas pedal limit switch" }], "replace"),
-    "ddx-coil": dx("ddx-coil", "Big click switch (solenoid) coil / diode / 250 Ω resistor", "The coil (small magnet wires that pull the click switch in) is not 190–250 Ω. Or the one-way diode is shorted or open. Or the 250 Ω pre-charge resistor is out.", "Wrong big click switch (solenoid). IQ 180–190 Ω is not this part. Or a failed diode. Or an open 250 Ω resistor.", "Replace the PowerDrive big click switch. Fit a new click-switch diode (red terminal on the red-wire post). Make sure ≈ 250 Ω across the big posts.", [{ name: "PowerDrive big click switch (190–250 Ω)" }, { name: "Click-switch diode" }, { name: "250 Ω pre-charge resistor" }], "replace"),
+    "ddx-pedal": dx("ddx-pedal", "Gas pedal limit switch", "Book test 4 failed. Or the solenoid clicks when you turn the key ON (book symptom 8).", "The limit is stuck closed or open. Or the pedal is out of adjustment.", "Adjust the pedal (Section 6). Replace the limit if it does not change from open to closed.", [{ name: "Gas pedal limit switch" }], "replace"),
+    "ddx-coil": dx("ddx-coil", "Solenoid coil / diode / 250 Ω resistor", "The coil (small magnet wires that pull the solenoid in) is not 190–250 Ω. Or the one-way diode is shorted or open. Or the 250 Ω pre-charge resistor is out.", "Wrong solenoid. IQ 180–190 Ω is not this part. Or a failed diode. Or an open 250 Ω resistor.", "Replace the PowerDrive solenoid. Fit a new solenoid diode (red terminal on the red-wire post). Make sure ≈ 250 Ω across the big posts.", [{ name: "PowerDrive solenoid (190–250 Ω)" }, { name: "Solenoid diode" }, { name: "250 Ω pre-charge resistor" }], "replace"),
     "ddx-ctrl-wire": dx("ddx-ctrl-wire", "Control-path wiring", "The coil, key, direction switch (F&R), and pedal limit passed. There is still no click.", "An open 18-gauge wire.", "Check ohms on the control harness.", [], "service"),
-    "ddx-contacts": dx("ddx-contacts", "Big click switch (solenoid) big-post metal pads", "It clicked, but the big posts stay open. Or they are welded with the coil (small magnet wires) off.", "Pitted or welded metal pads inside (contacts).", "Replace the big click switch (solenoid). Recheck the 250 Ω resistor.", [{ name: "PowerDrive big click switch" }], "replace"),
+    "ddx-contacts": dx("ddx-contacts", "Solenoid big-post metal pads", "It clicked, but the big posts stay open. Or they are welded with the coil (small magnet wires) off.", "Pitted or welded metal pads inside (contacts).", "Replace the solenoid. Recheck the 250 Ω resistor.", [{ name: "PowerDrive solenoid" }], "replace"),
     "ddx-pot": dx(
       "ddx-pot",
       plus ? "Gas pedal sensor / HPD" : "Multi-step or smooth gas pedal sensor",
@@ -463,29 +463,29 @@ export function buildClubCarPd48(spec: Pd48Spec): ModelPack {
       [{ name: spec.throttleName }],
       "replace",
     ),
-    "ddx-controller": dx("ddx-controller", spec.controllerName, "Book test 10 failed. B+ to M− does not rise to pack at full pedal. The gas pedal sensor is known-good.", "Failed power section. Plus: Z-plug or energy-dump module.", "Make sure the terminal face is clean. Replace the speed box (controller). Plus: check the energy-dump module and brake click switch before you blame the unit.", [{ name: spec.controllerName }], "replace"),
-    "ddx-motor": dx("ddx-motor", spec.motorName, "Speed box (controller) output is present. The motor path is not.", plus ? "Open shunt field or armature. Or a silent speed sensor." : "Open field path through the direction switch (F&R). See book test 6. Or worn brushes.", plus ? "Check ohms on F1–F2 and A1–A2. Look at the speed sensor (Z13/Z14)." : "Check ohms in book test 6 both directions. Service brushes (Section 24).", [{ name: spec.motorName }], "replace"),
+    "ddx-controller": dx("ddx-controller", spec.controllerName, "Book test 10 failed. B+ to M− does not rise to pack at full pedal. The gas pedal sensor is known-good.", "Failed power section. Plus: Z-plug or energy-dump module.", "Make sure the terminal face is clean. Replace the controller. Plus: check the energy-dump module and brake solenoid before you blame the unit.", [{ name: spec.controllerName }], "replace"),
+    "ddx-motor": dx("ddx-motor", spec.motorName, "Controller output is present. The motor path is not.", plus ? "Open shunt field or armature. Or a silent speed sensor." : "Open field path through the direction switch (F&R). See book test 6. Or worn brushes.", plus ? "Check ohms on F1–F2 and A1–A2. Look at the speed sensor (Z13/Z14)." : "Check ohms in book test 6 both directions. Service brushes (Section 24).", [{ name: spec.motorName }], "replace"),
     "ddx-fr": dx("ddx-fr", "Direction switch field path", "Book test 6 is open in one direction.", "Burned direction switch metal pads (contacts).", "Replace the direction switch (F&R).", [{ name: "Direction switch (F&R)" }], "replace"),
     "ddx-halfspeed": dx("ddx-halfspeed", "Half-speed reverse path", "The cart runs full speed in reverse. Limit #3 or the 3.9 kΩ / 5.1 kΩ resistor.", "A failed limit. Or an open resistor.", "Replace the limit switch or the resistor lead (book test 12 / 13).", [{ name: "Half-speed reverse limit / resistor" }], "replace"),
     "ddx-receptacle": dx("ddx-receptacle", "Plug / fuse link", "No plug drag. Or hot blades. Or an open onboard fuse link.", "Worn J1. Or a blown fuse link.", "Replace the hot or no-drag half. Find the short before you fit a new fuse link.", [{ name: "Charger plug" }, { name: "Onboard fuse link" }], "replace"),
     "ddx-charger": dx("ddx-charger", "PowerDrive charger / cart computer charge", "The charge path at the cart is good. The pack still will not finish.", "Charger output, relay, or cart computer (OBC) energy-unit count.", "Make sure AC is there. Then do Section 23B charger tests. Replace the cart computer (OBC) if the charger runs but never ends correctly.", [{ name: "PowerDrive charger" }, { name: "Cart computer (OBC)" }], "replace"),
-    "ddx-braking": dx("ddx-braking", "Motor braking path (Plus)", "Zero-speed, pedal-up, or pedal-down braking is dead.", "Silent speed sensor. Open energy-dump module. Or a stuck brake click switch.", "Check Z13/Z14 pulses. Then the brake click switch and energy-dump module. Speed box (controller) last.", [{ name: "Motor speed sensor" }, { name: "Energy-dump module" }, { name: "Brake click switch" }], "replace"),
+    "ddx-braking": dx("ddx-braking", "Motor braking path (Plus)", "Zero-speed, pedal-up, or pedal-down braking is dead.", "Silent speed sensor. Open energy-dump module. Or a stuck brake solenoid.", "Check Z13/Z14 pulses. Then the brake solenoid and energy-dump module. Controller last.", [{ name: "Motor speed sensor" }, { name: "Energy-dump module" }, { name: "Brake solenoid" }], "replace"),
   };
 
   const symptoms: SymptomDef[] = [
     { id: "no-operation", label: "Cart will not run — no click", summary: "Pack ≥ 48 V. Cart computer safety lock (book test 11). Key. Direction switch (F&R). Pedal limit. Coil 190–250 Ω.", manualSection: `${M}, Troubleshooting Guide symptom 1`, startStepId: "dno-setup" },
-    { id: "clicks-no-run", label: "Cart will not run — big click switch (solenoid) clicks", summary: "Metal pads inside (contacts). Gas pedal sensor 4600–7000 Ω. Speed box (controller) B+ to M− (book test 10). Motor / direction switch path.", manualSection: `${M}, Troubleshooting Guide symptom 2`, startStepId: "dno-click" },
+    { id: "clicks-no-run", label: "Cart will not run — solenoid clicks", summary: "Metal pads inside (contacts). Gas pedal sensor 4600–7000 Ω. Controller B+ to M− (book test 10). Motor / direction switch path.", manualSection: `${M}, Troubleshooting Guide symptom 2`, startStepId: "dno-click" },
     { id: "runs-slowly", label: "Cart runs slowly", summary: "Gas pedal sensor window. Half-speed reverse stuck closed. Pack. Motor. Overload. Brakes. Tires.", manualSection: `${M}, Troubleshooting Guide symptom 3`, startStepId: "dsl-pot" },
-    { id: "one-direction", label: "Runs in one direction only", summary: plus ? "Z6 white / Z7 blue at the Z-plug, then the speed box (controller)." : "Direction switch (F&R) anti-spark, then book test 6 field path.", manualSection: `${M}, Troubleshooting Guide symptom 5`, startStepId: "dbrake" },
+    { id: "one-direction", label: "Runs in one direction only", summary: plus ? "Z6 white / Z7 blue at the Z-plug, then the controller." : "Direction switch (F&R) anti-spark, then book test 6 field path.", manualSection: `${M}, Troubleshooting Guide symptom 5`, startStepId: "dbrake" },
     { id: "not-charging", label: "Cart not being fully charged", summary: "Plug. Fuse link. AC. PowerDrive charger. Cart computer (OBC).", manualSection: `${M}, Troubleshooting Guide symptom 6`, startStepId: "dchg" },
     { id: "warning-light", label: "Battery warning light on", summary: "Below 48 V with no load. Below 25 % charge. AC cut. 16-hour time-out. Or sense-lead fuse.", manualSection: `${M}, Warning-light chart`, startStepId: "dwarn" },
     ...(plus
       ? [
-          { id: "no-braking", label: "Zero-speed / pedal-up / pedal-down braking does not work", summary: "Speed sensor Z13/Z14. Brake click switch. Energy-dump module. Then speed box (controller). Pedal-up should slow to ~9 mph from > 12 mph.", manualSection: `${M}, Regenerative / dynamic braking`, startStepId: "dbrake" },
+          { id: "no-braking", label: "Zero-speed / pedal-up / pedal-down braking does not work", summary: "Speed sensor Z13/Z14. Brake solenoid. Energy-dump module. Then controller. Pedal-up should slow to ~9 mph from > 12 mph.", manualSection: `${M}, Regenerative / dynamic braking`, startStepId: "dbrake" },
         ]
       : [
           { id: "full-speed-reverse", label: "Runs full speed in reverse", summary: "Half-speed reverse limit or 3.9 kΩ / 5.1 kΩ resistor (book test 12 / 13).", manualSection: `${M}, Troubleshooting Guide symptom 4`, startStepId: "drev-fast" },
-          { id: "clicks-on-key", label: "Big click switch (solenoid) clicks when the key is turned on", summary: "Gas pedal limit stuck closed, or pedal out of adjustment (book symptom 8).", manualSection: `${M}, Troubleshooting Guide symptom 8`, startStepId: "dno-pedal" },
+          { id: "clicks-on-key", label: "Solenoid clicks when the key is turned on", summary: "Gas pedal limit stuck closed, or pedal out of adjustment (book symptom 8).", manualSection: `${M}, Troubleshooting Guide symptom 8`, startStepId: "dno-pedal" },
         ]),
   ];
 

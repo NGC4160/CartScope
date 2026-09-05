@@ -64,6 +64,13 @@ export function plainCaseSummary(job: JobRecord, pack: ModelPack, proof: Proof):
     lines.push("");
   }
 
+  if (job.pathRedirects?.length) {
+    lines.push("Path changes from what the tech saw");
+    job.pathRedirects.forEach((r) => {
+      lines.push(`- ${r.fromStepId} → ${r.toStepId}: ${r.reason}`);
+    });
+    lines.push("");
+  }
   lines.push("Checks");
   if (job.log.length === 0) lines.push("(no factory checks saved yet)");
   job.log.forEach((e, i) => {

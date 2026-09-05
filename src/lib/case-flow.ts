@@ -26,7 +26,7 @@ export function isMotorIsolationStep(step: DiagnosticStep): boolean {
     /\bmegger\b/.test(t) ||
     /milli-?ohm/.test(t) ||
     /isolate[- ]motor/.test(t) ||
-    /cables off the speed box/.test(t) ||
+    /cables off the controller/.test(t) ||
     /unplug u,\s*v,\s*w/.test(t) ||
     /phase ohms/.test(t)
   );

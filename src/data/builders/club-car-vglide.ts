@@ -23,7 +23,7 @@ export function buildClubCarVGlide(): ModelPack {
     tow: {
       name: "Direction switch (F&R) spark-stop limit",
       description:
-        "The V-Glide speed box (controller) is older. It is not a computer. There is no Tow/Run switch (Tow = off for work. Run = ready to drive). This limit switch sits on the direction switch (F&R) linkage. It opens the small-wire path before the metal pads inside split. That stops sparks. Test Procedure 3: COM to NO. This check asks: is the path connected all the way? Lever pressed = closed. Lever released = open. Neutral = open = no click from the big click switch.",
+        "The V-Glide controller is older. It is not a computer. There is no Tow/Run switch (Tow = off for work. Run = ready to drive). This limit switch sits on the direction switch (F&R) linkage. It opens the small-wire path before the metal pads inside split. That stops sparks. Test Procedure 3: COM to NO. This check asks: is the path connected all the way? Lever pressed = closed. Lever released = open. Neutral = open = no click from the solenoid.",
       commonFailures: ["Cam not hitting the lever", "COM to NO path failed", "Loose 18-gauge wire"],
       expectedValues: [
         { label: "Lever released (neutral)", value: "Open COM–NO" },
@@ -31,9 +31,9 @@ export function buildClubCarVGlide(): ModelPack {
       ],
     },
     solenoid: {
-      name: "Big click switch (solenoid)",
+      name: "Solenoid",
       description:
-        "The big click switch (solenoid) has four posts. The coil (small magnet wires that pull the click switch in) is Test Procedure 5. Measure 55–60 Ω across the small posts. Ohms (Ω) tell you how hard it is for power to flow. OL means the path is broken. If the big posts weld shut, the cart creeps in first speed with the key OFF. That is Test Procedure 9. Big posts must be open with the coil off. Power-on metal pads inside (contacts) is Test Procedure 10. Unplug the #6 gray A2 wire first so the rear wheels cannot drive.",
+        "The solenoid has four posts. The coil (small magnet wires that pull the solenoid in) is Test Procedure 5. Measure 55–60 Ω across the small posts. Ohms (Ω) tell you how hard it is for power to flow. OL means the path is broken. If the big posts weld shut, the cart creeps in first speed with the key OFF. That is Test Procedure 9. Big posts must be open with the coil off. Power-on metal pads inside (contacts) is Test Procedure 10. Unplug the #6 gray A2 wire first so the rear wheels cannot drive.",
       commonFailures: ["Open 55–60 Ω coil", "Welded big posts", "Pitted metal pads that click but drop voltage"],
       expectedValues: [
         { label: "Activating coil (TP 5)", value: "55–60 Ω" },
@@ -42,9 +42,9 @@ export function buildClubCarVGlide(): ModelPack {
       ],
     },
     controller: {
-      name: "V-Glide speed box — wiper + resistor board",
+      name: "V-Glide controller — wiper + resistor board",
       description:
-        "The V-Glide speed box (controller) is older. It is not a computer. A wiper brush walks the metal pads inside. Each step takes another resistor out of the motor path (Figure 19-3). Test Procedure 6: first-to-last resistor ≈ 0.6 Ω. This check asks: is the path connected all the way? Test Procedure 11: spring must press the brush on every pad. The brush must sit above the wear-limit line. The housing must not be melted. Pad nuts 35–45 in-lb. HOT resistors burn. Wait before you touch.",
+        "The V-Glide controller is older. It is not a computer. A wiper brush walks the metal pads inside. Each step takes another resistor out of the motor path (Figure 19-3). Test Procedure 6: first-to-last resistor ≈ 0.6 Ω. This check asks: is the path connected all the way? Test Procedure 11: spring must press the brush on every pad. The brush must sit above the wear-limit line. The housing must not be melted. Pad nuts 35–45 in-lb. HOT resistors burn. Wait before you touch.",
       commonFailures: ["Worn wiper brush", "Burned or pitted metal pads", "Open resistor coil", "Melted housing"],
       expectedValues: [
         { label: "Resistor string first-to-last (TP 6)", value: "≈ 0.6 Ω / continuity" },
@@ -85,7 +85,7 @@ export function buildClubCarVGlide(): ModelPack {
     throttle: {
       name: "Gas pedal sensor (limit switch)",
       description:
-        "This is the gas pedal sensor (limit switch). It closes as the V-Glide wiper arm leaves rest. Test Procedure 4: green wire at the big click switch coil to battery 6 minus. Pedal up = open. Pedal down = connected all the way. 18-gauge green on NC. Black on COM. Nothing on NO. If this switch stays closed, the cart runs in first speed with the key ON (symptom 6).",
+        "This is the gas pedal sensor (limit switch). It closes as the V-Glide wiper arm leaves rest. Test Procedure 4: green wire at the solenoid coil to battery 6 minus. Pedal up = open. Pedal down = connected all the way. 18-gauge green on NC. Black on COM. Nothing on NO. If this switch stays closed, the cart runs in first speed with the key ON (symptom 6).",
       commonFailures: ["Failed closed (creep)", "Unplugged 18-gauge green", "Wiper not releasing the lever"],
       expectedValues: [
         { label: "Pedal up (TP 4.1)", value: "Open" },
@@ -121,7 +121,7 @@ export function buildClubCarVGlide(): ModelPack {
     "vno-setup": obs(
       "vno-setup",
       "Set the cart up first",
-      "Now do this. Turn the key ON. Set the direction switch (F&R) to Forward (not Neutral). Hook up the gas pedal. Unplug the charger. Put the seat down. The V-Glide speed box (controller) is older. It is not a computer. There is no Tow/Run switch (Tow = off for work. Run = ready to drive). Unplug batteries at battery 1 minus (Figure 19-1) before you open the wiper cover. Put the V-Glide cover on before a road test.",
+      "Now do this. Turn the key ON. Set the direction switch (F&R) to Forward (not Neutral). Hook up the gas pedal. Unplug the charger. Put the seat down. The V-Glide controller is older. It is not a computer. There is no Tow/Run switch (Tow = off for work. Run = ready to drive). Unplug batteries at battery 1 minus (Figure 19-1) before you open the wiper cover. Put the V-Glide cover on before a road test.",
       `Factory book: ${M}, V-Glide Troubleshooting Guide — preliminary`,
       ["s2", "s3", "bt1", "j1"],
       "Are key ON, Forward, charger out, and pack cables confirmed?",
@@ -139,7 +139,7 @@ export function buildClubCarVGlide(): ModelPack {
       `Factory book: ${M}, Test Procedure 1 — Batteries/Voltage Check`,
       ["bt1"],
       "Pack voltage, battery 1 + to battery 6 −",
-      "DC volts, 50 V range. On the main posts, not at the big click switch.",
+      "DC volts, 50 V range. On the main posts, not at the solenoid.",
       "≥ 36 V fully charged",
       36,
       42,
@@ -162,15 +162,15 @@ export function buildClubCarVGlide(): ModelPack {
     ),
     "vno-click": obs(
       "vno-click",
-      "Big click switch click (split the guide)",
-      "Turn the key ON. Set the direction switch (F&R) to Forward. Press the gas pedal. Listen at the big click switch (solenoid). The guide splits here. Symptom 1 is no click (small-wire path, Test Procedures 2–5). Symptom 2 is a click with no roll (power path, Test Procedures 7, 10, 11, 8).",
+      "Solenoid click (split the guide)",
+      "Turn the key ON. Set the direction switch (F&R) to Forward. Press the gas pedal. Listen at the solenoid. The guide splits here. Symptom 1 is no click (small-wire path, Test Procedures 2–5). Symptom 2 is a click with no roll (power path, Test Procedures 7, 10, 11, 8).",
       `Factory book: ${M}, Troubleshooting Guide symptoms 1 and 2`,
       ["k1", "s4"],
-      "Did the big click switch click when the pedal was pressed?",
+      "Did the solenoid click when the pedal was pressed?",
       "Listen / feel the case. Repeat twice.",
       "You can hear a click",
       [
-        { id: "click", label: "Big click switch clicked", result: "pass" },
+        { id: "click", label: "Solenoid clicked", result: "pass" },
         { id: "noclick", label: "No click", result: "fail" },
       ],
       { kind: "step", id: "vno-contacts" },
@@ -191,7 +191,7 @@ export function buildClubCarVGlide(): ModelPack {
     "vno-arclimit": cont(
       "vno-arclimit",
       "F&R spark-stop limit (Test Procedure 3)",
-      "Now check if this path is connected all the way. COM to NO on the spark-stop switch. Lever pressed (in gear) = connected. Lever released (Neutral) = not connected. If Neutral is closed, the cart can try to pull in first speed as soon as you move F&R. If in-gear is open, the big click switch will not click.",
+      "Now check if this path is connected all the way. COM to NO on the spark-stop switch. Lever pressed (in gear) = connected. Lever released (Neutral) = not connected. If Neutral is closed, the cart can try to pull in first speed as soon as you move F&R. If in-gear is open, the solenoid will not click.",
       `Factory book: ${M}, Test Procedure 3 — F&R Anti-Arcing Limit Switch`,
       ["s1", "s3"],
       "COM–NO closed with the F&R lever in gear (limit lever pressed)?",
@@ -203,7 +203,7 @@ export function buildClubCarVGlide(): ModelPack {
     "vno-pedal": cont(
       "vno-pedal",
       "Gas pedal sensor (Test Procedure 4)",
-      "This is the gas pedal sensor (limit switch). Now do this. Now check if this path is connected all the way. Red on the 18-gauge green at the big click switch coil post. Black on battery 6 minus. Pedal fully up = not connected. Pedal down = connected all the way. Green must be on NC. Black on COM. Nothing on NO. If the wiper cover is off, make sure the wiper arm actually releases the lever.",
+      "This is the gas pedal sensor (limit switch). Now do this. Now check if this path is connected all the way. Red on the 18-gauge green at the solenoid coil post. Black on battery 6 minus. Pedal fully up = not connected. Pedal down = connected all the way. Green must be on NC. Black on COM. Nothing on NO. If the wiper cover is off, make sure the wiper arm actually releases the lever.",
       `Factory book: ${M}, Test Procedure 4 — Accelerator Pedal Limit Switch`,
       ["s4", "k1", "bt1"],
       "Pedal down: is the green coil wire connected to battery 6 minus?",
@@ -214,8 +214,8 @@ export function buildClubCarVGlide(): ModelPack {
     ),
     "vno-coil": ohm(
       "vno-coil",
-      "Big click switch coil (Test Procedure 5)",
-      "Now do this. Ohms (Ω) tell you how hard it is for power to flow. OL means the path is broken. Measure across the two small coil posts. The coil is the small magnet wires that pull the click switch in. Look at this number. Factory: 55–60 Ω. Out of that window? Replace the big click switch (solenoid). Do not use an IQ 180–190 Ω or PowerDrive 190–250 Ω coil on a V-Glide.",
+      "Solenoid coil (Test Procedure 5)",
+      "Now do this. Ohms (Ω) tell you how hard it is for power to flow. OL means the path is broken. Measure across the two small coil posts. The coil is the small magnet wires that pull the solenoid in. Look at this number. Factory: 55–60 Ω. Out of that window? Replace the solenoid. Do not use an IQ 180–190 Ω or PowerDrive 190–250 Ω coil on a V-Glide.",
       `Factory book: ${M}, Test Procedure 5 — Solenoid Activating Coil`,
       ["k1"],
       "Coil resistance, small posts",
@@ -229,8 +229,8 @@ export function buildClubCarVGlide(): ModelPack {
     ),
     "vno-contacts": cont(
       "vno-contacts",
-      "Big click switch metal pads, power on (Test Procedure 10)",
-      "BEFORE you hook batteries back up for this test: unplug the #6 gray wire from the resistor board to motor A2. Take it off so the rear wheels cannot drive. Raise the rear. Key ON. Direction switch (F&R) Forward. Pedal down (the big click switch should click). Now check if this path is connected all the way across the two big posts. No connection with a click? Replace the big click switch.",
+      "Solenoid metal pads, power on (Test Procedure 10)",
+      "BEFORE you hook batteries back up for this test: unplug the #6 gray wire from the resistor board to motor A2. Take it off so the rear wheels cannot drive. Raise the rear. Key ON. Direction switch (F&R) Forward. Pedal down (the solenoid should click). Now check if this path is connected all the way across the two big posts. No connection with a click? Replace the solenoid.",
       `Factory book: ${M}, Test Procedure 10 — Solenoid Contacts (Power On)`,
       ["k1"],
       "Big posts closed with pedal down (gray A2 wire removed)?",
@@ -324,7 +324,7 @@ export function buildClubCarVGlide(): ModelPack {
     "vcreep-off": cont(
       "vcreep-off",
       "Creeps in first speed, key OFF (Test Procedure 9)",
-      "Guide symptom 5: runs in first speed when F&R is put in gear with the key OFF. The metal pads inside the big click switch are welded. Coil off: no connection between big posts. Any connection? Replace the big click switch (solenoid).",
+      "Guide symptom 5: runs in first speed when F&R is put in gear with the key OFF. The metal pads inside the solenoid are welded. Coil off: no connection between big posts. Any connection? Replace the solenoid.",
       `Factory book: ${M}, Test Procedure 9 — Solenoid Contacts (Power Off); Guide symptom 5`,
       ["k1"],
       "Big posts open with the coil off?",
@@ -368,10 +368,10 @@ export function buildClubCarVGlide(): ModelPack {
     "vdx-key": dx("vdx-key", "Key switch", "Test Procedure 2 failed. The small-wire path is not closed through the key.", "Failed ON metal pads, or a loose dash plug.", "Repair the 18-gauge. Then replace the key switch (page 19-18).", [{ name: "Key switch" }], "replace"),
     "vdx-arclimit": dx("vdx-arclimit", "F&R spark-stop limit switch", "Test Procedure 3 failed. Neutral must be open. In-gear must be closed.", "Cam not hitting the lever, or a failed COM–NO.", "Adjust the cam (page 19-19). Replace the switch if COM–NO does not change state.", [{ name: "F&R spark-stop (anti-arcing) limit switch" }], "replace"),
     "vdx-pedal": dx("vdx-pedal", "Gas pedal sensor (limit switch)", "Test Procedure 4 failed. Pedal up must be open. Pedal down must be closed. Green on NC. Black on COM.", "Failed switch, NC/NO wired wrong, or the wiper arm not releasing the lever.", "Fix the 18-gauge on NC/COM. Replace the switch (page 19-20) if the lever moves and the pads do not.", [{ name: "Gas pedal sensor (limit switch)" }], "replace"),
-    "vdx-coil": dx("vdx-coil", "Big click switch coil out of 55–60 Ω", "Test Procedure 5 is not 55–60 Ω.", "Open or shorted coil (small magnet wires that pull the click switch in). Do not use an IQ / PowerDrive 48 click switch.", "Replace with a V-Glide 36 V big click switch (solenoid). Move cables one at a time.", [{ name: "36 V V-Glide big click switch (solenoid) (55–60 Ω coil)" }], "replace"),
-    "vdx-ctrl-wire": dx("vdx-ctrl-wire", "Small-wire path leftover", "Coil is 55–60 Ω and Test Procedures 2–4 passed. But the big click switch still does not click.", "Open 18-gauge between key, spark-stop, gas pedal sensor, and coil.", "Measure ohms on the green/black small wires. Repair the open.", [], "service"),
-    "vdx-contacts": dx("vdx-contacts", "Big click switch metal pads", "Clicked, but Test Procedure 10 shows the big posts still open.", "Pitted or burned power metal pads.", "Replace the big click switch (solenoid). Put the #6 gray A2 wire back only after the new unit is in.", [{ name: "36 V V-Glide big click switch (solenoid)" }], "replace"),
-    "vdx-welded": dx("vdx-welded", "Big click switch welded (creep, key OFF)", "Test Procedure 9: a path across the big posts with the coil off. Guide symptom 5.", "Welded power metal pads.", "Replace the big click switch (solenoid). Do not file the metal pads.", [{ name: "36 V V-Glide big click switch (solenoid)" }], "replace"),
+    "vdx-coil": dx("vdx-coil", "Solenoid coil out of 55–60 Ω", "Test Procedure 5 is not 55–60 Ω.", "Open or shorted coil (small magnet wires that pull the solenoid in). Do not use an IQ / PowerDrive 48 solenoid.", "Replace with a V-Glide 36 V solenoid. Move cables one at a time.", [{ name: "36 V V-Glide solenoid (55–60 Ω coil)" }], "replace"),
+    "vdx-ctrl-wire": dx("vdx-ctrl-wire", "Small-wire path leftover", "Coil is 55–60 Ω and Test Procedures 2–4 passed. But the solenoid still does not click.", "Open 18-gauge between key, spark-stop, gas pedal sensor, and coil.", "Measure ohms on the green/black small wires. Repair the open.", [], "service"),
+    "vdx-contacts": dx("vdx-contacts", "Solenoid metal pads", "Clicked, but Test Procedure 10 shows the big posts still open.", "Pitted or burned power metal pads.", "Replace the solenoid. Put the #6 gray A2 wire back only after the new unit is in.", [{ name: "36 V V-Glide solenoid" }], "replace"),
+    "vdx-welded": dx("vdx-welded", "Solenoid welded (creep, key OFF)", "Test Procedure 9: a path across the big posts with the coil off. Guide symptom 5.", "Welded power metal pads.", "Replace the solenoid. Do not file the metal pads.", [{ name: "36 V V-Glide solenoid" }], "replace"),
     "vdx-fr": dx("vdx-fr", "Direction switch (F&R)", "Test Procedure 7 failed in the selected direction, or the 6-gauge green is open (guide symptom 7).", "Burned rotor metal pads, or a broken 6-gauge.", "Repair the 6-gauge. Replace the F&R switch (page 19-32) if a position is open.", [{ name: "Direction switch (F&R)" }], "replace"),
     "vdx-wiper": dx("vdx-wiper", "V-Glide wiper switch", "Test Procedure 11: brush at the wear line. Burned metal pads. Melted housing. Or a step that does not sit down.", "Worn wiper, or burned speed-switch metal pads.", "Replace the brush if only the arm is worn. Replace the housing with pads if the board is burned. Set the arm again (page 19-26). Tighten pad nuts to 35–45 in-lb.", [{ name: "V-Glide wiper switch / brush" }], "replace"),
     "vdx-resistors": dx("vdx-resistors", "Resistor board open", "Test Procedure 6 is not ≈ 0.6 Ω first-to-last.", "Burned resistor coil or a loose board connection.", "Replace the damaged resistor coil. Make sure every board mount is tight. Wait for cool-down. Resistors get hot enough to burn.", [{ name: "V-Glide resistor board / coil" }], "replace"),
@@ -383,11 +383,11 @@ export function buildClubCarVGlide(): ModelPack {
   };
 
   const symptoms: SymptomDef[] = [
-    { id: "no-operation", label: "Cart will not run — no big click switch click", summary: "Small-wire path: pack (TP 1) → key (TP 2) → F&R spark-stop (TP 3) → gas pedal sensor (TP 4) → coil 55–60 Ω (TP 5).", manualSection: `Factory book: ${M}, Troubleshooting Guide symptom 1`, startStepId: "vno-setup" },
-    { id: "clicks-no-run", label: "Cart will not run — big click switch clicks", summary: "Power path: direction switch (F&R) (TP 7) → big click switch metal pads (TP 10) → wiper (TP 11) → resistors (TP 6) → motor (TP 8).", manualSection: `Factory book: ${M}, Troubleshooting Guide symptom 2`, startStepId: "vno-click" },
+    { id: "no-operation", label: "Cart will not run — no solenoid click", summary: "Small-wire path: pack (TP 1) → key (TP 2) → F&R spark-stop (TP 3) → gas pedal sensor (TP 4) → coil 55–60 Ω (TP 5).", manualSection: `Factory book: ${M}, Troubleshooting Guide symptom 1`, startStepId: "vno-setup" },
+    { id: "clicks-no-run", label: "Cart will not run — solenoid clicks", summary: "Power path: direction switch (F&R) (TP 7) → solenoid metal pads (TP 10) → wiper (TP 11) → resistors (TP 6) → motor (TP 8).", manualSection: `Factory book: ${M}, Troubleshooting Guide symptom 2`, startStepId: "vno-click" },
     { id: "skips-speeds", label: "Skips one or more speeds", summary: "Wiper brush or metal pads, or an open resistor coil (TP 6 ≈ 0.6 Ω).", manualSection: `Factory book: ${M}, Troubleshooting Guide symptom 3`, startStepId: "vsk-wiper" },
     { id: "runs-slowly", label: "Cart runs slow", summary: "Wiper last pad, pack, motor brushes, brakes, tires — factory order.", manualSection: `Factory book: ${M}, Troubleshooting Guide symptom 4`, startStepId: "vsl-wiper" },
-    { id: "creep-key-off", label: "Runs in first speed with key OFF", summary: "Big click switch welded. Test Procedure 9 — big posts must be open, coil off.", manualSection: `Factory book: ${M}, Troubleshooting Guide symptom 5 / TP 9`, startStepId: "vcreep-off" },
+    { id: "creep-key-off", label: "Runs in first speed with key OFF", summary: "Solenoid welded. Test Procedure 9 — big posts must be open, coil off.", manualSection: `Factory book: ${M}, Troubleshooting Guide symptom 5 / TP 9`, startStepId: "vcreep-off" },
     { id: "creep-key-on", label: "Runs in first speed with key ON (pedal up)", summary: "Gas pedal sensor failed closed, wiper wired wrong, or a stuck gas pedal rod.", manualSection: `Factory book: ${M}, Troubleshooting Guide symptom 6`, startStepId: "vcreep-on" },
     { id: "one-direction", label: "Runs in one direction only", summary: "F&R spark-stop, 6-gauge green, or direction switch (F&R) rotor metal pads (TP 3 / 7).", manualSection: `Factory book: ${M}, Troubleshooting Guide symptom 7`, startStepId: "vno-fr" },
     { id: "not-charging", label: "Cart not being fully charged", summary: "Receptacle drag, onboard fuse link, Accu-Power charger (Section 23A).", manualSection: `Factory book: ${M}, Troubleshooting Guide symptom 8`, startStepId: "vchg" },
@@ -400,12 +400,12 @@ export function buildClubCarVGlide(): ModelPack {
     fullName: "Club Car DS V-Glide 36 Volt",
     voltage: 36,
     powertrain: "electric",
-    architecture: "V-Glide resistor speed box · 36 V series · no computer speed box",
+    architecture: "V-Glide resistor controller · 36 V series · no computer controller",
     years: "1994–2000 DS V-Glide 36 V (1994 DS M&S; 1995–96 Section 19; 2000 supplement 102067504)",
     diagramTitle: "Power and control picture — DS V-Glide 36 V",
     diagramNotes: [
-      "There is no computer speed box (controller). There is no Tow/Run switch (Tow = off for work. Run = ready to drive). Speed is the V-Glide wiper walking the resistor board (Figure 19-3). The V-Glide is older speed control.",
-      "The big click switch coil is 55–60 Ω (Test Procedure 5). Do not use an IQ 180–190 Ω or PowerDrive 190–250 Ω coil.",
+      "There is no computer controller. There is no Tow/Run switch (Tow = off for work. Run = ready to drive). Speed is the V-Glide wiper walking the resistor board (Figure 19-3). The V-Glide is older speed control.",
+      "The solenoid coil is 55–60 Ω (Test Procedure 5). Do not use an IQ 180–190 Ω or PowerDrive 190–250 Ω coil.",
       "Resistor string first-to-last ≈ 0.6 Ω (Test Procedure 6). Do not touch hot resistors.",
       "Unplug batteries at battery 1 minus (Figure 19-1) before ohms work. Reverse is half pack voltage by design.",
     ],

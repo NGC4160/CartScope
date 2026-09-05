@@ -60,7 +60,7 @@ function Bench() {
     phase === "pack" ? (
       <PackGate job={job} pack={pack} />
     ) : phase === "codes" ? (
-      <CodeGate job={job} />
+      <CodeGate job={job} pack={pack} />
     ) : (
       <StepPanel job={job} pack={pack} />
     );
