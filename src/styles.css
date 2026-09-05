@@ -1,0 +1,40 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "IBM Plex Sans", "Segoe UI", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "IBM Plex Sans Condensed", "IBM Plex Sans", "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --color-paper: #f3efe4;
+  --color-paper-sunken: #e7e1d2;
+  --color-surface: #fffdf8;
+  --color-surface-2: #f7f3ea;
+  --color-ink: #1a1916;
+  --color-ink-muted: #5c584e;
+  --color-ink-subtle: #8a8578;
+  --color-line: #d4cec0;
+  --color-line-strong: #b7b09e;
+  --color-navy: #1e3a5f;
+  --color-navy-fg: #f4f0e6;
+  --color-navy-deep: #152a46;
+  --color-power: #b42318;
+  --color-control: #185fa5;
+  --color-ground: #1f6b3a;
+  --color-warn: #8a5a00;
+  --color-warn-bg: #f8e6b8;
+  --color-ok: #1b6b38;
+  --color-ok-bg: #d8efe0;
+  --color-danger: #9b1c1c;
+  --color-danger-bg: #f8d4d0;
+  --color-focus: #1e3a5f;
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --radius-xl: 24px;
+}
+
+@layer base {
+  html { background: var(--color-paper); color: var(--color-ink); }
+  body { margin: 0; min-height: 100dvh; background: var(--color-paper); color: var(--color-ink); font-family: var(--font-sans); }
+  button:not(:disabled), [role="button"]:not(:disabled) { cursor: pointer; }
+}
