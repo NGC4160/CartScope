@@ -1,11 +1,11 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { AlertTriangle } from "lucide-react";
-import type { BayActionChrome } from "@/components/bay/BayActionBar";
+import { usePublishBayChrome, type BayActionChrome } from "@/components/bay/BayActionBar";
 import { Button } from "@/components/ui/button";
 import { Field, inputClass, IrUnitPicker, VoltageInput } from "@/components/case/fields";
 import type { JobRecord, ModelPack, PackCheckRecord, PackCellReading, PackDraft } from "@/data/types";
 import { IR_UNIT_HELP, resolveIrUnit } from "@/lib/ir-unit";
-import { bayPackActionEnabled, bayPackActionLabel, bayProgressChip } from "@/lib/bay-chrome";
+import { bayPackActionLabel, bayProgressChip } from "@/lib/bay-chrome";
 import { packLayout, scaledLeadAcidLimits } from "@/lib/pack-layout";
 import {
   applyBulkAgeUnreadable,
@@ -76,6 +76,7 @@ export function PackGate({
   const [pasteNote, setPasteNote] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [blockers, setBlockers] = useState<PackBlocker[]>([]);
+  const errorAnchor = useRef<HTMLDivElement>(null);
 
   const live = { cells, loadDrop, monitorV, minCell, faults, noMonitor, irSkip, irSkipReason, agePhoto, testNote };
   const liveRef = useRef(live);
@@ -146,6 +147,7 @@ export function PackGate({
   function showBlockers(list: ReturnType<typeof packSaveBlockers>) {
     setBlockers(list);
     setError(list.length ? `Cannot save yet. ${list.length} field${list.length === 1 ? "" : "s"} still need a value.` : null);
+    queueMicrotask(() => errorAnchor.current?.scrollIntoView({ block: "nearest" }));
   }
 
   function applyPaste() {
@@ -198,6 +200,7 @@ export function PackGate({
     setError(null);
     if (!lithium && !evalr.pass) {
       setError("This pack does not pass. Charge or fix it first, or continue on a test battery.");
+      queueMicrotask(() => errorAnchor.current?.scrollIntoView({ block: "nearest" }));
       return;
     }
     save(job.id, buildRecord("pass", irNote ? [irNote] : []));
@@ -223,6 +226,7 @@ export function PackGate({
     }
     if (!testNote.trim() || testNote.trim().length < 8) {
       setError("Write what you measured on the pack, and that later steps used a known-good test battery.");
+      queueMicrotask(() => errorAnchor.current?.scrollIntoView({ block: "nearest" }));
       return;
     }
     save(job.id, buildRecord("fail", evalr.issues), { used: true, measuredProblem: testNote.trim() });
@@ -236,16 +240,14 @@ export function PackGate({
     cellsReady: numericCells.length >= layout.count,
   };
 
-  useLayoutEffect(() => {
-    if (!onChrome) return;
-    onChrome({
-      chip: bayProgressChip(job, pack),
-      label: bayPackActionLabel(packAction),
-      onAction: lithium || evalr.pass || numericCells.length < layout.count ? continuePass : continueTestBattery,
-      disabled: !bayPackActionEnabled(packAction),
-    });
+  usePublishBayChrome(onChrome, {
+    chip: bayProgressChip(job, pack),
+    label: bayPackActionLabel(packAction),
+    onAction: lithium || evalr.pass || numericCells.length < layout.count ? continuePass : continueTestBattery,
+    // Keep Save tappable so a valid pack always runs continuePass. A disabled
+    // bar after the bay lift looked like a dead control (no advance, no error).
+    disabled: false,
   });
-  useEffect(() => () => onChrome?.(null), [onChrome]);
 
   return (
     <div className="flex h-full min-h-0 flex-col bg-surface">
@@ -549,7 +551,9 @@ export function PackGate({
           </div>
         ) : null}
 
-        {error ? <p className="mt-3 text-sm text-danger">{error}</p> : null}
+        <div ref={errorAnchor} className="mt-3">
+          {error ? <p className="text-sm text-danger">{error}</p> : null}
+        </div>
         {blockers.length > 0 ? (
           <div className="mt-2 space-y-2 text-sm text-danger" role="alert">
             {groupPackBlockers(blockers).map((group) => (

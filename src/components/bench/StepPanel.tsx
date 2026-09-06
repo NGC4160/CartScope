@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   AlertTriangle,
   Cable,
@@ -6,7 +6,7 @@ import {
   ClipboardList,
   RotateCcw,
 } from "lucide-react";
-import type { BayActionChrome } from "@/components/bay/BayActionBar";
+import { usePublishBayChrome, type BayActionChrome } from "@/components/bay/BayActionBar";
 import type { JobRecord, MeasurementSpec, ModelPack, ReadingAttempt } from "@/data/types";
 import { termHints, unitHelp } from "@/data/plain-terms";
 import { PackNaBanner } from "@/components/case/PackNaBanner";
@@ -67,6 +67,7 @@ export function StepPanel({
   const [skipReason, setSkipReason] = useState("");
   const [showSkip, setShowSkip] = useState(false);
   const meterRef = useRef<HTMLInputElement>(null);
+  const errorAnchor = useRef<HTMLDivElement>(null);
 
   const attemptCount = pending?.attempts.length ?? 0;
   const verifyPhase = pending ? attemptCount : 0;
@@ -106,6 +107,7 @@ export function StepPanel({
     setSavedNote(null);
     setError(message);
     setMissing(fields);
+    queueMicrotask(() => errorAnchor.current?.scrollIntoView({ block: "nearest" }));
   }
 
   function onSubmit() {
@@ -170,21 +172,17 @@ export function StepPanel({
     setMissing([]);
   }
 
-  useLayoutEffect(() => {
-    if (!onChrome) return;
-    onChrome({
-      chip: bayProgressChip(job, pack),
-      label: bayStepActionLabel(verifyPhase, diagnosedView),
-      onAction: diagnosedView
-        ? () => {
-            setPhase(job.id, "report");
-            onOpenReport?.();
-          }
-        : onSubmit,
-      disabled: !diagnosedView && motorStep && !motorReady,
-    });
+  usePublishBayChrome(onChrome, {
+    chip: bayProgressChip(job, pack),
+    label: bayStepActionLabel(verifyPhase, diagnosedView),
+    onAction: diagnosedView
+      ? () => {
+          setPhase(job.id, "report");
+          onOpenReport?.();
+        }
+      : onSubmit,
+    disabled: !diagnosedView && motorStep && !motorReady,
   });
-  useEffect(() => () => onChrome?.(null), [onChrome]);
 
   if (diagnosedView && diagnosis) {
     return (
@@ -402,7 +400,7 @@ export function StepPanel({
         </div>
 
         {error ? (
-          <div className="mt-2 text-sm text-danger" role="alert">
+          <div ref={errorAnchor} className="mt-2 text-sm text-danger" role="alert">
             <p>{error}</p>
             {missing.length > 0 ? (
               <p className="mt-1">

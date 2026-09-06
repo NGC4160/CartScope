@@ -1,5 +1,5 @@
-import { useEffect, useLayoutEffect, useMemo, useState } from "react";
-import type { BayActionChrome } from "@/components/bay/BayActionBar";
+import { useMemo, useRef, useState } from "react";
+import { usePublishBayChrome, type BayActionChrome } from "@/components/bay/BayActionBar";
 import { Button } from "@/components/ui/button";
 import { Field, inputClass } from "@/components/case/fields";
 import type { JobRecord, ModelPack } from "@/data/types";
@@ -42,6 +42,7 @@ export function CodeGate({
   const [noReadings, setNoReadings] = useState(Boolean(prior?.noControllerReadings));
   const [error, setError] = useState<string | null>(null);
   const [blockers, setBlockers] = useState<string[]>([]);
+  const errorAnchor = useRef<HTMLDivElement>(null);
 
   const hasCounter = counters.some((r) => r.fault.trim() && r.count.trim());
   const missing = handheldSaveBlockers({
@@ -65,6 +66,7 @@ export function CodeGate({
     if (!captured) {
       setBlockers(missing.map((b) => b.message));
       setError(`Cannot save yet. ${missing.length} field${missing.length === 1 ? "" : "s"} still need a value.`);
+      queueMicrotask(() => errorAnchor.current?.scrollIntoView({ block: "nearest" }));
       return;
     }
     setBlockers([]);
@@ -87,15 +89,11 @@ export function CodeGate({
     });
   }
 
-  useLayoutEffect(() => {
-    if (!onChrome) return;
-    onChrome({
-      chip: bayProgressChip(job, pack),
-      label: bayCodesActionLabel(),
-      onAction: go,
-    });
+  usePublishBayChrome(onChrome, {
+    chip: bayProgressChip(job, pack),
+    label: bayCodesActionLabel(),
+    onAction: go,
   });
-  useEffect(() => () => onChrome?.(null), [onChrome]);
 
   return (
     <div className="flex h-full min-h-0 flex-col bg-surface">
@@ -305,7 +303,9 @@ export function CodeGate({
           </span>
         </label>
 
-        {error ? <p className="mt-3 text-sm text-danger">{error}</p> : null}
+        <div ref={errorAnchor} className="mt-3">
+          {error ? <p className="text-sm text-danger">{error}</p> : null}
+        </div>
         {blockers.length > 0 ? (
           <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-danger" role="alert">
             {blockers.map((b) => (
