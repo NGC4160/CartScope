@@ -1,62 +1,90 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useLayoutEffect, useRef, useState } from "react";
 import { ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  bayChromeClear,
+  bayChromePublish,
+  emptyBayChrome,
+  type BayActionChrome,
+  type BayChromeSnapshot,
+} from "@/lib/bay-chrome-action";
 import { BAY_TAP_MIN_PX } from "@/lib/bay-chrome";
 
-export type BayActionChrome = {
-  chip: string;
-  label: string;
-  onAction: () => void;
-  disabled?: boolean;
-  busy?: boolean;
-  secondaryLabel?: string;
-  onSecondary?: () => void;
-};
+export type { BayActionChrome } from "@/lib/bay-chrome-action";
 
 export function useBayChrome() {
-  const [meta, setMeta] = useState<Omit<BayActionChrome, "onAction" | "onSecondary"> | null>(null);
-  const actionRef = useRef<(() => void) | null>(null);
-  const secondaryRef = useRef<(() => void) | undefined>(undefined);
+  const snapRef = useRef<BayChromeSnapshot>(emptyBayChrome());
+  const [meta, setMeta] = useState<BayChromeSnapshot["meta"]>(null);
 
   const setChrome = useCallback((next: BayActionChrome | null) => {
     if (!next) {
-      actionRef.current = null;
-      secondaryRef.current = undefined;
-      setMeta(null);
+      // Pack/check unmount used to call onChrome(null) from useEffect. That
+      // cleanup runs after the next panel already published, wiping onAction
+      // so sticky Save looked live but did nothing. Ignore token-less clears.
+      const nextSnap = bayChromeClear(snapRef.current);
+      snapRef.current = nextSnap;
       return;
     }
-    actionRef.current = next.onAction;
-    secondaryRef.current = next.onSecondary;
+    const nextSnap = bayChromePublish(snapRef.current, next);
+    snapRef.current = nextSnap;
     setMeta((prev) => {
+      const incoming = nextSnap.meta;
       if (
         prev &&
-        prev.chip === next.chip &&
-        prev.label === next.label &&
-        prev.disabled === next.disabled &&
-        prev.busy === next.busy &&
-        prev.secondaryLabel === next.secondaryLabel
+        incoming &&
+        prev.chip === incoming.chip &&
+        prev.label === incoming.label &&
+        prev.disabled === incoming.disabled &&
+        prev.busy === incoming.busy &&
+        prev.secondaryLabel === incoming.secondaryLabel
       ) {
         return prev;
       }
-      return {
-        chip: next.chip,
-        label: next.label,
-        disabled: next.disabled,
-        busy: next.busy,
-        secondaryLabel: next.secondaryLabel,
-      };
+      return incoming;
     });
   }, []);
 
   const chrome: BayActionChrome | null = meta
     ? {
         ...meta,
-        onAction: () => actionRef.current?.(),
-        onSecondary: secondaryRef.current ? () => secondaryRef.current?.() : undefined,
+        onAction: () => snapRef.current.action?.(),
+        onSecondary: snapRef.current.secondary ? () => snapRef.current.secondary?.() : undefined,
       }
     : null;
 
   return [chrome, setChrome] as const;
+}
+
+/** Push sticky-bar chrome without a useEffect(null) cleanup that can race. */
+export function usePublishBayChrome(
+  onChrome: ((chrome: BayActionChrome | null) => void) | undefined,
+  spec: {
+    chip: string;
+    label: string;
+    disabled?: boolean;
+    busy?: boolean;
+    secondaryLabel?: string;
+    onAction: () => void;
+    onSecondary?: () => void;
+  },
+) {
+  const actionRef = useRef(spec.onAction);
+  actionRef.current = spec.onAction;
+  const secondaryRef = useRef(spec.onSecondary);
+  secondaryRef.current = spec.onSecondary;
+
+  useLayoutEffect(() => {
+    if (!onChrome) return;
+    onChrome({
+      chip: spec.chip,
+      label: spec.label,
+      disabled: spec.disabled,
+      busy: spec.busy,
+      secondaryLabel: spec.secondaryLabel,
+      onAction: () => actionRef.current(),
+      onSecondary: spec.secondaryLabel ? () => secondaryRef.current?.() : undefined,
+    });
+  }, [onChrome, spec.chip, spec.label, spec.disabled, spec.busy, spec.secondaryLabel]);
 }
 
 export function BayActionBar({ chrome }: { chrome: BayActionChrome | null }) {
@@ -83,6 +111,7 @@ export function BayActionBar({ chrome }: { chrome: BayActionChrome | null }) {
         ) : null}
         <Button
           type="button"
+          data-testid="bay-primary-action"
           className="min-h-12 min-w-0 flex-1"
           style={{ minHeight: Math.max(BAY_TAP_MIN_PX, 48) }}
           onClick={chrome.onAction}

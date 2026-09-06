@@ -199,9 +199,77 @@ async function runFactoryCheck() {
   await page.close();
 }
 
+async function fillLeadAcidPack(page, { count, volts, ir, age }) {
+  for (let i = 1; i <= count; i++) {
+    await page.getByRole("textbox", { name: new RegExp(`^Battery ${i} resting volts`, "i") }).fill(String(volts));
+    await page.getByRole("textbox", { name: new RegExp(`^Battery ${i} internal resistance`, "i") }).fill(String(ir));
+    await page.getByRole("textbox", { name: new RegExp(`^Battery ${i} age`, "i") }).fill(age);
+  }
+}
+
+async function runStickySaveAdvance() {
+  const page = await browser.newPage({ viewport: { width: 1024, height: 768 } });
+  page.on("pageerror", (e) => console.log("PAGEERROR", e.message));
+  await startIqJob(page);
+
+  const mega = page.getByRole("button", { name: /megaohms/i }).first();
+  await page.getByLabel(/^Battery 1 internal resistance$/i).fill("12.1");
+  await mega.click();
+  check("advance IR number stays 12.1 after MΩ", (await page.getByLabel(/^Battery 1 internal resistance$/i).inputValue()) === "12.1");
+  await page.getByRole("button", { name: /milliohms/i }).first().click();
+
+  await fillLeadAcidPack(page, { count: 6, volts: "8.45", ir: "3.4", age: "03/2026" });
+  check("advance pack in shop range", await page.getByText(/in the shop range/i).isVisible());
+  const packSave = page.getByTestId("bay-primary-action");
+  check("advance pack save enabled", await packSave.isEnabled());
+  await packSave.click();
+  await page.getByRole("heading", { name: /Save a program file before you clear/i }).waitFor({ timeout: 10000 });
+  check("advance pack sticky Save left pack", await page.getByRole("heading", { name: /Save a program file before you clear/i }).isVisible());
+  check("advance pack heading gone", (await page.getByRole("heading", { name: /Check the pack before you blame other parts/i }).count()) === 0);
+
+  await page.getByTestId("bay-dock").getByRole("tab", { name: "Report" }).click();
+  await page.getByText(/Report peek|Report draft/i).first().waitFor();
+  const packSection = page.getByRole("heading", { name: /Battery pack|Pack check|Pack/i }).first();
+  await packSection.scrollIntoViewIfNeeded().catch(() => {});
+  const reportText = await page.locator("body").innerText();
+  check("advance report shows IR with unit", /12\.1\s*mΩ|IR 12\.1 mΩ|3\.4\s*mΩ|IR 3\.4 mΩ/.test(reportText), reportText.slice(0, 200));
+  check("advance who checked it still Ryan", /Who checked it[\s\S]{0,40}Ryan/.test(reportText) || (await page.getByText(/^Ryan$/).count()) > 0);
+  await page.getByRole("button", { name: /Back to checks/i }).first().click();
+  await page.close();
+
+  const gas = await browser.newPage({ viewport: { width: 1024, height: 768 } });
+  await gas.goto(BASE, { waitUntil: "networkidle" });
+  const neu = gas.getByRole("button", { name: /New job/i });
+  if (await neu.count()) await neu.click();
+  await gas.getByRole("button", { name: /Club Car/i }).click();
+  await gas.getByRole("button", { name: /DS \/ Villager FE290/ }).click();
+  await gas.getByRole("button", { name: /Engine will not crank/i }).click();
+  const headerBtn = gas.getByRole("button", { name: /Job header/i });
+  if (await headerBtn.count()) await headerBtn.click();
+  await fillHeader(gas, {
+    last: "Gasadv",
+    job: "HCP-5510",
+    year: "2008",
+    serial: "GFE29012",
+    who: "Ryan",
+    complaint: "No crank.",
+  });
+  await gas.getByRole("button", { name: /Start checks/i }).click();
+  await gas.waitForURL("**/bench/**", { timeout: 15000 });
+  await gas.getByText(/CHECK 1/i).first().waitFor();
+  await gas.getByRole("button", { name: /Setup is right — keep going/i }).click();
+  const checkSave = gas.getByTestId("bay-primary-action");
+  check("advance factory save enabled", await checkSave.isEnabled());
+  await checkSave.click();
+  await gas.getByText(/CHECK 2/i).first().waitFor({ timeout: 8000 });
+  check("advance factory sticky Save left check 1", await gas.getByText(/CHECK 2/i).first().isVisible());
+  await gas.close();
+}
+
 await runAt(1024, 768, "tablet");
 await runAt(390, 844, "phone");
 await runFactoryCheck();
+await runStickySaveAdvance();
 
 await browser.close();
 if (fails.length) {

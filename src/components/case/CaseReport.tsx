@@ -1,7 +1,7 @@
-import { useLayoutEffect, useState } from "react";
+import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { Check, Copy, Printer } from "lucide-react";
-import type { BayActionChrome } from "@/components/bay/BayActionBar";
+import { usePublishBayChrome, type BayActionChrome } from "@/components/bay/BayActionBar";
 import { Button } from "@/components/ui/button";
 import { BrainStatus } from "@/components/case/BrainStatus";
 import { Field, inputClass } from "@/components/case/fields";
@@ -88,16 +88,13 @@ export function CaseReport({
     else setPhase(job.id, "steps");
   }
 
-  useLayoutEffect(() => {
-    if (!onChrome || printMode) return;
-    onChrome({
-      chip: bayProgressChip(job, pack),
-      label: bayReportActionLabel(Boolean(job.reportConfirmed)),
-      onAction: job.reportConfirmed ? back : () => void onConfirm(),
-      disabled: filing,
-      secondaryLabel: job.reportConfirmed ? undefined : "Back to checks",
-      onSecondary: job.reportConfirmed ? undefined : back,
-    });
+  usePublishBayChrome(printMode ? undefined : onChrome, {
+    chip: bayProgressChip(job, pack),
+    label: bayReportActionLabel(Boolean(job.reportConfirmed)),
+    onAction: job.reportConfirmed ? back : () => void onConfirm(),
+    disabled: filing,
+    secondaryLabel: job.reportConfirmed ? undefined : "Back to checks",
+    onSecondary: job.reportConfirmed ? undefined : back,
   });
 
   return (
