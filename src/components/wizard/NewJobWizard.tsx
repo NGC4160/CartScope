@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState, type FormEvent, type PointerEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent, type PointerEvent } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Field, HeaderNoteInput, inputClass } from "@/components/case/fields";
 import { Button } from "@/components/ui/button";
@@ -91,6 +91,10 @@ export function NewJobWizard({
   const startReady = startIsReady(blockers);
   const complaintReady = complaintHasFirstStep(model, symptomId);
 
+  useEffect(() => {
+    if (startReady) setStartErrors([]);
+  }, [startReady]);
+
   function goToHeader() {
     const next = openJobHeader(symptomId);
     if (next) setStep(next);
@@ -115,6 +119,7 @@ export function NewJobWizard({
   async function startFromForm(form?: HTMLFormElement | null) {
     const snapshot = readHeaderSnapshot(form ? new FormData(form) : null, liveRef.current);
     applySnapshot(snapshot);
+    setStartErrors([]);
     const attempted = attemptStartChecks({
       pack: model,
       symptomId,
@@ -455,7 +460,7 @@ export function NewJobWizard({
             </p>
           ) : null}
           <div className="sticky bottom-0 z-30 isolate mt-5 border-t border-navy-deep bg-paper px-1 pt-2 pb-[max(2.75rem,calc(env(safe-area-inset-bottom)+2.25rem))]">
-            {!startReady || startErrors.length > 0 ? (
+            {!startReady ? (
               <div
                 ref={startReasonRef}
                 data-testid="start-blocked-reason"
@@ -468,19 +473,17 @@ export function NewJobWizard({
                     {b.message}
                   </p>
                 ))}
-                {startErrors
-                  .filter(
-                    (m) =>
-                      m !== headerMessage &&
-                      m !== yearMessage &&
-                      m !== yearNote &&
-                      !blockers.some((b) => b.message === m),
-                  )
-                  .map((m) => (
-                    <p key={m} className="mt-1 font-normal">
-                      {m}
-                    </p>
-                  ))}
+              </div>
+            ) : startErrors.length > 0 ? (
+              <div
+                ref={startReasonRef}
+                data-testid="start-blocked-reason"
+                className="mb-2 rounded-md bg-danger-bg px-3 py-2 text-sm font-medium text-danger"
+                role="alert"
+              >
+                {startErrors.map((m) => (
+                  <p key={m}>{m}</p>
+                ))}
               </div>
             ) : null}
             <div className="flex flex-wrap gap-2">

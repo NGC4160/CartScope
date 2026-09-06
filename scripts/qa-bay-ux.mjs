@@ -567,11 +567,13 @@ async function runRound7StartValidationAndBayImprovements() {
   check("motor braking Start not blocked", (await page.getByTestId("start-blocked-reason").count()) === 0);
   await mouseClickStart(page);
   await page.waitForURL("**/bench/**", { timeout: 15000 });
+  await page.getByRole("heading", { name: /Check the pack before you blame other parts/i }).waitFor({ timeout: 15000 });
   check(
     "motor braking Start reached pack",
     await page.getByRole("heading", { name: /Check the pack before you blame other parts/i }).isVisible(),
   );
   const zoom = page.getByTestId("diagram-zoom");
+  await zoom.waitFor({ state: "visible", timeout: 10000 });
   check("diagram zoom label visible", await zoom.isVisible());
   const zoomText = await zoom.innerText();
   const pct = Number((zoomText.match(/(\d+)\s*%/) || [])[1] || 0);
@@ -620,10 +622,13 @@ async function runRound7StartValidationAndBayImprovements() {
   await gas.getByLabel(/^Year$/i).fill("1996");
   check("marathon 1996 year accepted", /1996/.test(await gas.getByTestId("year-compat").innerText()));
   check("marathon 1996 Start ready", (await gas.getByTestId("start-checks").getAttribute("data-start-ready")) === "true");
+  await gas.getByTestId("start-blocked-reason").waitFor({ state: "hidden", timeout: 5000 }).catch(() => {});
   check("marathon 1996 Start unblocked", (await gas.getByTestId("start-blocked-reason").count()) === 0);
   await mouseClickStart(gas);
   await gas.waitForURL("**/bench/**", { timeout: 15000 });
+  await gas.getByText(/CHECK 1/i).first().waitFor({ timeout: 15000 });
   check("marathon 1996 Start reached Check 1", await gas.getByText(/CHECK 1/i).first().isVisible());
+  await gas.getByTestId("pack-na-badge").first().waitFor({ state: "visible", timeout: 8000 });
   check("gas pack N/A badge visible", await gas.getByTestId("pack-na-badge").first().isVisible());
   check("gas pack N/A badge text", (await gas.getByTestId("pack-na-badge").first().innerText()).includes("Pack N/A"));
   check(
