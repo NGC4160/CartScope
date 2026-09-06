@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { FileText, Plus } from "lucide-react";
 import { useState } from "react";
 import { AppShell } from "@/components/layout/AppShell";
@@ -8,14 +8,23 @@ import { getPack, getSymptom, MODEL_PACKS } from "@/data/index";
 import { WIRING_SHEETS } from "@/data/wiring";
 import { caseTitle, statusLabel } from "@/lib/case-flow";
 import { formatTime } from "@/lib/utils";
-import { useJobStore } from "@/store/jobs";
+import { benchUrl } from "@/lib/wizard-nav";
+import { useJobStore, type CreateJobInput } from "@/store/jobs";
 
 export const Route = createFileRoute("/")({ component: Home });
 
 function Home() {
+  const router = useRouter();
   const jobs = useJobStore((s) => s.jobs);
+  const createJob = useJobStore((s) => s.createJob);
   const [fresh, setFresh] = useState(false);
   const showWizard = jobs.length === 0 || fresh;
+
+  function startJob(input: CreateJobInput) {
+    setFresh(true);
+    const job = createJob(input);
+    router.history.push(benchUrl(job.id));
+  }
 
   return (
     <AppShell
@@ -46,7 +55,10 @@ function Home() {
         </div>
 
         {showWizard ? (
-          <NewJobWizard onCancel={jobs.length > 0 ? () => setFresh(false) : undefined} />
+          <NewJobWizard
+            onStartJob={startJob}
+            onCancel={jobs.length > 0 ? () => setFresh(false) : undefined}
+          />
         ) : (
           <section>
             <h2 className="font-display text-lg font-semibold text-ink">Recent cases</h2>

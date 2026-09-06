@@ -1,18 +1,28 @@
 import { useMemo, useState } from "react";
-import { useNavigate } from "@tanstack/react-router";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Field, inputClass } from "@/components/case/fields";
 import { Button } from "@/components/ui/button";
 import { MANUFACTURERS, getSymptom, packsFor } from "@/data/index";
 import type { BatteryType, ManufacturerId, ModelPack } from "@/data/types";
 import { JOB_HEADER_MESSAGES, jobHeaderGaps, jobHeaderSummary } from "@/lib/job-header";
-import { useJobStore } from "@/store/jobs";
+import {
+  canStartChecks,
+  canVisitWizardStep,
+  openJobHeader,
+  resolveStartJob,
+  stepAfterComplaintSelected,
+} from "@/lib/wizard-nav";
+import type { CreateJobInput } from "@/store/jobs";
 
 const STEPS = ["Brand", "Which cart", "What’s wrong", "Job header"] as const;
 
-export function NewJobWizard({ onCancel }: { onCancel?: () => void }) {
-  const navigate = useNavigate();
-  const createJob = useJobStore((s) => s.createJob);
+export function NewJobWizard({
+  onCancel,
+  onStartJob,
+}: {
+  onCancel?: () => void;
+  onStartJob: (input: CreateJobInput) => void;
+}) {
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
   const [mfg, setMfg] = useState<ManufacturerId | null>(null);
   const [model, setModel] = useState<ModelPack | null>(null);
@@ -37,17 +47,32 @@ export function NewJobWizard({ onCancel }: { onCancel?: () => void }) {
     powertrain: model?.powertrain,
     batteryType,
   });
-  const headerReady = gaps.length === 0;
+  const headerReady = canStartChecks(gaps);
   const headerMessage = jobHeaderSummary(gaps);
 
+  function goToHeader() {
+    const next = openJobHeader(symptomId);
+    if (next) setStep(next);
+  }
+
+  function pickComplaint(id: string) {
+    setSymptomId(id);
+    setStep(stepAfterComplaintSelected());
+  }
+
   function start() {
-    if (!model || !symptomId || !headerReady) return;
-    const symptom = getSymptom(model, symptomId);
-    if (!symptom) return;
-    const job = createJob({
-      modelId: model.id,
+    const symptom = model && symptomId ? getSymptom(model, symptomId) : undefined;
+    const resolved = resolveStartJob({
+      hasModel: Boolean(model),
       symptomId,
-      startStepId: symptom.startStepId,
+      startStepId: symptom?.startStepId ?? null,
+      gaps,
+    });
+    if (!resolved.ok || !model) return;
+    onStartJob({
+      modelId: model.id,
+      symptomId: resolved.symptomId,
+      startStepId: resolved.startStepId,
       technician,
       serialNumber: serial,
       notes: complaintNote,
@@ -60,7 +85,6 @@ export function NewJobWizard({ onCancel }: { onCancel?: () => void }) {
       complaintNote,
       fuelNote,
     });
-    void navigate({ to: "/bench/$jobId", params: { jobId: job.id } });
   }
 
   return (
@@ -70,15 +94,37 @@ export function NewJobWizard({ onCancel }: { onCancel?: () => void }) {
           const n = (i + 1) as 1 | 2 | 3 | 4;
           const active = step === n;
           const done = step > n;
+          const reachable = canVisitWizardStep(n, {
+            manufacturer: mfg,
+            hasModel: Boolean(model),
+            symptomId,
+          });
           return (
-            <li
-              key={label}
-              className={
-                "flex-1 rounded-md px-3 py-2 " +
-                (active ? "bg-navy text-navy-fg" : done ? "bg-ok-bg text-ok" : "bg-paper-sunken")
-              }
-            >
-              {n} · {label}
+            <li key={label} className="flex-1">
+              <button
+                type="button"
+                disabled={!reachable}
+                aria-current={active ? "step" : undefined}
+                onClick={() => {
+                  if (!reachable) return;
+                  if (n === 4) {
+                    goToHeader();
+                    return;
+                  }
+                  setStep(n);
+                }}
+                className={
+                  "w-full rounded-md px-3 py-2 text-left " +
+                  (active
+                    ? "bg-navy text-navy-fg"
+                    : done
+                      ? "bg-ok-bg text-ok"
+                      : "bg-paper-sunken") +
+                  (reachable ? "" : " opacity-60")
+                }
+              >
+                {n} · {label}
+              </button>
             </li>
           );
         })}
@@ -145,7 +191,7 @@ export function NewJobWizard({ onCancel }: { onCancel?: () => void }) {
               <button
                 key={s.id}
                 type="button"
-                onClick={() => setSymptomId(s.id)}
+                onClick={() => pickComplaint(s.id)}
                 className={
                   "min-h-16 rounded-md px-4 py-3 text-left shadow-[var(--shadow-border)] transition-[background-color,box-shadow] duration-150 " +
                   (symptomId === s.id ? "bg-navy text-navy-fg" : "bg-surface text-ink hover:shadow-[var(--shadow-border-hover)]")
@@ -156,12 +202,12 @@ export function NewJobWizard({ onCancel }: { onCancel?: () => void }) {
               </button>
             ))}
           </div>
-          <div className="mt-5 flex flex-wrap gap-2">
+          <div className="relative z-10 mt-5 flex flex-wrap gap-2 pb-16">
             <Button variant="ghost" onClick={() => setStep(2)}>
               <ChevronLeft className="size-4" />
               Which cart
             </Button>
-            <Button className="ml-auto min-w-44" disabled={!symptomId} onClick={() => setStep(4)}>
+            <Button className="ml-auto min-w-44" disabled={!symptomId} onClick={goToHeader}>
               Job header
               <ChevronRight className="size-4" />
             </Button>
@@ -262,7 +308,7 @@ export function NewJobWizard({ onCancel }: { onCancel?: () => void }) {
               {headerMessage}
             </p>
           ) : null}
-          <div className="mt-5 flex flex-wrap gap-2">
+          <div className="relative z-10 mt-5 flex flex-wrap gap-2 pb-16">
             <Button variant="ghost" onClick={() => setStep(3)}>
               <ChevronLeft className="size-4" />
               What’s wrong
