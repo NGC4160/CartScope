@@ -2,6 +2,7 @@ import type { DiagnosticStep, MeasurementKind, MeasurementSpec, Outcome } from "
 import {
   buildAttempt,
   isNumericKind,
+  needsUnusualVerify,
   nextAttempt,
   outcomeFor,
   parseNumeric,
@@ -126,7 +127,7 @@ export function saveAndContinueMeasurement(
   }
 
   const attempt = buildAttempt(spec, committed, nextAttempt(priorAttempts), optionId);
-  const verifyAgain = Boolean(attempt.unusual && priorAttempts + 1 < 3);
+  const verifyAgain = needsUnusualVerify(spec, attempt, priorAttempts + 1);
   const { result, branchId } = resultFromAttempt(spec, attempt);
   return {
     ok: true,

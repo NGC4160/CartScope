@@ -8,7 +8,7 @@ import {
   ClipboardList,
   RotateCcw,
 } from "lucide-react";
-import type { JobRecord, ModelPack } from "@/data/types";
+import type { JobRecord, MeasurementSpec, ModelPack, ReadingAttempt } from "@/data/types";
 import { termHints, unitHelp } from "@/data/plain-terms";
 import { InFlowGuidance } from "@/components/case/InFlowGuidance";
 import { PackNaBanner } from "@/components/case/PackNaBanner";
@@ -16,7 +16,7 @@ import { MeterNumberInput } from "@/components/case/fields";
 import { Button } from "@/components/ui/button";
 import { isMotorIsolationStep } from "@/lib/case-flow";
 import { formatClock } from "@/lib/utils";
-import { formatReading, rangeLabel } from "@/lib/diagnostics";
+import { formatReading, rangeLabel, unusualVerifyBanner } from "@/lib/diagnostics";
 import {
   commitMeterReading,
   meterExampleHint,
@@ -279,27 +279,12 @@ export function StepPanel({ job, pack }: { job: JobRecord; pack: ModelPack }) {
           </div>
 
           {verifyPhase > 0 ? (
-            <div className="mt-4 rounded-md bg-warn-bg px-3 py-3 text-warn">
-              <p className="flex items-center gap-2 font-display text-sm font-semibold">
-                <AlertTriangle className="size-4" />
-                {verifyPhase === 1
-                  ? "That number looks wrong. Check it two more times."
-                  : "Check it one more time."}
-              </p>
-              <p className="mt-1 text-xs leading-relaxed text-ink">
-                {verifyPhase === 1
-                  ? "The first number is not in the factory book range. Measure the same place again."
-                  : "Type a third number. We save all three on the report before we go on."}
-              </p>
-              <ol className="mt-2 space-y-1 font-mono text-xs tabular-nums text-ink">
-                {pending?.attempts.map((a) => (
-                  <li key={a.attempt}>
-                    #{a.attempt} {formatClock(a.at)} — {formatReadingSafe(a.raw, spec.unit)}
-                    {a.unusual ? " · looks wrong" : " · looks OK"}
-                  </li>
-                ))}
-              </ol>
-            </div>
+            <VerifyBanner
+              spec={spec}
+              latest={pending?.attempts.at(-1)}
+              verifyPhase={verifyPhase}
+              attempts={pending?.attempts}
+            />
           ) : null}
 
           {numeric ? (
@@ -441,6 +426,37 @@ export function StepPanel({ job, pack }: { job: JobRecord; pack: ModelPack }) {
 
         <LogList job={job} />
       </div>
+    </div>
+  );
+}
+
+function VerifyBanner({
+  spec,
+  latest,
+  verifyPhase,
+  attempts,
+}: {
+  spec: MeasurementSpec;
+  latest: ReadingAttempt | undefined;
+  verifyPhase: number;
+  attempts: ReadingAttempt[] | undefined;
+}) {
+  const copy = unusualVerifyBanner(spec, latest, verifyPhase);
+  return (
+    <div className="mt-4 rounded-md bg-warn-bg px-3 py-3 text-warn">
+      <p className="flex items-center gap-2 font-display text-sm font-semibold">
+        <AlertTriangle className="size-4" />
+        {copy.title}
+      </p>
+      <p className="mt-1 text-xs leading-relaxed text-ink">{copy.body}</p>
+      <ol className="mt-2 space-y-1 font-mono text-xs tabular-nums text-ink">
+        {attempts?.map((a) => (
+          <li key={a.attempt}>
+            #{a.attempt} {formatClock(a.at)} — {formatReadingSafe(a.raw, spec.unit)}
+            {a.unusual ? " · looks wrong" : " · looks OK"}
+          </li>
+        ))}
+      </ol>
     </div>
   );
 }

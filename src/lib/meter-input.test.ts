@@ -115,4 +115,12 @@ test("resistance OL commits and a missing observation names the field", () => {
   const picked = saveAndContinueMeasurement(obs, "", "yes");
   assert.equal(picked.ok, true);
   if (picked.ok) assert.deepEqual(picked.next, { kind: "step", id: "g-bat" });
+
+  const failPick = saveAndContinueMeasurement(obs, "", "no");
+  assert.equal(failPick.ok, true);
+  if (failPick.ok) {
+    assert.equal(failPick.verifyAgain, false);
+    assert.equal(failPick.result, "fail");
+    assert.deepEqual(failPick.next, { kind: "diagnosis", id: "gdx-setup" });
+  }
 });
