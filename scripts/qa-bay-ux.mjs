@@ -254,8 +254,9 @@ async function runStickySaveAdvance() {
   const reportText = await page.locator("body").innerText();
   check("advance report shows IR with unit", /12\.1\s*mΩ|IR 12\.1 mΩ|3\.4\s*mΩ|IR 3\.4 mΩ/.test(reportText), reportText.slice(0, 200));
   check("advance who checked it still Ryan", /Who checked it[\s\S]{0,40}Ryan/.test(reportText) || (await page.getByText(/^Ryan$/).count()) > 0);
-  const review = page.getByTestId("bay-primary-action");
+  const review = page.getByRole("button", { name: /Review and confirm/i });
   check("advance report form wired", (await page.locator("#bay-report-form").count()) === 1);
+  check("advance only one visible primary", (await page.getByTestId("bay-primary-action").filter({ visible: true }).count()) === 1);
   await review.click();
   await page.waitForTimeout(800);
   const storedAfterConfirm = await readStoredJob(page);
