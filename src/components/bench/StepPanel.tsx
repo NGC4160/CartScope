@@ -14,6 +14,7 @@ import { MeterNumberInput } from "@/components/case/fields";
 import { Button } from "@/components/ui/button";
 import { isMotorIsolationStep } from "@/lib/case-flow";
 import { bayProgressChip, bayStepActionLabel, readMeterDraft } from "@/lib/bay-chrome";
+import { BAY_CHECK_FORM_ID } from "@/lib/bay-chrome-action";
 import { formatClock } from "@/lib/utils";
 import { formatReading, rangeLabel, unusualVerifyBanner } from "@/lib/diagnostics";
 import {
@@ -36,12 +37,14 @@ export function StepPanel({
   job,
   pack,
   onChrome,
+  bindSubmit,
   onOpenDiagram,
   onOpenReport,
 }: {
   job: JobRecord;
   pack: ModelPack;
   onChrome?: (chrome: BayActionChrome | null) => void;
+  bindSubmit?: (fn: () => void) => void;
   onOpenDiagram?: () => void;
   onOpenReport?: () => void;
 }) {
@@ -172,21 +175,31 @@ export function StepPanel({
     setMissing([]);
   }
 
+  const primarySubmit = diagnosedView
+    ? () => {
+        setPhase(job.id, "report");
+        onOpenReport?.();
+      }
+    : onSubmit;
+  bindSubmit?.(primarySubmit);
+
   usePublishBayChrome(onChrome, {
     chip: bayProgressChip(job, pack),
     label: bayStepActionLabel(verifyPhase, diagnosedView),
-    onAction: diagnosedView
-      ? () => {
-          setPhase(job.id, "report");
-          onOpenReport?.();
-        }
-      : onSubmit,
+    onAction: primarySubmit,
     disabled: !diagnosedView && motorStep && !motorReady,
   });
 
   if (diagnosedView && diagnosis) {
     return (
-      <div className="flex h-full min-h-0 flex-col">
+      <form
+        id={BAY_CHECK_FORM_ID}
+        className="flex h-full min-h-0 flex-col"
+        onSubmit={(e) => {
+          e.preventDefault();
+          primarySubmit();
+        }}
+      >
         <Header symptom={symptom?.label} progress={100} done />
         <div className="min-h-0 flex-1 overflow-auto p-4">
           <p className="font-mono text-xs font-semibold tracking-wide text-navy">CHECKS FINISHED</p>
@@ -222,7 +235,7 @@ export function StepPanel({
           ))}
           <LogList job={job} />
         </div>
-      </div>
+      </form>
     );
   }
 
@@ -231,7 +244,14 @@ export function StepPanel({
   }
 
   return (
-    <div className="flex h-full min-h-0 flex-col">
+    <form
+      id={BAY_CHECK_FORM_ID}
+      className="flex h-full min-h-0 flex-col"
+      onSubmit={(e) => {
+        e.preventDefault();
+        primarySubmit();
+      }}
+    >
       <Header symptom={symptom?.label} progress={progress} />
       <div className="min-h-0 flex-1 overflow-auto p-4">
         <p className="font-mono text-xs font-semibold tracking-wide text-navy">
@@ -468,7 +488,7 @@ export function StepPanel({
 
         <LogList job={job} />
       </div>
-    </div>
+    </form>
   );
 }
 

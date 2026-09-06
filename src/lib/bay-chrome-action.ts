@@ -54,3 +54,61 @@ export function bayChromeDispatch(snapshot: BayChromeSnapshot): boolean {
   snapshot.action();
   return true;
 }
+
+/** Native form ids so the sticky bar can submit without a React onClick. */
+export const BAY_CHECK_FORM_ID = "bay-check-form";
+export const BAY_REPORT_FORM_ID = "bay-report-form";
+
+export type BaySubmitSlot = {
+  bind: (fn: () => void) => void;
+  fire: () => boolean;
+  hasHandler: () => boolean;
+};
+
+/**
+ * Latest-submit slot. Bind during render (a ref write). Fire on tap.
+ * Does not live in React state, so an effect cleanup cannot clear it.
+ */
+export function createBaySubmitSlot(): BaySubmitSlot {
+  let handler: (() => void) | null = null;
+  return {
+    bind(fn) {
+      handler = fn;
+    },
+    fire() {
+      if (typeof handler !== "function") {
+        console.warn("[CartScope] sticky Save tapped with no handler");
+        return false;
+      }
+      handler();
+      return true;
+    },
+    hasHandler() {
+      return typeof handler === "function";
+    },
+  };
+}
+
+export function fireBaySave(opts: {
+  fire?: () => boolean;
+  fallback?: () => void;
+  formId?: string;
+  document?: Document;
+}): boolean {
+  if (opts.fire?.()) return true;
+  if (typeof opts.fallback === "function") {
+    opts.fallback();
+    return true;
+  }
+  const doc = opts.document;
+  if (opts.formId && doc) {
+    const form = doc.getElementById(opts.formId);
+    if (form instanceof HTMLFormElement) {
+      if (typeof form.requestSubmit === "function") form.requestSubmit();
+      else form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+      return true;
+    }
+  }
+  console.warn("[CartScope] sticky Save tapped with no handler");
+  return false;
+}

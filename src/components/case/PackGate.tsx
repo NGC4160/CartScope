@@ -6,6 +6,7 @@ import { Field, inputClass, IrUnitPicker, VoltageInput } from "@/components/case
 import type { JobRecord, ModelPack, PackCheckRecord, PackCellReading, PackDraft } from "@/data/types";
 import { IR_UNIT_HELP, resolveIrUnit } from "@/lib/ir-unit";
 import { bayPackActionLabel, bayProgressChip } from "@/lib/bay-chrome";
+import { BAY_CHECK_FORM_ID } from "@/lib/bay-chrome-action";
 import { packLayout, scaledLeadAcidLimits } from "@/lib/pack-layout";
 import {
   applyBulkAgeUnreadable,
@@ -48,10 +49,12 @@ export function PackGate({
   job,
   pack,
   onChrome,
+  bindSubmit,
 }: {
   job: JobRecord;
   pack: ModelPack;
   onChrome?: (chrome: BayActionChrome | null) => void;
+  bindSubmit?: (fn: () => void) => void;
 }) {
   const save = useJobStore((s) => s.savePackCheck);
   const patchJob = useJobStore((s) => s.patchJob);
@@ -240,17 +243,25 @@ export function PackGate({
     cellsReady: numericCells.length >= layout.count,
   };
 
+  const submit = lithium || evalr.pass || numericCells.length < layout.count ? continuePass : continueTestBattery;
+  bindSubmit?.(submit);
+
   usePublishBayChrome(onChrome, {
     chip: bayProgressChip(job, pack),
     label: bayPackActionLabel(packAction),
-    onAction: lithium || evalr.pass || numericCells.length < layout.count ? continuePass : continueTestBattery,
-    // Keep Save tappable so a valid pack always runs continuePass. A disabled
-    // bar after the bay lift looked like a dead control (no advance, no error).
+    onAction: submit,
     disabled: false,
   });
 
   return (
-    <div className="flex h-full min-h-0 flex-col bg-surface">
+    <form
+      id={BAY_CHECK_FORM_ID}
+      className="flex h-full min-h-0 flex-col bg-surface"
+      onSubmit={(e) => {
+        e.preventDefault();
+        submit();
+      }}
+    >
       <div className="min-h-0 flex-1 overflow-auto p-4">
         <p className="font-mono text-xs font-semibold tracking-wide text-navy">BATTERY PACK</p>
         <h2 className="mt-1 font-display text-2xl font-semibold leading-tight text-ink">
@@ -569,6 +580,6 @@ export function PackGate({
           </div>
         ) : null}
       </div>
-    </div>
+    </form>
   );
 }

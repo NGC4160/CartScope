@@ -7,6 +7,7 @@ import { BrainStatus } from "@/components/case/BrainStatus";
 import { Field, inputClass } from "@/components/case/fields";
 import type { JobRecord, ModelPack } from "@/data/types";
 import { bayProgressChip, bayReportActionLabel } from "@/lib/bay-chrome";
+import { BAY_REPORT_FORM_ID } from "@/lib/bay-chrome-action";
 import { submitBrainCopy } from "@/lib/brain-submit";
 import { helperNoteSpeaker, helperNotesForReport, plainCaseSummary, reportWhoCheckedIt } from "@/lib/case-summary";
 import { formatReading } from "@/lib/diagnostics";
@@ -29,6 +30,7 @@ export function CaseReport({
   peek = false,
   onBackToChecks,
   onChrome,
+  bindSubmit,
 }: {
   job: JobRecord;
   pack: ModelPack;
@@ -36,6 +38,7 @@ export function CaseReport({
   peek?: boolean;
   onBackToChecks?: () => void;
   onChrome?: (chrome: BayActionChrome | null) => void;
+  bindSubmit?: (fn: () => void) => void;
 }) {
   const proof = evaluateProof(job, pack);
   const confirm = useJobStore((s) => s.confirmReport);
@@ -88,17 +91,27 @@ export function CaseReport({
     else setPhase(job.id, "steps");
   }
 
+  const primarySubmit = job.reportConfirmed ? back : () => void onConfirm();
+  if (!printMode) bindSubmit?.(primarySubmit);
+
   usePublishBayChrome(printMode ? undefined : onChrome, {
     chip: bayProgressChip(job, pack),
     label: bayReportActionLabel(Boolean(job.reportConfirmed)),
-    onAction: job.reportConfirmed ? back : () => void onConfirm(),
+    onAction: primarySubmit,
     disabled: filing,
     secondaryLabel: job.reportConfirmed ? undefined : "Back to checks",
     onSecondary: job.reportConfirmed ? undefined : back,
   });
 
   return (
-    <div className={"flex h-full min-h-0 flex-col " + (printMode ? "bg-white" : "bg-surface")}>
+    <form
+      id={printMode ? undefined : BAY_REPORT_FORM_ID}
+      className={"flex h-full min-h-0 flex-col " + (printMode ? "bg-white" : "bg-surface")}
+      onSubmit={(e) => {
+        e.preventDefault();
+        if (!printMode) primarySubmit();
+      }}
+    >
       <div className="min-h-0 flex-1 overflow-auto p-4 sm:p-6">
         {!printMode ? (
           <div className="mb-4 flex flex-wrap gap-2">
@@ -398,7 +411,7 @@ export function CaseReport({
           stays on this tablet. A shop brain copy with no last name and no job number is made when you confirm.
         </p>
       </div>
-    </div>
+    </form>
   );
 }
 
