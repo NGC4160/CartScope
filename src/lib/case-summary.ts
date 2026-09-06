@@ -1,10 +1,11 @@
-import type { JobRecord, ModelPack } from "@/data/types";
-import { formatHandheldRecord } from "@/lib/handheld";
-import { formatPackCellLine } from "@/lib/pack-rules";
-import { manualsOnFile } from "@/lib/manuals";
-import { manualsReportLines, partialReportGaps } from "@/lib/report-continuity";
-import { sheetsForPack } from "@/data/wiring";
-import type { Proof } from "@/lib/proof";
+import type { JobRecord, ModelPack } from "../data/types.ts";
+import { sheetsForPack } from "../data/wiring.ts";
+import { formatHandheldRecord } from "./handheld.ts";
+import { manualsOnFile } from "./manuals.ts";
+import { packNaReportLines } from "./pack-na.ts";
+import { formatPackCellLine } from "./pack-rules.ts";
+import type { Proof } from "./proof.ts";
+import { manualsReportLines, partialReportGaps } from "./report-continuity.ts";
 
 export function plainCaseSummary(job: JobRecord, pack: ModelPack, proof: Proof): string {
   const symptom = pack.symptoms.find((s) => s.id === job.symptomId);
@@ -35,7 +36,12 @@ export function plainCaseSummary(job: JobRecord, pack: ModelPack, proof: Proof):
   manualsReportLines(job.manualStatus, coverage).forEach((g) => lines.push(g));
   lines.push("");
 
-  if (job.packCheck) {
+  const packNa = packNaReportLines(pack);
+  if (packNa) {
+    lines.push("Battery pack");
+    packNa.forEach((l) => lines.push(l));
+    lines.push("");
+  } else if (job.packCheck) {
     lines.push("Battery pack");
     lines.push(`Layout: ${job.packCheck.cellCount} × ${job.packCheck.nominalV} V (${job.packCheck.chemistry})`);
     if (job.packCheck.chemistry === "lead-acid") {
@@ -100,6 +106,11 @@ export function plainCaseSummary(job: JobRecord, pack: ModelPack, proof: Proof):
     `Recommended repair: ${proof.recommendedRepair ?? "Not enough proof to recommend a repair yet."}`,
   );
   if (job.retestNote) lines.push(`Re-test after repair: ${job.retestNote}`);
+  if (job.techObservation?.trim()) {
+    lines.push("");
+    lines.push("What the tech saw");
+    lines.push(job.techObservation.trim());
+  }
   if (job.includeAiInReport !== false && job.aiLog?.length) {
     lines.push("");
     lines.push("Helper notes");

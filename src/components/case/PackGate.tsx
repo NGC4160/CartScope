@@ -1,14 +1,19 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { InFlowGuidance } from "@/components/case/InFlowGuidance";
 import { Field, inputClass, VoltageInput } from "@/components/case/fields";
-import type { JobRecord, ModelPack, PackCheckRecord, PackCellReading } from "@/data/types";
+import type { JobRecord, ModelPack, PackCheckRecord, PackCellReading, PackDraft } from "@/data/types";
 import { packLayout, scaledLeadAcidLimits } from "@/lib/pack-layout";
 import {
   applyBulkAgeUnreadable,
+  groupPackBlockers,
+  packPasteTemplate,
   packSaveBlockers,
+  parseBulkPackPaste,
   typedVoltage,
+  type PackBlocker,
+  type PackCellDraft,
 } from "@/lib/pack-form";
 import {
   evaluateLeadAcid,
@@ -19,45 +24,69 @@ import {
 } from "@/lib/pack-rules";
 import { useJobStore } from "@/store/jobs";
 
-type CellDraft = {
-  volts: string;
-  ir: string;
-  age: string;
-  ageSkip: boolean;
-};
-
-function draftsFrom(prior: PackCheckRecord | undefined, count: number): CellDraft[] {
+function draftsFrom(
+  prior: PackCheckRecord | undefined,
+  draft: PackDraft | undefined,
+  count: number,
+): PackCellDraft[] {
   return Array.from({ length: count }, (_, i) => {
+    const d = draft?.cells[i];
     const c = prior?.cells[i];
     return {
-      volts: c?.volts ?? "",
-      ir: c?.ir ?? "",
-      age: c?.ageMonthYear ?? "",
-      ageSkip: Boolean(c?.ageNotReadable),
+      volts: d?.volts ?? c?.volts ?? "",
+      ir: d?.ir ?? c?.ir ?? "",
+      age: d?.age ?? c?.ageMonthYear ?? "",
+      ageSkip: d?.ageSkip ?? Boolean(c?.ageNotReadable),
     };
   });
 }
 
 export function PackGate({ job, pack }: { job: JobRecord; pack: ModelPack }) {
   const save = useJobStore((s) => s.savePackCheck);
+  const patchJob = useJobStore((s) => s.patchJob);
   const layout = packLayout(pack);
   const lim = scaledLeadAcidLimits(layout.nominalV);
   const lithium = job.batteryType === "lithium";
 
   const prior = job.packCheck;
-  const [cells, setCells] = useState<CellDraft[]>(() => draftsFrom(prior, layout.count));
-  const [loadDrop, setLoadDrop] = useState(prior?.loadDropPct ?? "");
-  const [monitorV, setMonitorV] = useState(prior?.lithiumMonitorV ?? "");
-  const [minCell, setMinCell] = useState(prior?.lithiumMinCell ?? "");
-  const [faults, setFaults] = useState(prior?.lithiumFaults ?? "");
-  const [noMonitor, setNoMonitor] = useState(Boolean(prior?.lithiumNoMonitor));
-  const [irSkip, setIrSkip] = useState(Boolean(prior?.irCouldNotMeasure));
-  const [irSkipReason, setIrSkipReason] = useState(prior?.irSkipReason ?? "");
-  const [agePhoto, setAgePhoto] = useState(prior?.ageLabelPhotoNote ?? "");
+  const draft = job.packDraft;
+  const [cells, setCells] = useState<PackCellDraft[]>(() => draftsFrom(prior, draft, layout.count));
+  const [loadDrop, setLoadDrop] = useState(draft?.loadDrop ?? prior?.loadDropPct ?? "");
+  const [monitorV, setMonitorV] = useState(draft?.monitorV ?? prior?.lithiumMonitorV ?? "");
+  const [minCell, setMinCell] = useState(draft?.minCell ?? prior?.lithiumMinCell ?? "");
+  const [faults, setFaults] = useState(draft?.faults ?? prior?.lithiumFaults ?? "");
+  const [noMonitor, setNoMonitor] = useState(draft?.noMonitor ?? Boolean(prior?.lithiumNoMonitor));
+  const [irSkip, setIrSkip] = useState(draft?.irSkip ?? Boolean(prior?.irCouldNotMeasure));
+  const [irSkipReason, setIrSkipReason] = useState(draft?.irSkipReason ?? prior?.irSkipReason ?? "");
+  const [agePhoto, setAgePhoto] = useState(draft?.agePhoto ?? prior?.ageLabelPhotoNote ?? "");
   const [testPath, setTestPath] = useState(false);
-  const [testNote, setTestNote] = useState(job.testBattery?.measuredProblem ?? "");
+  const [testNote, setTestNote] = useState(draft?.testNote ?? job.testBattery?.measuredProblem ?? "");
+  const [paste, setPaste] = useState("");
+  const [pasteNote, setPasteNote] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [blockers, setBlockers] = useState<string[]>([]);
+  const [blockers, setBlockers] = useState<PackBlocker[]>([]);
+
+  const live = { cells, loadDrop, monitorV, minCell, faults, noMonitor, irSkip, irSkipReason, agePhoto, testNote };
+  const liveRef = useRef(live);
+  liveRef.current = live;
+
+  function persistDraft(next?: Partial<typeof live>) {
+    const snap = { ...liveRef.current, ...next };
+    patchJob(job.id, {
+      packDraft: {
+        cells: snap.cells,
+        loadDrop: snap.loadDrop,
+        monitorV: snap.monitorV,
+        minCell: snap.minCell,
+        faults: snap.faults,
+        noMonitor: snap.noMonitor,
+        irSkip: snap.irSkip,
+        irSkipReason: snap.irSkipReason,
+        agePhoto: snap.agePhoto,
+        testNote: snap.testNote,
+      },
+    });
+  }
 
   const numericCells = useMemo(
     () => cells.map((c) => typedVoltage(c.volts)).filter((n): n is number => n != null),
@@ -85,25 +114,35 @@ export function PackGate({ job, pack }: { job: JobRecord; pack: ModelPack }) {
     [lithium, irSkip, cells],
   );
 
-  function patchCell(i: number, patch: Partial<CellDraft>) {
-    setCells((prev) => prev.map((x, idx) => (idx === i ? { ...x, ...patch } : x)));
+  function patchCell(i: number, patch: Partial<PackCellDraft>) {
+    const next = liveRef.current.cells.map((x, idx) => (idx === i ? { ...x, ...patch } : x));
+    liveRef.current = { ...liveRef.current, cells: next };
+    setCells(next);
   }
 
   function currentBlockers() {
     return packSaveBlockers({
       lithium,
       cellCount: layout.count,
-      cells,
-      irSkip,
-      irSkipReason,
-      monitorV,
-      noMonitor,
+      cells: liveRef.current.cells,
+      irSkip: liveRef.current.irSkip,
+      irSkipReason: liveRef.current.irSkipReason,
+      monitorV: liveRef.current.monitorV,
+      noMonitor: liveRef.current.noMonitor,
     });
   }
 
   function showBlockers(list: ReturnType<typeof packSaveBlockers>) {
-    setBlockers(list.map((b) => b.message));
+    setBlockers(list);
     setError(list.length ? `Cannot save yet. ${list.length} field${list.length === 1 ? "" : "s"} still need a value.` : null);
+  }
+
+  function applyPaste() {
+    const result = parseBulkPackPaste(paste, cells, layout.count);
+    setCells(result.cells);
+    liveRef.current = { ...liveRef.current, cells: result.cells };
+    persistDraft({ cells: result.cells });
+    setPasteNote(result.message);
   }
 
   function buildRecord(verdict: PackCheckRecord["verdict"], issues: string[]): PackCheckRecord {
@@ -219,23 +258,46 @@ export function PackGate({ job, pack }: { job: JobRecord; pack: ModelPack }) {
             <Field label="Monitor or battery-management pack voltage" hint="Type the number from the monitor. Example: 48.2 V">
               <VoltageInput
                 value={monitorV}
-                onChange={setMonitorV}
+                onChange={(next) => {
+                  setMonitorV(next);
+                  liveRef.current = { ...liveRef.current, monitorV: next };
+                }}
+                onBlur={() => persistDraft()}
                 className={inputClass}
                 placeholder="Type the number from the monitor"
                 aria-label="Monitor pack voltage"
               />
             </Field>
             <Field label="Lowest cell (if shown)">
-              <input value={minCell} onChange={(e) => setMinCell(e.target.value)} className={inputClass} />
+              <input
+                value={minCell}
+                onChange={(e) => {
+                  setMinCell(e.target.value);
+                  liveRef.current = { ...liveRef.current, minCell: e.target.value };
+                }}
+                onBlur={() => persistDraft()}
+                className={inputClass}
+              />
             </Field>
             <Field label="Monitor faults (if any)">
-              <input value={faults} onChange={(e) => setFaults(e.target.value)} className={inputClass} />
+              <input
+                value={faults}
+                onChange={(e) => {
+                  setFaults(e.target.value);
+                  liveRef.current = { ...liveRef.current, faults: e.target.value };
+                }}
+                onBlur={() => persistDraft()}
+                className={inputClass}
+              />
             </Field>
             <label className="flex min-h-10 items-center gap-2 text-sm text-ink">
               <input
                 type="checkbox"
                 checked={noMonitor}
-                onChange={(e) => setNoMonitor(e.target.checked)}
+                onChange={(e) => {
+                  setNoMonitor(e.target.checked);
+                  persistDraft({ noMonitor: e.target.checked });
+                }}
                 className="size-4 accent-navy"
               />
               No monitor is connected. I will write what I can see.
@@ -249,11 +311,30 @@ export function PackGate({ job, pack }: { job: JobRecord; pack: ModelPack }) {
               {lim.spreadMax.toFixed(2)} V apart are a pack problem. Dead floor is about {lim.deadFloor} V. A short load
               with the wheels up should not drop the pack more than about {lim.loadDropMaxPct} percent.
             </p>
+            <Field
+              label={`Paste ${layout.count} battery rows`}
+              hint="One battery per line: volts, IR, age. Or a single line of voltages. Tab, comma, or spaces. Values stay after you leave a field."
+            >
+              <textarea
+                value={paste}
+                onChange={(e) => setPaste(e.target.value)}
+                className={inputClass + " min-h-28 py-2 font-mono text-sm"}
+                placeholder={packPasteTemplate(layout.count)}
+                aria-label={`Paste ${layout.count} battery rows`}
+              />
+            </Field>
+            <Button type="button" variant="secondary" size="sm" onClick={applyPaste} disabled={!paste.trim()}>
+              Fill batteries from paste
+            </Button>
+            {pasteNote ? <p className="text-sm text-ink">{pasteNote}</p> : null}
             <label className="flex min-h-12 items-start gap-2 text-sm text-ink">
               <input
                 type="checkbox"
                 checked={irSkip}
-                onChange={(e) => setIrSkip(e.target.checked)}
+                onChange={(e) => {
+                  setIrSkip(e.target.checked);
+                  persistDraft({ irSkip: e.target.checked });
+                }}
                 className="mt-1 size-4 accent-navy"
               />
               Could not measure internal resistance
@@ -262,7 +343,11 @@ export function PackGate({ job, pack }: { job: JobRecord; pack: ModelPack }) {
               <Field label="Short reason" hint="Say what blocked the IR meter. Do not invent a reading.">
                 <input
                   value={irSkipReason}
-                  onChange={(e) => setIrSkipReason(e.target.value)}
+                  onChange={(e) => {
+                    setIrSkipReason(e.target.value);
+                    liveRef.current = { ...liveRef.current, irSkipReason: e.target.value };
+                  }}
+                  onBlur={() => persistDraft()}
                   className={inputClass}
                   aria-label="Short reason"
                 />
@@ -272,7 +357,12 @@ export function PackGate({ job, pack }: { job: JobRecord; pack: ModelPack }) {
               <input
                 type="checkbox"
                 checked={cells.length > 0 && cells.every((c) => c.ageSkip)}
-                onChange={(e) => setCells((prev) => applyBulkAgeUnreadable(prev, e.target.checked))}
+                onChange={(e) => {
+                  const next = applyBulkAgeUnreadable(cells, e.target.checked);
+                  setCells(next);
+                  liveRef.current = { ...liveRef.current, cells: next };
+                  persistDraft({ cells: next });
+                }}
                 className="mt-1 size-4 accent-navy"
               />
               All ages not readable
@@ -289,6 +379,7 @@ export function PackGate({ job, pack }: { job: JobRecord; pack: ModelPack }) {
                       <VoltageInput
                         value={c.volts}
                         onChange={(next) => patchCell(i, { volts: next })}
+                        onBlur={() => persistDraft()}
                         className={inputClass + " font-mono"}
                         placeholder="Type the number from your meter"
                         aria-label={`Battery ${i + 1} resting volts`}
@@ -301,15 +392,18 @@ export function PackGate({ job, pack }: { job: JobRecord; pack: ModelPack }) {
                       <input
                         value={c.ir}
                         onChange={(e) => patchCell(i, { ir: e.target.value })}
+                        onBlur={() => persistDraft()}
                         className={inputClass + " font-mono"}
                         placeholder="mΩ as shown"
                         disabled={irSkip}
+                        aria-label={`Battery ${i + 1} internal resistance`}
                       />
                     </Field>
                     <Field label={`Battery ${i + 1} age`} hint="Month and year only. Example: 09/2024">
                       <input
                         value={c.age}
                         onChange={(e) => patchCell(i, { age: e.target.value })}
+                        onBlur={() => persistDraft()}
                         className={inputClass}
                         placeholder="Type month and year"
                         disabled={c.ageSkip}
@@ -321,7 +415,10 @@ export function PackGate({ job, pack }: { job: JobRecord; pack: ModelPack }) {
                     <input
                       type="checkbox"
                       checked={c.ageSkip}
-                      onChange={(e) => patchCell(i, { ageSkip: e.target.checked })}
+                      onChange={(e) => {
+                        patchCell(i, { ageSkip: e.target.checked });
+                        persistDraft();
+                      }}
                       className="size-4 accent-navy"
                       aria-label={`Battery ${i + 1} age not readable`}
                     />
@@ -331,7 +428,15 @@ export function PackGate({ job, pack }: { job: JobRecord; pack: ModelPack }) {
               ))}
             </div>
             <Field label="Photo of date labels (optional)">
-              <input value={agePhoto} onChange={(e) => setAgePhoto(e.target.value)} className={inputClass} />
+              <input
+                value={agePhoto}
+                onChange={(e) => {
+                  setAgePhoto(e.target.value);
+                  liveRef.current = { ...liveRef.current, agePhoto: e.target.value };
+                }}
+                onBlur={() => persistDraft()}
+                className={inputClass}
+              />
             </Field>
             <Field
               label="Short load drop percent (optional)"
@@ -339,7 +444,11 @@ export function PackGate({ job, pack }: { job: JobRecord; pack: ModelPack }) {
             >
               <VoltageInput
                 value={loadDrop}
-                onChange={setLoadDrop}
+                onChange={(next) => {
+                  setLoadDrop(next);
+                  liveRef.current = { ...liveRef.current, loadDrop: next };
+                }}
+                onBlur={() => persistDraft()}
                 className={inputClass + " font-mono"}
                 placeholder="Type the number from your meter"
                 aria-label="Short load drop percent"
@@ -388,7 +497,11 @@ export function PackGate({ job, pack }: { job: JobRecord; pack: ModelPack }) {
               <Field label="What you measured, and that later steps used a test battery">
                 <textarea
                   value={testNote}
-                  onChange={(e) => setTestNote(e.target.value)}
+                  onChange={(e) => {
+                    setTestNote(e.target.value);
+                    liveRef.current = { ...liveRef.current, testNote: e.target.value };
+                  }}
+                  onBlur={() => persistDraft()}
                   className={inputClass + " min-h-24 py-2"}
                   placeholder="Pack resting 46.1 V, battery 3 at 7.9 V. Later steps used a known-good test battery."
                 />
@@ -399,11 +512,18 @@ export function PackGate({ job, pack }: { job: JobRecord; pack: ModelPack }) {
 
         {error ? <p className="mt-3 text-sm text-danger">{error}</p> : null}
         {blockers.length > 0 ? (
-          <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-danger" role="alert">
-            {blockers.map((b) => (
-              <li key={b}>{b}</li>
+          <div className="mt-2 space-y-2 text-sm text-danger" role="alert">
+            {groupPackBlockers(blockers).map((group) => (
+              <div key={group.heading}>
+                <p className="font-medium">{group.heading}</p>
+                <ul className="list-disc space-y-1 pl-5">
+                  {group.items.map((b) => (
+                    <li key={b.field}>{b.message}</li>
+                  ))}
+                </ul>
+              </div>
             ))}
-          </ul>
+          </div>
         ) : null}
 
         <InFlowGuidance job={job} pack={pack} phaseLabel="Pack check" />

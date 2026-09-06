@@ -32,7 +32,8 @@ export function InFlowGuidance({
 
   const proof = evaluateProof(job, pack);
   const coverage = useMemo(() => manualsOnFile(pack, sheetsForPack(pack.id)), [pack]);
-  const [draft, setDraft] = useState("");
+  const patchJob = useJobStore((s) => s.patchJob);
+  const observation = job.techObservation ?? "";
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [reply, setReply] = useState<string | null>(null);
@@ -42,12 +43,16 @@ export function InFlowGuidance({
   const [candNote, setCandNote] = useState("");
   const [candUrl, setCandUrl] = useState("");
 
+  function persistObservation(next: string) {
+    patchJob(job.id, { techObservation: next });
+  }
+
   async function sendObservation() {
-    const question = draft.trim();
+    const question = observation.trim();
     if (!question || busy) return;
+    persistObservation(question);
     setBusy(true);
     setError(null);
-    setDraft("");
     const localHits = matchObservationToSteps(pack, question, job.currentStepId);
     setSuggested(localHits);
     appendAiTurn(job.id, { role: "user", text: question });
@@ -189,16 +194,19 @@ export function InFlowGuidance({
           What you see (changes the next check)
         </span>
         <textarea
-          value={draft}
-          onChange={(e) => setDraft(e.target.value)}
+          value={observation}
+          onChange={(e) => persistObservation(e.target.value)}
+          onBlur={(e) => persistObservation(e.currentTarget.value)}
           className={inputClass + " mt-1 min-h-20 py-2"}
           placeholder="Customer slang is fine here. Example: solenoid clicks, no roll, tow/run in run…"
           maxLength={800}
-          disabled={busy}
         />
       </label>
+      {observation.trim() ? (
+        <p className="mt-1 text-xs text-ink-muted">Saved on this case. It stays after helper lookup and on the report.</p>
+      ) : null}
       <div className="mt-2 flex flex-wrap items-center gap-2">
-        <Button size="sm" onClick={() => void sendObservation()} disabled={busy || !draft.trim()}>
+        <Button size="sm" onClick={() => void sendObservation()} disabled={busy || !observation.trim()}>
           <Send className="size-4" />
           Use this to pick the next check
         </Button>
@@ -224,7 +232,7 @@ export function InFlowGuidance({
                 key={step.id}
                 variant="secondary"
                 className="h-auto min-h-11 justify-start whitespace-normal py-2 text-left"
-                onClick={() => jumpToStep(job.id, step.id, draft || reply || step.title)}
+                onClick={() => jumpToStep(job.id, step.id, observation.trim() || reply || step.title)}
               >
                 <ChevronRight className="size-4 shrink-0" />
                 <span>

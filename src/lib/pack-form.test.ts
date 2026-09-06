@@ -1,6 +1,13 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { applyBulkAgeUnreadable, packSaveBlockers, typedVoltage } from "./pack-form.ts";
+import {
+  applyBulkAgeUnreadable,
+  emptyPackCells,
+  groupPackBlockers,
+  packSaveBlockers,
+  parseBulkPackPaste,
+  typedVoltage,
+} from "./pack-form.ts";
 
 function sixAt(volts: string) {
   return Array.from({ length: 6 }, () => ({ volts, ir: "", age: "", ageSkip: false }));
@@ -60,4 +67,61 @@ test("empty voltages are named even when the shop example is 8.49", () => {
   });
   const fields = blockers.map((b) => b.field);
   assert.deepEqual(fields, ["Battery 1 resting volts", "Battery 2 internal resistance", "Battery 2 age"]);
+  const grouped = groupPackBlockers(blockers);
+  assert.deepEqual(
+    grouped.map((g) => g.heading),
+    ["Battery 1", "Battery 2"],
+  );
+});
+
+test("paste fills six YDRE-style rows from a voltage list", () => {
+  const result = parseBulkPackPaste("8.40, 8.41, 8.38, 8.42, 8.39, 8.40", emptyPackCells(6), 6);
+  assert.equal(result.applied, 6);
+  assert.deepEqual(
+    result.cells.map((c) => c.volts),
+    ["8.40", "8.41", "8.38", "8.42", "8.39", "8.40"],
+  );
+  assert.equal(packSaveBlockers({
+    lithium: false,
+    cellCount: 6,
+    cells: result.cells,
+    irSkip: false,
+    irSkipReason: "",
+    monitorV: "",
+    noMonitor: false,
+  }).length > 0, true);
+});
+
+test("paste accepts one battery per line with volts, IR, and age", () => {
+  const pasted = [
+    "8.50\t12.1\t09/2024",
+    "8.49\t12.0\t09/2024",
+    "8.51\t11.8\t10/2023",
+    "8.48\t12.2\t09/2024",
+    "8.50\t12.4\t08/2024",
+    "8.47\t12.1\t09/2024",
+  ].join("\n");
+  const result = parseBulkPackPaste(pasted, emptyPackCells(6), 6);
+  assert.equal(result.applied, 6);
+  assert.equal(result.cells[2]?.ir, "11.8");
+  assert.equal(result.cells[2]?.age, "10/2023");
+  assert.deepEqual(
+    packSaveBlockers({
+      lithium: false,
+      cellCount: 6,
+      cells: result.cells,
+      irSkip: false,
+      irSkipReason: "",
+      monitorV: "",
+      noMonitor: false,
+    }),
+    [],
+  );
+});
+
+test("paste of eight values onto a six-battery pack keeps the first six", () => {
+  const result = parseBulkPackPaste("8.1 8.2 8.3 8.4 8.5 8.6 8.7 8.8", emptyPackCells(6), 6);
+  assert.equal(result.applied, 6);
+  assert.equal(result.extraIgnored, 2);
+  assert.equal(result.cells[5]?.volts, "8.6");
 });

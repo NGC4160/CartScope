@@ -101,3 +101,9 @@ test("a report with no pack, handheld, or factory checks is labeled partial", ()
   assert.ok(gaps.some((g) => /Handheld/i.test(g)));
   assert.ok(gaps.some((g) => /No factory checks/i.test(g)));
 });
+
+test("gas reports do not treat a skipped pack as a missing pack check", () => {
+  const gasPack = { ...onFilePack, id: "yamaha-ydra", powertrain: "gasoline" as const, architecture: "YDRA gas" };
+  const gaps = partialReportGaps(job({ modelId: "yamaha-ydra" }), gasPack);
+  assert.equal(gaps.some((g) => /Battery pack/i.test(g)), false);
+});

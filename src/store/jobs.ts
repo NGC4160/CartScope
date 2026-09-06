@@ -110,6 +110,7 @@ export const useJobStore = create<JobState>()(
           manualStatus,
           includeAiInReport: true,
           aiLog: manualsNote ? [{ at: now, role: "assistant", text: manualsNote }] : [],
+          techObservation: "",
         };
         set({ jobs: [job, ...get().jobs] });
         return job;
