@@ -1,4 +1,4 @@
-import { useCallback, useLayoutEffect, useRef, useState, type MouseEvent } from "react";
+import { useCallback, useLayoutEffect, useRef, useState, type PointerEvent } from "react";
 import { ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -94,12 +94,16 @@ export function BayActionBar({
   formId?: string;
   fire?: () => boolean;
 }) {
+  const lastFire = useRef(0);
   if (!chrome) return null;
   const live = chrome;
 
-  function onPrimaryClick(event: MouseEvent<HTMLButtonElement>) {
-    event.preventDefault();
-    fireBaySave({
+  function runSave() {
+    if (live.disabled || live.busy) return false;
+    const now = Date.now();
+    if (now - lastFire.current < 400) return true;
+    lastFire.current = now;
+    return fireBaySave({
       fire,
       fallback: live.onAction,
       formId,
@@ -107,10 +111,26 @@ export function BayActionBar({
     });
   }
 
+  function onPrimaryPointerDown(event: PointerEvent<HTMLButtonElement>) {
+    if (live.disabled || live.busy) return;
+    event.currentTarget.setPointerCapture(event.pointerId);
+  }
+
+  function onPrimaryPointerUp(event: PointerEvent<HTMLButtonElement>) {
+    if (event.pointerType === "mouse" && event.button !== 0) return;
+    runSave();
+  }
+
+  function onPrimaryClick(event: { preventDefault: () => void }) {
+    // Pointer-up already saved. Block the duplicate form submit from click.
+    event.preventDefault();
+    runSave();
+  }
+
   return (
     <div
       data-testid="bay-action-bar"
-      className="no-print shrink-0 border-t border-navy-deep bg-surface px-3 pt-2 pb-[max(0.6rem,env(safe-area-inset-bottom))]"
+      className="no-print relative z-10 isolate shrink-0 border-t border-navy-deep bg-surface px-3 pt-2 pb-[max(2.75rem,calc(env(safe-area-inset-bottom)+2.25rem))]"
     >
       <div className="flex items-center gap-2">
         <p className="shrink-0 rounded-md bg-paper-sunken px-2.5 py-1 font-mono text-xs font-semibold tabular-nums text-navy">
@@ -131,13 +151,16 @@ export function BayActionBar({
           type="submit"
           form={formId}
           data-testid="bay-primary-action"
-          className="min-h-12 min-w-0 flex-1"
+          data-bay-primary=""
+          className="min-h-12 min-w-0 flex-1 touch-manipulation"
           style={{ minHeight: Math.max(BAY_TAP_MIN_PX, 48) }}
+          onPointerDown={onPrimaryPointerDown}
+          onPointerUp={onPrimaryPointerUp}
           onClick={onPrimaryClick}
           disabled={live.disabled || live.busy}
         >
-          <span className="truncate">{live.label}</span>
-          <ChevronRight className="size-4 shrink-0" />
+          <span className="pointer-events-none truncate">{live.label}</span>
+          <ChevronRight className="pointer-events-none size-4 shrink-0" />
         </Button>
       </div>
     </div>

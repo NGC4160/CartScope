@@ -19,6 +19,7 @@ import {
   defaultBayPane,
   type BayPane,
 } from "@/lib/bay-chrome";
+import { bayChecksPaneProps } from "@/lib/bay-layer";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { useJobStore } from "@/store/jobs";
 
@@ -87,11 +88,7 @@ export function BayWorkspace({ job, pack }: { job: JobRecord; pack: ModelPack })
       <BayDock value={pane} onChange={goPane} diagramDisabled={!hasDiagram} />
 
       <div className="relative flex min-h-0 flex-1 flex-col">
-        <div
-          className={(showReport ? "hidden" : "flex") + " min-h-0 flex-1"}
-          inert={showReport ? true : undefined}
-          aria-hidden={showReport}
-        >
+        <div {...bayChecksPaneProps(showReport)}>
           {showSplitDiagram ? (
             <div className="relative min-h-0 min-w-0 flex-[1.25] border-r border-line">
               <DiagramPane pack={pack} highlight={highlight} />
@@ -163,7 +160,7 @@ export function BayWorkspace({ job, pack }: { job: JobRecord; pack: ModelPack })
 
         {showOverlayDiagram ? (
           <div
-            className="absolute inset-0 z-30 flex flex-col bg-paper"
+            className="absolute inset-0 z-50 flex flex-col bg-paper"
             role="dialog"
             aria-label="Wire picture"
             data-testid="bay-diagram-overlay"

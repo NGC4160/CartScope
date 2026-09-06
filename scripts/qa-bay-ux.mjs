@@ -51,6 +51,15 @@ function check(name, ok, extra = "") {
   if (!ok) fails.push(name);
 }
 
+/** Real mouse click on the sticky Save — not keyboard Enter, not a JS click. */
+async function mouseClickPrimary(page) {
+  const btn = page.getByTestId("bay-primary-action").filter({ visible: true });
+  await btn.waitFor({ state: "visible" });
+  const box = await btn.boundingBox();
+  if (!box) throw new Error("sticky Save has no box");
+  await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2, { button: "left" });
+}
+
 async function runAt(width, height, tag) {
   const page = await browser.newPage({ viewport: { width, height } });
   page.on("pageerror", (e) => console.log("PAGEERROR", e.message));
@@ -138,6 +147,12 @@ async function runAt(width, height, tag) {
 
   await dock.getByRole("tab", { name: "Report" }).click();
   await page.getByText(/Report peek|Report draft/i).first().waitFor();
+  const checksPane = page.getByTestId("bay-checks-pane");
+  check(`${tag} checks pane parked`, (await checksPane.getAttribute("hidden")) !== null || !(await checksPane.isVisible()));
+  check(`${tag} checks pane not hittable`, !(await checksPane.isVisible()));
+  check(`${tag} pack heading hidden on report`, (await page.getByRole("heading", { name: /Check the pack before you blame other parts/i }).count()) === 0 || !(await page.getByRole("heading", { name: /Check the pack before you blame other parts/i }).isVisible()));
+  check(`${tag} no live check form`, (await page.locator("#bay-check-form").count()) === 0 || !(await page.locator("#bay-check-form").isVisible()));
+  check(`${tag} no report checks table`, (await page.getByTestId("report-check-log").count()) === 0);
   check(`${tag} report peek`, await page.getByText(/Bayux/).first().isVisible());
   check(`${tag} who checked it is Ryan`, await page.getByText(/^Ryan$/).first().isVisible());
   check(`${tag} helper text not in who-checked`, (await page.getByText(/Who checked it:\s*Speed sensor fault/i).count()) === 0);
@@ -238,7 +253,7 @@ async function runStickySaveAdvance() {
   check("advance pack save enabled", await packSave.isEnabled());
   check("advance pack form wired", (await page.locator("#bay-check-form").count()) === 1);
   check("advance pack button submits form", (await packSave.getAttribute("form")) === "bay-check-form");
-  await packSave.click();
+  await mouseClickPrimary(page);
   await page.getByRole("heading", { name: /Save a program file before you clear/i }).waitFor({ timeout: 10000 });
   check("advance pack sticky Save left pack", await page.getByRole("heading", { name: /Save a program file before you clear/i }).isVisible());
   check("advance pack heading gone", (await page.getByRole("heading", { name: /Check the pack before you blame other parts/i }).count()) === 0);
@@ -254,10 +269,9 @@ async function runStickySaveAdvance() {
   const reportText = await page.locator("body").innerText();
   check("advance report shows IR with unit", /12\.1\s*mΩ|IR 12\.1 mΩ|3\.4\s*mΩ|IR 3\.4 mΩ/.test(reportText), reportText.slice(0, 200));
   check("advance who checked it still Ryan", /Who checked it[\s\S]{0,40}Ryan/.test(reportText) || (await page.getByText(/^Ryan$/).count()) > 0);
-  const review = page.getByRole("button", { name: /Review and confirm/i });
   check("advance report form wired", (await page.locator("#bay-report-form").count()) === 1);
   check("advance only one visible primary", (await page.getByTestId("bay-primary-action").filter({ visible: true }).count()) === 1);
-  await review.click();
+  await mouseClickPrimary(page);
   await page.waitForTimeout(800);
   const storedAfterConfirm = await readStoredJob(page);
   check(
@@ -291,7 +305,7 @@ async function runStickySaveAdvance() {
   const checkSave = gas.getByTestId("bay-primary-action");
   check("advance factory save enabled", await checkSave.isEnabled());
   const stepBefore = await readStoredJob(gas);
-  await checkSave.click();
+  await mouseClickPrimary(gas);
   await gas.getByText(/CHECK 2/i).first().waitFor({ timeout: 8000 });
   check("advance factory sticky Save left check 1", await gas.getByText(/CHECK 2/i).first().isVisible());
   const storedCheck = await readStoredJob(gas);
@@ -300,10 +314,58 @@ async function runStickySaveAdvance() {
   await gas.close();
 }
 
+async function runHelperRedirect() {
+  const page = await browser.newPage({ viewport: { width: 1024, height: 768 } });
+  page.on("pageerror", (e) => console.log("PAGEERROR", e.message));
+  await page.goto(BASE, { waitUntil: "networkidle" });
+  const neu = page.getByRole("button", { name: /New job/i });
+  if (await neu.count()) await neu.click();
+  await page.getByRole("button", { name: /Club Car/i }).click();
+  await page.getByRole("button", { name: /DS \/ Villager FE290/ }).click();
+  await page.getByRole("button", { name: /Engine will not crank/i }).click();
+  const headerBtn = page.getByRole("button", { name: /Job header/i });
+  if (await headerBtn.count()) await headerBtn.click();
+  await fillHeader(page, {
+    last: "Helpred",
+    job: "HCP-5518",
+    year: "2008",
+    serial: "GFE29018",
+    who: "Ryan",
+    complaint: "No crank.",
+  });
+  await page.getByRole("button", { name: /Start checks/i }).click();
+  await page.waitForURL("**/bench/**", { timeout: 15000 });
+  await page.getByText(/CHECK 1/i).first().waitFor();
+  await page.getByRole("button", { name: /Setup is right — keep going/i }).click();
+  const before = await readStoredJob(page);
+  await page.getByTestId("bay-dock").getByRole("tab", { name: "Helper" }).click();
+  await page.getByTestId("bay-helper-sheet").waitFor({ state: "visible" });
+  const sawBox = page.getByLabel(/^What you see$/i);
+  await sawBox.fill("solenoid clicks but the starter does not crank — try the direction switch");
+  await page.getByTestId("helper-use-observation").click();
+  const jumps = page.getByTestId("helper-redirect-list");
+  await jumps.waitFor({ state: "visible", timeout: 9000 });
+  check("helper redirect list appears", await jumps.isVisible());
+  const looking = page.getByTestId("helper-looking");
+  await looking.waitFor({ state: "hidden", timeout: 10000 }).catch(() => {});
+  check("helper use-this finished", (await looking.count()) === 0 || !(await looking.isVisible()));
+  const jumpBtn = jumps.getByRole("button").first();
+  check("helper jump button tappable", await jumpBtn.isVisible());
+  await jumpBtn.click();
+  await page.getByTestId("bay-helper-sheet").getByRole("button", { name: /^Close$/i }).click();
+  const after = await readStoredJob(page);
+  check("helper jump moved the check", Boolean(after?.currentStepId && after.currentStepId !== before?.currentStepId), `${before?.currentStepId} -> ${after?.currentStepId}`);
+  check("helper jump kept who checked it", after?.technician === "Ryan", String(after?.technician));
+  check("helper jump kept meter draft", after?.meterDraft?.selected === "yes" || after?.meterDraft?.stepId === before?.meterDraft?.stepId, JSON.stringify(after?.meterDraft ?? null));
+  await page.screenshot({ path: `${out}/bay-helper-redirect.png` });
+  await page.close();
+}
+
 await runAt(1024, 768, "tablet");
 await runAt(390, 844, "phone");
 await runFactoryCheck();
 await runStickySaveAdvance();
+await runHelperRedirect();
 
 await browser.close();
 if (fails.length) {

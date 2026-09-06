@@ -284,8 +284,10 @@ export function CaseReport({
           </section>
         ) : null}
 
+        {printMode ? (
+        <>
         <h2 className="mt-6 font-display text-lg font-semibold">Checks</h2>
-        <table className="mt-2 w-full border-collapse text-left text-sm">
+        <table className="mt-2 w-full border-collapse text-left text-sm" data-testid="report-check-log">
           <thead>
             <tr className="border-b border-ink">
               <th className="py-1 pr-2 font-medium">#</th>
@@ -313,6 +315,8 @@ export function CaseReport({
           </tbody>
         </table>
         {job.log.length === 0 ? <p className="mt-2 text-sm text-ink-muted">No factory checks saved yet.</p> : null}
+        </>
+        ) : null}
 
         <section className="mt-6 border border-line p-4">
           <h2 className="font-display text-lg font-semibold">Cause and repair</h2>
