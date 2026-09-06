@@ -1,20 +1,19 @@
-import { useMemo, useRef, useState } from "react";
-import { Link } from "@tanstack/react-router";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
   AlertTriangle,
   Cable,
   Check,
-  ChevronRight,
   ClipboardList,
   RotateCcw,
 } from "lucide-react";
+import type { BayActionChrome } from "@/components/bay/BayActionBar";
 import type { JobRecord, MeasurementSpec, ModelPack, ReadingAttempt } from "@/data/types";
 import { termHints, unitHelp } from "@/data/plain-terms";
-import { InFlowGuidance } from "@/components/case/InFlowGuidance";
 import { PackNaBanner } from "@/components/case/PackNaBanner";
 import { MeterNumberInput } from "@/components/case/fields";
 import { Button } from "@/components/ui/button";
 import { isMotorIsolationStep } from "@/lib/case-flow";
+import { bayProgressChip, bayStepActionLabel, readMeterDraft } from "@/lib/bay-chrome";
 import { formatClock } from "@/lib/utils";
 import { formatReading, rangeLabel, unusualVerifyBanner } from "@/lib/diagnostics";
 import {
@@ -33,7 +32,19 @@ function formatReadingSafe(raw: string, unit?: string): string {
   return `${raw} ${unit}`;
 }
 
-export function StepPanel({ job, pack }: { job: JobRecord; pack: ModelPack }) {
+export function StepPanel({
+  job,
+  pack,
+  onChrome,
+  onOpenDiagram,
+  onOpenReport,
+}: {
+  job: JobRecord;
+  pack: ModelPack;
+  onChrome?: (chrome: BayActionChrome | null) => void;
+  onOpenDiagram?: () => void;
+  onOpenReport?: () => void;
+}) {
   const submit = useJobStore((s) => s.submitReading);
   const resetPending = useJobStore((s) => s.resetPending);
   const skipToReport = useJobStore((s) => s.skipToReport);
@@ -46,8 +57,10 @@ export function StepPanel({ job, pack }: { job: JobRecord; pack: ModelPack }) {
   const pending = job.pending;
   const spec = step?.measurement;
   const proof = evaluateProof(job, pack);
-  const [raw, setRaw] = useState("");
-  const [selected, setSelected] = useState<string | null>(null);
+  const [raw, setRaw] = useState(() => readMeterDraft(job.meterDraft, job.currentStepId).raw);
+  const [selected, setSelected] = useState<string | null>(
+    () => readMeterDraft(job.meterDraft, job.currentStepId).selected,
+  );
   const [error, setError] = useState<string | null>(null);
   const [missing, setMissing] = useState<string[]>([]);
   const [savedNote, setSavedNote] = useState<string | null>(null);
@@ -72,6 +85,22 @@ export function StepPanel({ job, pack }: { job: JobRecord; pack: ModelPack }) {
 
   const motorStep = step ? isMotorIsolationStep(step) : false;
   const motorReady = Boolean(job.motorUnlock?.commandedNoMove && job.motorUnlock?.controllerUnplugged);
+  const diagnosedView = Boolean(
+    diagnosis && (job.casePhase === "report" || job.status === "diagnosed" || job.status === "complete"),
+  );
+
+  useEffect(() => {
+    const draft = readMeterDraft(job.meterDraft, job.currentStepId);
+    setRaw(draft.raw);
+    setSelected(draft.selected);
+  }, [job.currentStepId]);
+
+  function persistMeter(nextRaw: string, nextSelected: string | null) {
+    if (!step) return;
+    const prev = job.meterDraft;
+    if (prev?.stepId === step.id && prev.raw === nextRaw && (prev.selected ?? null) === nextSelected) return;
+    patchJob(job.id, { meterDraft: { stepId: step.id, raw: nextRaw, selected: nextSelected } });
+  }
 
   function failContinue(message: string, fields: string[]) {
     setSavedNote(null);
@@ -136,11 +165,28 @@ export function StepPanel({ job, pack }: { job: JobRecord; pack: ModelPack }) {
     );
     setRaw("");
     setSelected(null);
+    persistMeter("", null);
     setError(null);
     setMissing([]);
   }
 
-  if (diagnosis && (job.casePhase === "report" || job.status === "diagnosed" || job.status === "complete")) {
+  useLayoutEffect(() => {
+    if (!onChrome) return;
+    onChrome({
+      chip: bayProgressChip(job, pack),
+      label: bayStepActionLabel(verifyPhase, diagnosedView),
+      onAction: diagnosedView
+        ? () => {
+            setPhase(job.id, "report");
+            onOpenReport?.();
+          }
+        : onSubmit,
+      disabled: !diagnosedView && motorStep && !motorReady,
+    });
+  });
+  useEffect(() => () => onChrome?.(null), [onChrome]);
+
+  if (diagnosedView && diagnosis) {
     return (
       <div className="flex h-full min-h-0 flex-col">
         <Header symptom={symptom?.label} progress={100} done />
@@ -176,10 +222,6 @@ export function StepPanel({ job, pack }: { job: JobRecord; pack: ModelPack }) {
           {proof.conflicts.map((c) => (
             <p key={c} className="mt-2 text-sm text-warn">{c}</p>
           ))}
-          <Button className="mt-5" onClick={() => setPhase(job.id, "report")}>
-            Review the report
-            <ChevronRight className="size-4" />
-          </Button>
           <LogList job={job} />
         </div>
       </div>
@@ -219,11 +261,9 @@ export function StepPanel({ job, pack }: { job: JobRecord; pack: ModelPack }) {
           </div>
         ) : null}
 
-        <Button variant="secondary" size="sm" className="mt-3" asChild>
-          <Link to="/wiring/$modelId" params={{ modelId: pack.id }}>
-            <Cable className="size-4" />
-            Open wire picture
-          </Link>
+        <Button variant="secondary" className="mt-3 min-h-11" onClick={onOpenDiagram}>
+          <Cable className="size-4" />
+          See wire picture
         </Button>
 
         {motorStep ? (
@@ -300,6 +340,7 @@ export function StepPanel({ job, pack }: { job: JobRecord; pack: ModelPack }) {
                   value={raw}
                   onChange={(next) => {
                     setRaw(next);
+                    persistMeter(next, selected);
                     if (error) {
                       setError(null);
                       setMissing([]);
@@ -317,7 +358,15 @@ export function StepPanel({ job, pack }: { job: JobRecord; pack: ModelPack }) {
                   className="min-h-14 flex-1 rounded-md bg-surface px-3 font-mono text-xl tabular-nums text-ink shadow-[var(--shadow-border)] outline-none placeholder:text-ink-subtle"
                 />
                 {spec.kind === "resistance" ? (
-                  <Button type="button" variant="secondary" onClick={() => setRaw("OL")} className="min-w-16">
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={() => {
+                      setRaw("OL");
+                      persistMeter("OL", selected);
+                    }}
+                    className="min-w-16"
+                  >
                     OL
                   </Button>
                 ) : null}
@@ -334,6 +383,7 @@ export function StepPanel({ job, pack }: { job: JobRecord; pack: ModelPack }) {
                   type="button"
                   onClick={() => {
                     setSelected(opt.id);
+                    persistMeter(raw, opt.id);
                     setError(null);
                     setMissing([]);
                   }}
@@ -367,18 +417,14 @@ export function StepPanel({ job, pack }: { job: JobRecord; pack: ModelPack }) {
           </p>
         ) : null}
 
-        <div className="mt-4 flex flex-wrap gap-2">
-          <Button onClick={onSubmit} className="min-w-40 flex-1" disabled={motorStep && !motorReady}>
-            {verifyPhase === 0 ? "Save and go on" : verifyPhase === 1 ? "Save second check" : "Save third check"}
-            <ChevronRight className="size-4" />
-          </Button>
-          {pending ? (
+        {pending ? (
+          <div className="mt-4">
             <Button variant="ghost" onClick={() => resetPending(job.id)} title="Throw away extra checks">
               <RotateCcw className="size-4" />
               Start this check over
             </Button>
-          ) : null}
-        </div>
+          </div>
+        ) : null}
 
         <div className="mt-4">
           <button
@@ -421,8 +467,6 @@ export function StepPanel({ job, pack }: { job: JobRecord; pack: ModelPack }) {
             </div>
           ) : null}
         </div>
-
-        <InFlowGuidance job={job} pack={pack} phaseLabel={step.title} />
 
         <LogList job={job} />
       </div>

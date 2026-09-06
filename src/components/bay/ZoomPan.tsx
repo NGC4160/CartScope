@@ -1,40 +1,39 @@
-import { useCallback, useRef, useState } from "react";
-import { Minus, Plus, Maximize2 } from "lucide-react";
+import { useCallback, useRef, useState, type ReactNode } from "react";
+import { Maximize2, Minus, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { BAY_TAP_MIN_PX } from "@/lib/bay-chrome";
 
-export function WiringCanvas({ src, alt }: { src: string; alt: string }) {
+export function ZoomPan({
+  children,
+  className = "",
+  label = "Picture",
+}: {
+  children: ReactNode;
+  className?: string;
+  label?: string;
+}) {
   const wrapRef = useRef<HTMLDivElement>(null);
-  const [scale, setScale] = useState(0.4);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(1);
   const [pos, setPos] = useState({ x: 0, y: 0 });
-  const [nat, setNat] = useState({ w: 0, h: 0 });
   const drag = useRef<{ x: number; y: number; px: number; py: number } | null>(null);
   const pinch = useRef<{ dist: number; scale: number } | null>(null);
   const pointers = useRef(new Map<number, { x: number; y: number }>());
-  const sized = useRef(false);
 
-  const clampScale = (s: number) => Math.min(8, Math.max(0.15, s));
+  const clampScale = (s: number) => Math.min(8, Math.max(0.2, s));
 
-  const computeFit = useCallback((w: number, h: number) => {
+  const computeFit = useCallback(() => {
     const wrap = wrapRef.current;
-    if (!wrap || !w || !h) return 0.4;
+    const content = contentRef.current;
+    if (!wrap || !content) return 1;
     const pad = 16;
-    const availW = Math.max(160, wrap.clientWidth - pad);
-    const availH = Math.max(160, wrap.clientHeight - pad);
-    const ar = w / h;
-    if (ar > 2.15) return clampScale((availH / h) * 0.96);
-    return clampScale(Math.min(availW / w, availH / h));
+    const availW = Math.max(120, wrap.clientWidth - pad);
+    const availH = Math.max(120, wrap.clientHeight - pad);
+    const w = content.scrollWidth || content.getBoundingClientRect().width;
+    const h = content.scrollHeight || content.getBoundingClientRect().height;
+    if (!w || !h) return 1;
+    return clampScale(Math.min(availW / w, availH / h, 1));
   }, []);
-
-  const applySize = useCallback(
-    (w: number, h: number) => {
-      if (!w || !h || sized.current) return;
-      sized.current = true;
-      setNat({ w, h });
-      setPos({ x: 0, y: 0 });
-      requestAnimationFrame(() => setScale(computeFit(w, h)));
-    },
-    [computeFit],
-  );
 
   const zoomAt = useCallback((next: number) => {
     setScale(clampScale(next));
@@ -85,27 +84,43 @@ export function WiringCanvas({ src, alt }: { src: string; alt: string }) {
 
   function fit() {
     setPos({ x: 0, y: 0 });
-    setScale(computeFit(nat.w, nat.h));
+    setScale(computeFit());
   }
 
   return (
-    <div className="flex h-full min-h-0 flex-col">
+    <div className={"flex h-full min-h-0 flex-col " + className}>
       <div className="no-print flex flex-wrap items-center gap-2 border-b border-line bg-surface-2 px-3 py-2">
-        <Button size="sm" variant="secondary" className="min-h-11 min-w-11" onClick={() => zoomAt(scale / 1.25)} aria-label="Zoom out">
+        <Button
+          size="sm"
+          variant="secondary"
+          className="min-h-11 min-w-11"
+          style={{ minHeight: BAY_TAP_MIN_PX, minWidth: BAY_TAP_MIN_PX }}
+          onClick={() => zoomAt(scale / 1.25)}
+          aria-label="Zoom out"
+        >
           <Minus className="size-5" />
         </Button>
-        <Button size="sm" variant="secondary" className="min-h-11 min-w-11" onClick={() => zoomAt(scale * 1.25)} aria-label="Zoom in">
+        <Button
+          size="sm"
+          variant="secondary"
+          className="min-h-11 min-w-11"
+          style={{ minHeight: BAY_TAP_MIN_PX, minWidth: BAY_TAP_MIN_PX }}
+          onClick={() => zoomAt(scale * 1.25)}
+          aria-label="Zoom in"
+        >
           <Plus className="size-5" />
         </Button>
         <Button size="sm" variant="ghost" className="min-h-11" onClick={fit}>
           <Maximize2 className="size-4" />
-          Fit screen
+          Fit
         </Button>
-        <p className="ml-auto font-mono text-xs tabular-nums text-ink-subtle">{Math.round(scale * 100)}%</p>
+        <p className="ml-auto font-mono text-xs tabular-nums text-ink-subtle">
+          {label} · {Math.round(scale * 100)}%
+        </p>
       </div>
       <div
         ref={wrapRef}
-        className="relative min-h-72 flex-1 cursor-grab overflow-hidden bg-paper-sunken active:cursor-grabbing"
+        className="relative min-h-0 flex-1 cursor-grab overflow-hidden bg-paper-sunken active:cursor-grabbing"
         style={{ touchAction: "none" }}
         onWheel={onWheel}
         onPointerDown={onPointerDown}
@@ -120,20 +135,9 @@ export function WiringCanvas({ src, alt }: { src: string; alt: string }) {
             transformOrigin: "center center",
           }}
         >
-          <img
-            src={src}
-            alt={alt}
-            draggable={false}
-            onLoad={(e) => {
-              const img = e.currentTarget;
-              applySize(img.naturalWidth, img.naturalHeight);
-            }}
-            ref={(el) => {
-              if (el && el.complete && el.naturalWidth) applySize(el.naturalWidth, el.naturalHeight);
-            }}
-            className="max-w-none select-none outline outline-1 -outline-offset-1 outline-line-strong"
-            style={nat.w ? { width: nat.w, height: nat.h } : { maxHeight: "100%", maxWidth: "100%" }}
-          />
+          <div ref={contentRef} className="flex h-full w-full items-center justify-center">
+            {children}
+          </div>
         </div>
       </div>
     </div>

@@ -299,6 +299,8 @@ export interface JobRecord {
   techObservation?: string;
   /** In-progress pack fields, persisted on blur before Save. */
   packDraft?: PackDraft;
+  /** In-progress factory-check meter/choice, kept when switching Diagram / Helper / Report. */
+  meterDraft?: { stepId: string; raw: string; selected: string | null };
 }
 
 export interface PackDraftCell {

@@ -1,15 +1,24 @@
-import { useMemo, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useState } from "react";
+import type { BayActionChrome } from "@/components/bay/BayActionBar";
 import { Button } from "@/components/ui/button";
 import { Field, inputClass } from "@/components/case/fields";
-import { InFlowGuidance } from "@/components/case/InFlowGuidance";
 import type { JobRecord, ModelPack } from "@/data/types";
+import { bayCodesActionLabel, bayProgressChip } from "@/lib/bay-chrome";
 import { handheldSaveBlockers } from "@/lib/handheld-form";
 import { suggestedHandheldName } from "@/lib/handheld";
 import { useJobStore } from "@/store/jobs";
 
 type CounterRow = { fault: string; count: string };
 
-export function CodeGate({ job, pack }: { job: JobRecord; pack: ModelPack }) {
+export function CodeGate({
+  job,
+  pack,
+  onChrome,
+}: {
+  job: JobRecord;
+  pack: ModelPack;
+  onChrome?: (chrome: BayActionChrome | null) => void;
+}) {
   const save = useJobStore((s) => s.saveCodeSave);
   const prior = job.codeSave;
   const suggestProgram = useMemo(() => suggestedHandheldName(job, "Program"), [job.id, job.lastName, job.hcpJobNumber, job.createdAt]);
@@ -77,6 +86,16 @@ export function CodeGate({ job, pack }: { job: JobRecord; pack: ModelPack }) {
       noControllerReadings: noConnect ? true : noReadings,
     });
   }
+
+  useLayoutEffect(() => {
+    if (!onChrome) return;
+    onChrome({
+      chip: bayProgressChip(job, pack),
+      label: bayCodesActionLabel(),
+      onAction: go,
+    });
+  });
+  useEffect(() => () => onChrome?.(null), [onChrome]);
 
   return (
     <div className="flex h-full min-h-0 flex-col bg-surface">
@@ -294,12 +313,6 @@ export function CodeGate({ job, pack }: { job: JobRecord; pack: ModelPack }) {
             ))}
           </ul>
         ) : null}
-
-        <Button className="mt-5 min-w-44" onClick={go}>
-          Save codes and go on
-        </Button>
-
-        <InFlowGuidance job={job} pack={pack} phaseLabel="Handheld Program and Log" />
       </div>
     </div>
   );
