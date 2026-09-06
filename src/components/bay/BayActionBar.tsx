@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import {
   bayChromeClear,
   bayChromePublish,
+  bayPrimaryClickBlocksNativeSubmit,
   emptyBayChrome,
   fireBaySave,
   type BayActionChrome,
@@ -100,15 +101,15 @@ export function BayActionBar({
 
   function runSave() {
     if (live.disabled || live.busy) return false;
-    const now = Date.now();
-    if (now - lastFire.current < 400) return true;
-    lastFire.current = now;
-    return fireBaySave({
+    if (bayPrimaryClickBlocksNativeSubmit(lastFire.current)) return true;
+    const ok = fireBaySave({
       fire,
       fallback: live.onAction,
       formId,
       document: typeof document !== "undefined" ? document : undefined,
     });
+    if (ok) lastFire.current = Date.now();
+    return ok;
   }
 
   function onPrimaryPointerDown(event: PointerEvent<HTMLButtonElement>) {
@@ -122,15 +123,20 @@ export function BayActionBar({
   }
 
   function onPrimaryClick(event: { preventDefault: () => void }) {
-    // Pointer-up already saved. Block the duplicate form submit from click.
-    event.preventDefault();
-    runSave();
+    // Only cancel native submit when pointer-up already saved. Always
+    // preventDefault was the #15 Start collision: click never submitted
+    // #bay-check-form if pointer-up missed or the slot had not bound yet.
+    if (bayPrimaryClickBlocksNativeSubmit(lastFire.current)) {
+      event.preventDefault();
+      return;
+    }
+    if (runSave()) event.preventDefault();
   }
 
   return (
     <div
       data-testid="bay-action-bar"
-      className="no-print relative z-10 isolate shrink-0 border-t border-navy-deep bg-surface px-3 pt-2 pb-[max(2.75rem,calc(env(safe-area-inset-bottom)+2.25rem))]"
+      className="no-print relative z-30 isolate shrink-0 border-t border-navy-deep bg-surface px-3 pt-2 pb-[max(2.75rem,calc(env(safe-area-inset-bottom)+2.25rem))]"
     >
       <div className="flex items-center gap-2">
         <p className="shrink-0 rounded-md bg-paper-sunken px-2.5 py-1 font-mono text-xs font-semibold tabular-nums text-navy">

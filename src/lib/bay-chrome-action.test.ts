@@ -4,6 +4,7 @@ import {
   bayChromeClear,
   bayChromeDispatch,
   bayChromePublish,
+  bayPrimaryClickBlocksNativeSubmit,
   createBaySubmitSlot,
   emptyBayChrome,
   fireBaySave,
@@ -73,6 +74,34 @@ test("submit slot always fires the latest bind, even after a fake effect clear",
   assert.equal(slot.fire(), true);
   assert.deepEqual(calls, ["codes"]);
   assert.equal(fireBaySave({ fire: () => slot.fire() }), true);
+});
+
+test("click only blocks native submit after a successful pointer-up save", () => {
+  assert.equal(bayPrimaryClickBlocksNativeSubmit(0, 1_000), false);
+  assert.equal(bayPrimaryClickBlocksNativeSubmit(800, 1_000), true);
+  assert.equal(bayPrimaryClickBlocksNativeSubmit(100, 1_000), false);
+});
+
+test("fireBaySave uses the live form when the slot is empty, even if fallback is a no-op", () => {
+  const submitted: string[] = [];
+  const form = {
+    requestSubmit() {
+      submitted.push("form");
+    },
+  };
+  const doc = {
+    getElementById(id: string) {
+      return id === "bay-check-form" ? form : null;
+    },
+  } as unknown as Document;
+  const ok = fireBaySave({
+    fire: () => false,
+    fallback: () => submitted.push("fallback"),
+    formId: "bay-check-form",
+    document: doc,
+  });
+  assert.equal(ok, true);
+  assert.deepEqual(submitted, ["form"]);
 });
 
 test("submit slot logs and returns false when Save is tapped with no handler", () => {
