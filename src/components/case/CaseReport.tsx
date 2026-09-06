@@ -31,7 +31,8 @@ export function CaseReport({
   const confirm = useJobStore((s) => s.confirmReport);
   const patch = useJobStore((s) => s.patchJob);
   const setPhase = useJobStore((s) => s.setPhase);
-  const candidates = useManualStore((s) => s.candidates.filter((c) => c.packId === pack.id));
+  const allCandidates = useManualStore((s) => s.candidates);
+  const candidates = allCandidates.filter((c) => c.packId === pack.id);
   const coverage = manualsOnFile(pack, sheetsForPack(pack.id));
   const manualLines = manualsReportLines(job.manualStatus, coverage, candidates);
   const partialGaps = partialReportGaps(job, pack);

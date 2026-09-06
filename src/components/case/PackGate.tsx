@@ -216,12 +216,12 @@ export function PackGate({ job, pack }: { job: JobRecord; pack: ModelPack }) {
               A cart that runs is not a finished lithium conversion. Do not claim UL listing or a ten-year warranty. Do
               not use the lead-acid shop voltage rules on this pack. Lead-acid internal resistance is not applicable.
             </div>
-            <Field label="Monitor or battery-management pack voltage">
+            <Field label="Monitor or battery-management pack voltage" hint="Type the number from the monitor. Example: 48.2 V">
               <VoltageInput
                 value={monitorV}
                 onChange={setMonitorV}
                 className={inputClass}
-                placeholder="48.2"
+                placeholder="Type the number from the monitor"
                 aria-label="Monitor pack voltage"
               />
             </Field>
@@ -260,7 +260,12 @@ export function PackGate({ job, pack }: { job: JobRecord; pack: ModelPack }) {
             </label>
             {irSkip ? (
               <Field label="Short reason" hint="Say what blocked the IR meter. Do not invent a reading.">
-                <input value={irSkipReason} onChange={(e) => setIrSkipReason(e.target.value)} className={inputClass} />
+                <input
+                  value={irSkipReason}
+                  onChange={(e) => setIrSkipReason(e.target.value)}
+                  className={inputClass}
+                  aria-label="Short reason"
+                />
               </Field>
             ) : null}
             <label className="flex min-h-12 items-start gap-2 text-sm text-ink">
@@ -301,13 +306,14 @@ export function PackGate({ job, pack }: { job: JobRecord; pack: ModelPack }) {
                         disabled={irSkip}
                       />
                     </Field>
-                    <Field label={`Battery ${i + 1} age`} hint="Month and year only, such as 09/2024.">
+                    <Field label={`Battery ${i + 1} age`} hint="Month and year only. Example: 09/2024">
                       <input
                         value={c.age}
                         onChange={(e) => patchCell(i, { age: e.target.value })}
                         className={inputClass}
-                        placeholder="09/2024"
+                        placeholder="Type month and year"
                         disabled={c.ageSkip}
+                        aria-label={`Battery ${i + 1} age`}
                       />
                     </Field>
                   </div>
@@ -329,13 +335,13 @@ export function PackGate({ job, pack }: { job: JobRecord; pack: ModelPack }) {
             </Field>
             <Field
               label="Short load drop percent (optional)"
-              hint="Wheels up. Pack should not drop more than about 5 percent."
+              hint="Wheels up. Pack should not drop more than about 5 percent. Example: 3.2"
             >
               <VoltageInput
                 value={loadDrop}
                 onChange={setLoadDrop}
                 className={inputClass + " font-mono"}
-                placeholder="3.2"
+                placeholder="Type the number from your meter"
                 aria-label="Short load drop percent"
               />
             </Field>

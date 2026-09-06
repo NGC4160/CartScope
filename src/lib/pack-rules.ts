@@ -1,5 +1,5 @@
 import type { PackCheckRecord } from "@/data/types";
-import { scaledLeadAcidLimits } from "@/lib/pack-layout";
+import { scaledLeadAcidLimits } from "./pack-layout.ts";
 
 export function parseVolts(raw: string): number | undefined {
   const n = Number.parseFloat(raw.trim().replace(",", "."));
