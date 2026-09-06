@@ -1,7 +1,7 @@
 import type { BatteryType, ModelPack } from "../data/types.ts";
 import { JOB_HEADER_MESSAGES, jobHeaderGaps, type JobHeaderGap } from "./job-header.ts";
 import { benchUrl, canStartChecks, resolveStartJob } from "./wizard-nav.ts";
-import { yearCompatibility } from "./year-compat.ts";
+import { yearCompatibility, yearStatusNote } from "./year-compat.ts";
 import type { CreateJobInput } from "../store/jobs.ts";
 
 export type HeaderSnapshot = {
@@ -73,14 +73,31 @@ export type StartChecksAttempt =
       startStepId: string;
       benchPath: (jobId: string) => string;
       jobInput: CreateJobInput;
+      routeLabel: string;
+      yearNote: string | null;
     }
   | {
       ok: false;
       gaps: JobHeaderGap[];
       messages: string[];
       yearMessage: string | null;
+      yearNote: string | null;
+      routeLabel: string;
       header: HeaderSnapshot;
     };
+
+export function startRouteLabel(input: {
+  pack: ModelPack | null | undefined;
+  symptomId: string | null;
+  header: HeaderSnapshot;
+}): string {
+  const brand = input.pack?.manufacturerLabel ?? "(no brand)";
+  const model = input.pack?.name ?? "(no model)";
+  const packId = input.pack?.id ?? "(no pack)";
+  const year = input.header.cartYear.trim() || "(no year)";
+  const complaint = input.symptomId ?? "(no complaint)";
+  return `${brand} · ${model} · ${packId} · year ${year} · ${complaint}`;
+}
 
 function symptomOf(pack: ModelPack | null | undefined, symptomId: string | null) {
   if (!pack || !symptomId) return undefined;
@@ -110,33 +127,41 @@ export function attemptStartChecks(input: {
         packName: pack.fullName,
       })
     : { status: "ok" as const };
+  const yearNote = yearStatusNote(year);
   const yearMessage = year.status === "unsupported" ? year.message : null;
   if (yearMessage) messages.push(yearMessage);
+  const routeLabel = startRouteLabel({ pack, symptomId: input.symptomId, header });
 
   const symptom = symptomOf(pack, input.symptomId);
+  const hasFirstStep = Boolean(symptom?.startStepId && pack?.steps[symptom.startStepId]);
   const resolved = resolveStartJob({
     hasModel: Boolean(pack),
     symptomId: input.symptomId,
     startStepId: symptom?.startStepId ?? null,
     gaps,
+    hasFirstStep,
   });
-
   if (!pack) {
     messages.push("Pick a cart before starting checks.");
   } else if (!input.symptomId || !symptom) {
     messages.push("Pick what is wrong with the cart before starting checks.");
-  } else if (!symptom.startStepId || !pack.steps[symptom.startStepId]) {
+  } else if (!hasFirstStep) {
     messages.push(
       "This complaint does not have a first factory check on file. Pick another problem, or pick a different cart.",
     );
   }
 
-  if (!resolved.ok || !pack || yearMessage || !symptom) {
-    return { ok: false, gaps, messages: uniqueMessages(messages), yearMessage, header };
+  if (!resolved.ok || !pack || yearMessage || !symptom || !hasFirstStep) {
+    if (messages.length === 0) {
+      messages.push(`Could not start checks for ${routeLabel}.`);
+    }
+    messages.push(`Start route: ${routeLabel}`);
+    return { ok: false, gaps, messages: uniqueMessages(messages), yearMessage, yearNote, routeLabel, header };
   }
 
   if (!canStartChecks(gaps)) {
-    return { ok: false, gaps, messages: uniqueMessages(messages), yearMessage, header };
+    messages.push(`Start route: ${routeLabel}`);
+    return { ok: false, gaps, messages: uniqueMessages(messages), yearMessage, yearNote, routeLabel, header };
   }
 
   const electric = pack.powertrain === "electric";
@@ -163,6 +188,8 @@ export function attemptStartChecks(input: {
     startStepId: resolved.startStepId,
     benchPath: benchUrl,
     jobInput,
+    routeLabel,
+    yearNote,
   };
 }
 

@@ -12,8 +12,12 @@ import {
   openJobHeader,
   stepAfterComplaintSelected,
 } from "@/lib/wizard-nav";
-import { yearCompatibility } from "@/lib/year-compat";
+import { yearCompatibility, yearStatusNote } from "@/lib/year-compat";
 import type { CreateJobInput } from "@/store/jobs";
+
+export type StartJobResult =
+  | { ok: true; jobId: string }
+  | { ok: false; message: string };
 
 const STEPS = ["Brand", "Which cart", "What’s wrong", "Job header"] as const;
 
@@ -22,7 +26,7 @@ export function NewJobWizard({
   onStartJob,
 }: {
   onCancel?: () => void;
-  onStartJob: (input: CreateJobInput) => void;
+  onStartJob: (input: CreateJobInput) => StartJobResult | Promise<StartJobResult | void> | void;
 }) {
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
   const [mfg, setMfg] = useState<ManufacturerId | null>(null);
@@ -73,6 +77,7 @@ export function NewJobWizard({
         packName: model.fullName,
       })
     : { status: "ok" as const };
+  const yearNote = yearStatusNote(yearCheck);
   const yearMessage = yearCheck.status === "unsupported" ? yearCheck.message : null;
 
   function goToHeader() {
@@ -96,7 +101,7 @@ export function NewJobWizard({
     setFuelNote(next.fuelNote);
   }
 
-  function startFromForm(form?: HTMLFormElement | null) {
+  async function startFromForm(form?: HTMLFormElement | null) {
     const snapshot = readHeaderSnapshot(form ? new FormData(form) : null, liveRef.current);
     applySnapshot(snapshot);
     const attempted = attemptStartChecks({
@@ -111,12 +116,24 @@ export function NewJobWizard({
     }
     setStartErrors([]);
     setStarting(true);
-    onStartJob(attempted.jobInput);
+    try {
+      const result = await onStartJob(attempted.jobInput);
+      if (result && result.ok === false) {
+        setStarting(false);
+        setStartErrors([result.message, `Start route: ${attempted.routeLabel}`]);
+      }
+    } catch {
+      setStarting(false);
+      setStartErrors([
+        `Could not start checks for ${attempted.routeLabel}. Try Start again.`,
+        `Start route: ${attempted.routeLabel}`,
+      ]);
+    }
   }
 
   function onStartSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    startFromForm(e.currentTarget);
+    void startFromForm(e.currentTarget);
   }
 
   return (
@@ -295,17 +312,28 @@ export function NewJobWizard({
                 <span className="mt-1 block text-sm text-danger">{JOB_HEADER_MESSAGES.technician}</span>
               ) : null}
             </Field>
-            <Field label="Year">
+            <Field label="Year" hint="Type the four-digit year. The box stays empty until you type.">
               <HeaderNoteInput
                 name="cartYear"
                 value={year}
                 onChange={setYear}
-                placeholder="2018"
                 inputMode="numeric"
                 aria-label="Year"
                 aria-invalid={Boolean(yearMessage)}
               />
-              {yearMessage ? <span className="mt-1 block text-sm text-danger">{yearMessage}</span> : null}
+              {yearNote ? (
+                <span
+                  className={
+                    "mt-1 block text-sm " + (yearMessage ? "text-danger" : "text-ink-muted")
+                  }
+                >
+                  {yearNote}
+                </span>
+              ) : (
+                <span className="mt-1 block text-xs text-ink-muted">
+                  Year is optional. If you enter one, we check it against the factory book on file.
+                </span>
+              )}
             </Field>
             <Field label="Serial (recommended)">
               <HeaderNoteInput
@@ -380,12 +408,7 @@ export function NewJobWizard({
           {startErrors.length > 0 ? (
             <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-danger" role="alert">
               {startErrors
-                .filter(
-                  (m) =>
-                    m !== headerMessage &&
-                    m !== yearMessage &&
-                    !Object.values(JOB_HEADER_MESSAGES).includes(m),
-                )
+                .filter((m) => m !== headerMessage && m !== yearMessage && m !== yearNote)
                 .map((m) => (
                   <li key={m}>{m}</li>
                 ))}

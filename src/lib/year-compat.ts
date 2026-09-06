@@ -7,11 +7,12 @@ export type YearRange = {
 };
 
 export type YearCompatibility =
-  | { status: "ok" }
-  | { status: "unknown" }
+  | { status: "ok"; message?: string }
+  | { status: "unknown"; message: string }
   | { status: "unsupported"; message: string; range: YearRange };
 
 const RANGE_RE = /(19|20)\d{2}\s*[–—-]\s*(19|20)\d{2}\+?/g;
+const SHORT_RANGE_RE = /((?:19|20)\d{2})\s*[–—-]\s*(\d{2})(?!\d)/g;
 const STARTING_RE = /starting model year\s+((?:19|20)\d{2})/i;
 
 export function parseCartYear(raw: string): number | null {
@@ -35,6 +36,18 @@ export function parsePackYearRanges(years: string): YearRange[] {
     if (seen.has(key)) continue;
     seen.add(key);
     ranges.push({ min, max, openEnded });
+  }
+
+  for (const match of years.matchAll(SHORT_RANGE_RE)) {
+    const min = Number(match[1]);
+    const tail = Number(match[2]);
+    if (!Number.isFinite(min) || !Number.isFinite(tail)) continue;
+    const max = Math.floor(min / 100) * 100 + tail;
+    if (max < min || max - min > 20) continue;
+    const key = `${min}-${max}-false`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    ranges.push({ min, max, openEnded: false });
   }
 
   const starting = years.match(STARTING_RE);
@@ -69,11 +82,23 @@ export function yearCompatibility(input: {
   if (year == null) return { status: "ok" };
 
   const ranges = parsePackYearRanges(input.packYears);
-  if (ranges.length === 0) return { status: "unknown" };
-  if (yearInRanges(year, ranges)) return { status: "ok" };
+  if (ranges.length === 0) {
+    return {
+      status: "unknown",
+      message:
+        `${input.packName} has no year range listed on the factory book string. Year ${year} is accepted. ` +
+        `If this cart is outside the book, pick a different pack.`,
+    };
+  }
+  const span = formatPackYears(ranges);
+  if (yearInRanges(year, ranges)) {
+    return {
+      status: "ok",
+      message: `Year ${year} matches the factory book on file (${span}).`,
+    };
+  }
 
   const range = ranges[0]!;
-  const span = formatPackYears(ranges);
   return {
     status: "unsupported",
     range,
@@ -81,4 +106,9 @@ export function yearCompatibility(input: {
       `${input.packName} is not supported for ${year}. The factory book on file covers ${span}. ` +
       `Enter a year in that range, or pick a different cart pack.`,
   };
+}
+
+export function yearStatusNote(check: YearCompatibility): string | null {
+  if (check.status === "ok") return check.message ?? null;
+  return check.message;
 }

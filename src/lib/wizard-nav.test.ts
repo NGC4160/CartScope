@@ -8,7 +8,15 @@ import {
   openJobHeader,
   resolveStartJob,
   stepAfterComplaintSelected,
+  wizardStaysOpen,
 } from "./wizard-nav.ts";
+
+test("wizard stays mounted after the first job is created so Start can navigate", () => {
+  assert.equal(wizardStaysOpen({ jobCount: 0, fresh: false, holdOpen: false }), true);
+  assert.equal(wizardStaysOpen({ jobCount: 1, fresh: false, holdOpen: false }), false);
+  assert.equal(wizardStaysOpen({ jobCount: 1, fresh: false, holdOpen: true }), true);
+  assert.equal(wizardStaysOpen({ jobCount: 1, fresh: true, holdOpen: false }), true);
+});
 
 test("complaint selected always opens the job header step", () => {
   assert.equal(openJobHeader(null), null);

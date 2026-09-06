@@ -25,6 +25,15 @@ export function canStartChecks(gaps: readonly JobHeaderGap[]): boolean {
   return gaps.length === 0;
 }
 
+/** Keep the wizard mounted while a job is created so bench navigation is not dropped. */
+export function wizardStaysOpen(input: {
+  jobCount: number;
+  fresh: boolean;
+  holdOpen: boolean;
+}): boolean {
+  return input.jobCount === 0 || input.fresh || input.holdOpen;
+}
+
 export function benchUrl(jobId: string): string {
   return `/bench/${encodeURIComponent(jobId)}`;
 }
@@ -38,8 +47,10 @@ export function resolveStartJob(input: {
   symptomId: string | null;
   startStepId: string | null;
   gaps: readonly JobHeaderGap[];
+  hasFirstStep?: boolean;
 }): StartJobResolution {
   if (!canStartChecks(input.gaps)) return { ok: false };
   if (!input.hasModel || !input.symptomId || !input.startStepId) return { ok: false };
+  if (input.hasFirstStep === false) return { ok: false };
   return { ok: true, symptomId: input.symptomId, startStepId: input.startStepId };
 }
