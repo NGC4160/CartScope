@@ -65,11 +65,20 @@
     cursor: pointer;
   }
 
-  /* Sticky Save is full-width. A press-scale moves the hit box so glove/mouse
-     taps near the edge never fire click. Keyboard activation still worked. */
-  [data-bay-primary] {
+  /* Sticky Save / Start checks / Helper jump: a press-scale moves the hit box
+     so glove/mouse taps near the edge never fire click. */
+  [data-bay-primary],
+  [data-helper-jump] {
     transform: none !important;
     touch-action: manipulation;
+  }
+
+  /* Bay Report must not show the factory Checks table even if markup leaks. */
+  [data-bay-report-pane] [data-testid="report-check-log"],
+  [data-bay-report-pane] .report-factory-checks {
+    display: none !important;
+    pointer-events: none !important;
+    visibility: hidden !important;
   }
 
   h1,

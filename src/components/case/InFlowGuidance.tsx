@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type PointerEvent } from "react";
 import { BookOpen, ChevronRight, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Field, inputClass } from "@/components/case/fields";
@@ -16,10 +16,12 @@ export function InFlowGuidance({
   job,
   pack,
   phaseLabel,
+  onJumped,
 }: {
   job: JobRecord;
   pack: ModelPack;
   phaseLabel: string;
+  onJumped?: () => void;
 }) {
   const appendAiTurn = useJobStore((s) => s.appendAiTurn);
   const jumpToStep = useJobStore((s) => s.jumpToStep);
@@ -46,6 +48,7 @@ export function InFlowGuidance({
   const [candNote, setCandNote] = useState("");
   const [candUrl, setCandUrl] = useState("");
   const [helperStatus, setHelperStatus] = useState<HelperStatus | null>(null);
+  const lastJump = useRef(0);
 
   useEffect(() => {
     let alive = true;
@@ -68,6 +71,14 @@ export function InFlowGuidance({
 
   function persistObservation(next: string) {
     patchJob(job.id, { techObservation: next });
+  }
+
+  function goToSuggested(step: DiagnosticStep) {
+    const now = Date.now();
+    if (now - lastJump.current < 400) return;
+    lastJump.current = now;
+    jumpToStep(job.id, step.id, observation.trim() || reply || step.title);
+    onJumped?.();
   }
 
   async function sendObservation() {
@@ -287,10 +298,22 @@ export function InFlowGuidance({
             {suggested.map((step) => (
               <Button
                 key={step.id}
+                type="button"
                 variant="secondary"
                 data-testid={`helper-jump-${step.id}`}
-                className="h-auto min-h-11 justify-start whitespace-normal py-2 text-left"
-                onClick={() => jumpToStep(job.id, step.id, observation.trim() || reply || step.title)}
+                data-helper-jump=""
+                className="h-auto min-h-11 justify-start whitespace-normal py-2 text-left touch-manipulation"
+                onPointerDown={(event: PointerEvent<HTMLButtonElement>) => {
+                  event.currentTarget.setPointerCapture(event.pointerId);
+                }}
+                onPointerUp={(event: PointerEvent<HTMLButtonElement>) => {
+                  if (event.pointerType === "mouse" && event.button !== 0) return;
+                  goToSuggested(step);
+                }}
+                onClick={(event) => {
+                  event.preventDefault();
+                  goToSuggested(step);
+                }}
               >
                 <ChevronRight className="size-4 shrink-0" />
                 <span>
