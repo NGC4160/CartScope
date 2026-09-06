@@ -400,7 +400,7 @@ export function PackGate({
               {cells.map((c, i) => (
                 <div key={`battery-${i}`} className="rounded-md border border-line p-3">
                   <p className="mb-2 font-medium text-ink">Battery {i + 1}</p>
-                  <div className="grid gap-2 sm:grid-cols-3">
+                  <div className="grid gap-3">
                     <Field
                       label={`Battery ${i + 1} resting volts`}
                       hint={`Type the meter number. Example: ${lim.chargeTarget} V`}

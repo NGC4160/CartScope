@@ -231,6 +231,7 @@ export function InFlowGuidance({
           className={inputClass + " mt-1 min-h-20 py-2"}
           placeholder="Customer slang is fine here. Example: solenoid clicks, no roll, tow/run in run…"
           maxLength={800}
+          aria-label="What you see"
         />
       </label>
       {observation.trim() ? (

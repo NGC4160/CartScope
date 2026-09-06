@@ -96,23 +96,56 @@ async function runAt(width, height, tag) {
   check(`${tag} save still visible with helper`, await save.isVisible());
   const helperHeaders = page.getByTestId("bay-helper-sheet").getByText(/^HELPER$/);
   check(`${tag} single helper chrome`, (await helperHeaders.count()) === 1, String(await helperHeaders.count()));
-  const sawBox = page.getByPlaceholder(/Customer slang is fine/i);
-  if (await sawBox.count()) {
-    await sawBox.fill("Speed sensor fault");
+  const sawBox = page.getByLabel(/^What you see$/i);
+  await sawBox.waitFor({ state: "attached" });
+  await sawBox.fill("Speed sensor fault");
+  const askHelper = page.getByRole("button", { name: /Use this to pick the next check/i });
+  if (await askHelper.count()) {
+    await askHelper.click();
+    const offline = page.getByTestId("helper-offline-reason");
+    const helperReply = page.getByTestId("bay-helper-sheet").getByText(/What to do next|factory check|Factory checks|shop helper|offline/i);
+    await Promise.race([
+      offline.waitFor({ timeout: 12000 }).catch(() => {}),
+      helperReply.waitFor({ timeout: 12000 }).catch(() => {}),
+    ]);
+    check(
+      `${tag} helper answer or reason`,
+      (await offline.count()) > 0 || (await helperReply.count()) > 0,
+    );
+    check(
+      `${tag} no dead-end unavailable line`,
+      (await page.getByText(/The helper is not available right now/i).count()) === 0,
+    );
   }
+  await page.screenshot({ path: `${out}/bay-${tag}-helper.png` });
   await page.getByTestId("bay-helper-sheet").getByRole("button", { name: /^Close$/i }).click();
+  check(
+    `${tag} observation strip`,
+    await page.getByText(/What the tech saw:\s*Speed sensor fault/i).first().isVisible(),
+  );
 
   const irUnit = page.getByRole("button", { name: /milliohms/i }).first();
+  await irUnit.scrollIntoViewIfNeeded();
   check(`${tag} IR milliohms picker`, await irUnit.isVisible());
   check(`${tag} IR milliohms selected`, (await irUnit.getAttribute("aria-pressed")) === "true");
+  const mega = page.getByRole("button", { name: /megaohms/i }).first();
+  const irBox = page.getByLabel(/^Battery 1 internal resistance$/i);
+  await irBox.fill("12.1");
+  await mega.click();
+  check(`${tag} IR number stays 12.1 after MΩ`, (await irBox.inputValue()) === "12.1");
+  check(`${tag} IR megaohms selected`, (await mega.getAttribute("aria-pressed")) === "true");
+  await irUnit.click();
 
   await dock.getByRole("tab", { name: "Report" }).click();
   await page.getByText(/Report peek|Report draft/i).first().waitFor();
   check(`${tag} report peek`, await page.getByText(/Bayux/).first().isVisible());
-  const who = page.getByText(/Who checked it/i);
   check(`${tag} who checked it is Ryan`, await page.getByText(/^Ryan$/).first().isVisible());
   check(`${tag} helper text not in who-checked`, (await page.getByText(/Who checked it:\s*Speed sensor fault/i).count()) === 0);
-  check(`${tag} what the tech saw`, await page.getByText(/Speed sensor fault/).first().isVisible());
+  const sawOnReport = page.getByRole("heading", { name: /What the tech saw/i });
+  if (await sawOnReport.count()) await sawOnReport.scrollIntoViewIfNeeded();
+  const fault = page.getByText("Speed sensor fault");
+  await fault.first().scrollIntoViewIfNeeded();
+  check(`${tag} what the tech saw`, await fault.first().isVisible());
   await page.screenshot({ path: `${out}/bay-${tag}-report.png` });
   await page.getByRole("button", { name: /Back to checks/i }).first().click();
   await page.getByRole("heading", { name: /Check the pack before you blame other parts/i }).waitFor();
