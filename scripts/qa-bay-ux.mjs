@@ -57,7 +57,25 @@ async function mouseClickPrimary(page) {
   await btn.waitFor({ state: "visible" });
   const box = await btn.boundingBox();
   if (!box) throw new Error("sticky Save has no box");
-  await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2, { button: "left" });
+  const x = box.x + box.width / 2;
+  const y = box.y + box.height / 2;
+  const hit = await page.evaluate(
+    ({ x, y }) => {
+      const el = document.elementFromPoint(x, y);
+      if (!el) return { hitSave: false, start: false, tag: null };
+      return {
+        hitSave: Boolean(el.closest("[data-testid='bay-primary-action']")),
+        start: Boolean(el.closest("[data-testid='start-checks']")),
+        tag: el.tagName,
+        testid: el.getAttribute("data-testid"),
+      };
+    },
+    { x, y },
+  );
+  if (!hit.hitSave || hit.start) {
+    throw new Error(`sticky Save mouse target is not Save: ${JSON.stringify(hit)}`);
+  }
+  await page.mouse.click(x, y, { button: "left" });
 }
 
 /** Real mouse click on Job header Start checks — same path the bay tech uses. */
@@ -283,6 +301,12 @@ async function runStickySaveAdvance() {
   check("advance pack save enabled", await packSave.isEnabled());
   check("advance pack form wired", (await page.locator("#bay-check-form").count()) === 1);
   check("advance pack button submits form", (await packSave.getAttribute("form")) === "bay-check-form");
+  check("advance pack Start hook gone", (await page.getByTestId("start-checks").count()) === 0);
+  check(
+    "advance pack Save owns bay-primary",
+    (await page.locator("[data-bay-primary]").count()) === 1 &&
+      (await packSave.getAttribute("data-bay-primary")) !== null,
+  );
   await mouseClickPrimary(page);
   await page.getByRole("heading", { name: /Save a program file before you clear/i }).waitFor({ timeout: 10000 });
   check("advance pack sticky Save left pack", await page.getByRole("heading", { name: /Save a program file before you clear/i }).isVisible());
@@ -334,6 +358,12 @@ async function runStickySaveAdvance() {
   await gas.getByRole("button", { name: /Setup is right — keep going/i }).click();
   const checkSave = gas.getByTestId("bay-primary-action");
   check("advance factory save enabled", await checkSave.isEnabled());
+  check("advance factory Start hook gone", (await gas.getByTestId("start-checks").count()) === 0);
+  check(
+    "advance factory Save owns bay-primary",
+    (await gas.locator("[data-bay-primary]").count()) === 1 &&
+      (await checkSave.getAttribute("data-bay-primary")) !== null,
+  );
   const stepBefore = await readStoredJob(gas);
   await mouseClickPrimary(gas);
   await gas.getByText(/CHECK 2/i).first().waitFor({ timeout: 8000 });

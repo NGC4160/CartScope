@@ -65,9 +65,11 @@
     cursor: pointer;
   }
 
-  /* Sticky Save / Start checks / Helper jump: a press-scale moves the hit box
-     so glove/mouse taps near the edge never fire click. */
+  /* Sticky Save, Job header Start, Helper jump: press-scale moves the hit box
+     so glove/mouse taps near the edge never fire click. Start must not reuse
+     [data-bay-primary] — that hook is Save-only after #15 collided the two. */
   [data-bay-primary],
+  [data-start-checks],
   [data-helper-jump] {
     transform: none !important;
     touch-action: manipulation;

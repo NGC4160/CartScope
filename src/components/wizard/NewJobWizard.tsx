@@ -454,7 +454,7 @@ export function NewJobWizard({
             <Button
               type="button"
               data-testid="start-checks"
-              data-bay-primary=""
+              data-start-checks=""
               className={
                 "ml-auto min-w-44 touch-manipulation" + (headerReady && !yearMessage ? "" : " opacity-40")
               }
