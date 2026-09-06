@@ -11,8 +11,12 @@ import { formatReading } from "@/lib/diagnostics";
 import { formatHandheldRecord } from "@/lib/handheld";
 import { formatPackCellLine } from "@/lib/pack-rules";
 import { evaluateProof } from "@/lib/proof";
+import { manualsOnFile } from "@/lib/manuals";
+import { manualsReportLines, partialReportGaps } from "@/lib/report-continuity";
+import { sheetsForPack } from "@/data/wiring";
 import { formatTime } from "@/lib/utils";
 import { useJobStore } from "@/store/jobs";
+import { useManualStore } from "@/store/manuals";
 
 export function CaseReport({
   job,
@@ -27,6 +31,11 @@ export function CaseReport({
   const confirm = useJobStore((s) => s.confirmReport);
   const patch = useJobStore((s) => s.patchJob);
   const setPhase = useJobStore((s) => s.setPhase);
+  const allCandidates = useManualStore((s) => s.candidates);
+  const candidates = allCandidates.filter((c) => c.packId === pack.id);
+  const coverage = manualsOnFile(pack, sheetsForPack(pack.id));
+  const manualLines = manualsReportLines(job.manualStatus, coverage, candidates);
+  const partialGaps = partialReportGaps(job, pack);
   const symptom = pack.symptoms.find((s) => s.id === job.symptomId);
   const [copied, setCopied] = useState(false);
   const [retest, setRetest] = useState(job.retestNote ?? "");
@@ -115,6 +124,27 @@ export function CaseReport({
             {job.complaintNote}
           </p>
         ) : null}
+
+        {partialGaps.length > 0 ? (
+          <section className="mt-4 rounded-md bg-warn-bg px-3 py-3 text-sm text-ink">
+            <p className="font-medium">Partial report</p>
+            <p className="mt-1">Factory or handheld checks were skipped. Cause is not proven from those missing numbers.</p>
+            <ul className="mt-2 list-disc pl-5">
+              {partialGaps.map((g) => (
+                <li key={g}>{g}</li>
+              ))}
+            </ul>
+          </section>
+        ) : null}
+
+        <section className="mt-6 border border-line p-4">
+          <h2 className="font-display text-lg font-semibold">Manuals first</h2>
+          <ul className="mt-2 space-y-1 text-sm">
+            {manualLines.map((line) => (
+              <li key={line}>{line}</li>
+            ))}
+          </ul>
+        </section>
 
         {job.packCheck ? (
           <section className="mt-6 border border-line p-4">

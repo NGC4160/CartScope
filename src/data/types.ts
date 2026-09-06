@@ -291,4 +291,8 @@ export interface JobRecord {
   provenCauseOverride?: string;
   brainCopy?: BrainCopyRecord;
   pathRedirects?: { at: string; fromStepId: string; toStepId: string; reason: string }[];
+  manualStatus?: {
+    onFile: boolean;
+    summary: string;
+  };
 }

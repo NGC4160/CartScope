@@ -1,12 +1,13 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { FileText, Plus } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { AppShell } from "@/components/layout/AppShell";
 import { NewJobWizard } from "@/components/wizard/NewJobWizard";
 import { Button } from "@/components/ui/button";
 import { getPack, getSymptom, MODEL_PACKS } from "@/data/index";
 import { WIRING_SHEETS } from "@/data/wiring";
 import { caseTitle, statusLabel } from "@/lib/case-flow";
+import { wizardStaysOpen } from "@/lib/wizard-nav";
 import { formatTime } from "@/lib/utils";
 import { useJobStore, type CreateJobInput } from "@/store/jobs";
 
@@ -17,12 +18,29 @@ function Home() {
   const jobs = useJobStore((s) => s.jobs);
   const createJob = useJobStore((s) => s.createJob);
   const [fresh, setFresh] = useState(false);
-  const showWizard = jobs.length === 0 || fresh;
+  const holdOpen = useRef(false);
+  const showWizard = wizardStaysOpen({
+    jobCount: jobs.length,
+    fresh,
+    holdOpen: holdOpen.current,
+  });
 
-  function startJob(input: CreateJobInput) {
+  async function startJob(input: CreateJobInput) {
+    holdOpen.current = true;
     setFresh(true);
     const job = createJob(input);
-    void navigate({ to: "/bench/$jobId", params: { jobId: job.id } });
+    try {
+      await navigate({ to: "/bench/$jobId", params: { jobId: job.id } });
+      return { ok: true as const, jobId: job.id };
+    } catch {
+      holdOpen.current = false;
+      return {
+        ok: false as const,
+        message:
+          `Could not open checks for ${input.cartMake} ${input.cartModel} year ${input.cartYear || "(none)"}. ` +
+          `The job is on this tablet — open it from recent cases, or try Start again.`,
+      };
+    }
   }
 
   return (

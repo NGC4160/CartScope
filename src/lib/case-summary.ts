@@ -1,6 +1,9 @@
 import type { JobRecord, ModelPack } from "@/data/types";
 import { formatHandheldRecord } from "@/lib/handheld";
 import { formatPackCellLine } from "@/lib/pack-rules";
+import { manualsOnFile } from "@/lib/manuals";
+import { manualsReportLines, partialReportGaps } from "@/lib/report-continuity";
+import { sheetsForPack } from "@/data/wiring";
 import type { Proof } from "@/lib/proof";
 
 export function plainCaseSummary(job: JobRecord, pack: ModelPack, proof: Proof): string {
@@ -19,6 +22,18 @@ export function plainCaseSummary(job: JobRecord, pack: ModelPack, proof: Proof):
     job.complaintNote ? `Complaint note: ${job.complaintNote}` : "",
     "",
   ];
+
+  const partial = partialReportGaps(job, pack);
+  if (partial.length) {
+    lines.push("Partial report — factory or handheld checks were skipped");
+    partial.forEach((g) => lines.push(`- ${g}`));
+    lines.push("");
+  }
+
+  const coverage = manualsOnFile(pack, sheetsForPack(pack.id));
+  lines.push("Manuals first");
+  manualsReportLines(job.manualStatus, coverage).forEach((g) => lines.push(g));
+  lines.push("");
 
   if (job.packCheck) {
     lines.push("Battery pack");
@@ -85,6 +100,13 @@ export function plainCaseSummary(job: JobRecord, pack: ModelPack, proof: Proof):
     `Recommended repair: ${proof.recommendedRepair ?? "Not enough proof to recommend a repair yet."}`,
   );
   if (job.retestNote) lines.push(`Re-test after repair: ${job.retestNote}`);
+  if (job.includeAiInReport !== false && job.aiLog?.length) {
+    lines.push("");
+    lines.push("Helper notes");
+    job.aiLog.forEach((t) => {
+      lines.push(`${t.role === "user" ? "Who checked it" : "Helper"}: ${t.text}`);
+    });
+  }
   if (proof.conflicts.length) {
     lines.push("");
     lines.push("Notes that do not fit:");

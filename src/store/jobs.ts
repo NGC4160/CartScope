@@ -1,6 +1,8 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { getPack } from "@/data/index";
+import { sheetsForPack } from "@/data/wiring";
+import { helperManualsNote, snapshotManualStatus } from "@/lib/report-continuity";
 import type {
   AiTurn,
   CasePhase,
@@ -80,6 +82,10 @@ export const useJobStore = create<JobState>()(
       createJob: (input) => {
         const now = new Date().toISOString();
         const pack = getPack(input.modelId);
+        const manualStatus = pack
+          ? snapshotManualStatus(pack, sheetsForPack(pack.id))
+          : undefined;
+        const manualsNote = manualStatus ? helperManualsNote(manualStatus) : null;
         const job: JobRecord = {
           id: uid("job"),
           createdAt: now,
@@ -101,6 +107,9 @@ export const useJobStore = create<JobState>()(
           complaintNote: input.complaintNote.trim(),
           fuelNote: input.fuelNote.trim(),
           casePhase: pack ? initialPhase(pack) : "steps",
+          manualStatus,
+          includeAiInReport: true,
+          aiLog: manualsNote ? [{ at: now, role: "assistant", text: manualsNote }] : [],
         };
         set({ jobs: [job, ...get().jobs] });
         return job;

@@ -31,6 +31,10 @@ test("YDRA 2007–2016 range accepts 2016 and rejects 2018", () => {
     packName: "Yamaha YDRA / Drive gasoline (G29 gas)",
   });
   assert.equal(ok.status, "ok");
+  if (ok.status === "ok") {
+    assert.match(ok.message ?? "", /2016/);
+    assert.match(ok.message ?? "", /2007–2016/);
+  }
 
   const bad = yearCompatibility({
     cartYear: "2018",
@@ -64,6 +68,25 @@ test("empty or non-year text does not block start", () => {
     packName: "Yamaha YDRA / Drive gasoline (G29 gas)",
   });
   assert.equal(empty.status, "ok");
+});
+
+test("V-Glide 1994–2000 and short 1995–96 both accept 1994", () => {
+  const years =
+    "1994–2000 DS V-Glide 36 V (1994 DS M&S; 1995–96 Section 19; 2000 supplement 102067504)";
+  const ranges = parsePackYearRanges(years);
+  assert.ok(ranges.some((r) => r.min === 1994 && r.max === 2000));
+  assert.ok(ranges.some((r) => r.min === 1995 && r.max === 1996));
+  assert.equal(yearInRanges(1994, ranges), true);
+  const check = yearCompatibility({
+    cartYear: "1994",
+    packYears: years,
+    packName: "Club Car DS V-Glide 36 Volt",
+  });
+  assert.equal(check.status, "ok");
+  if (check.status === "ok") {
+    assert.match(check.message ?? "", /1994/);
+    assert.match(check.message ?? "", /1994–2000/);
+  }
 });
 
 test("starting-model-year and open-ended plus ranges parse from real pack copy", () => {

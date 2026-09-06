@@ -61,12 +61,12 @@ export function InFlowGuidance({
       );
       if (!res.ok) {
         setError(res.error);
+        const fallback = coverage.onFile
+          ? "Helper is offline. Use the factory check on this screen and the wire pictures on file."
+          : `${coverage.summary} Stay on the meter-evidence path. Do not invent or auto-add a manual.`;
         if (localHits.length === 0) {
-          setReply(
-            coverage.onFile
-              ? "Helper is offline. Use the factory check on this screen and the wire pictures on file."
-              : coverage.summary,
-          );
+          setReply(fallback);
+          appendAiTurn(job.id, { role: "assistant", text: fallback });
         }
       } else {
         appendAiTurn(job.id, { role: "assistant", text: res.text });

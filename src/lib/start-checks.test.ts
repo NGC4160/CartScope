@@ -164,6 +164,9 @@ test("Yamaha YDRA 2016 starts checks; an out-of-book year is named, not a silent
     assert.equal(supported.startStepId, "g-dies");
     assert.equal(supported.jobInput.complaintNote, "runs rough / dies under load");
     assert.equal(supported.benchPath("job_ydra"), "/bench/job_ydra");
+    assert.match(supported.yearNote ?? "", /2016/);
+    assert.match(supported.routeLabel, /Yamaha/);
+    assert.match(supported.routeLabel, /YDRA/);
   }
 
   const unsupported = attemptStartChecks({
@@ -186,5 +189,68 @@ test("Yamaha YDRA 2016 starts checks; an out-of-book year is named, not a silent
     assert.match(unsupported.yearMessage ?? "", /2018/);
     assert.match(unsupported.yearMessage ?? "", /2007/);
     assert.ok(unsupported.messages.includes(unsupported.yearMessage ?? ""));
+    assert.ok(unsupported.messages.some((m) => /Start route:/.test(m)));
+    assert.match(unsupported.routeLabel, /2018/);
+  }
+});
+
+test("Club Car DS V-Glide 1994 starts checks and names the year", () => {
+  const vglide = {
+    id: "club-car-ds-vglide",
+    manufacturerLabel: "Club Car",
+    name: "DS V-Glide 36 V",
+    fullName: "Club Car DS V-Glide 36 Volt",
+    powertrain: "electric",
+    years: "1994–2000 DS V-Glide 36 V (1994 DS M&S; 1995–96 Section 19; 2000 supplement 102067504)",
+    symptoms: [
+      {
+        id: "no-operation",
+        label: "Cart will not run — no solenoid click",
+        summary: "Small-wire path",
+        startStepId: "vno-setup",
+      },
+    ],
+    steps: { "vno-setup": { id: "vno-setup" } },
+  } as unknown as ModelPack;
+
+  const started = attemptStartChecks({
+    pack: vglide,
+    symptomId: "no-operation",
+    header: {
+      lastName: "Ng",
+      hcpJobNumber: "880304",
+      technician: "Hayden",
+      cartYear: "1994",
+      serialNumber: "",
+      batteryType: "lead-acid",
+      complaintNote: "Round 3 no-manual path",
+      fuelNote: "",
+    },
+  });
+  assert.equal(started.ok, true);
+  if (started.ok) {
+    assert.equal(started.startStepId, "vno-setup");
+    assert.match(started.yearNote ?? "", /1994/);
+    assert.equal(started.benchPath("job_vglide"), "/bench/job_vglide");
+  }
+});
+
+test("a missing first factory check is named, never a silent no-op", () => {
+  const broken = {
+    ...ezgoTxt,
+    symptoms: [{ id: "one-direction", label: "Runs one way only", summary: "", startStepId: "missing-step" }],
+    steps: {},
+  } as unknown as ModelPack;
+  const started = attemptStartChecks({
+    pack: broken,
+    symptomId: "one-direction",
+    header: lithiumNoReverseHeader(),
+  });
+  assert.equal(started.ok, false);
+  if (!started.ok) {
+    assert.ok(started.messages.length > 0);
+    assert.ok(started.messages.some((m) => /first factory check/i.test(m)));
+    assert.ok(started.messages.some((m) => /Start route:/.test(m)));
+    assert.match(started.routeLabel, /EZ-GO/);
   }
 });

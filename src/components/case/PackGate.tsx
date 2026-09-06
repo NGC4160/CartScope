@@ -6,6 +6,11 @@ import { Field, inputClass, VoltageInput } from "@/components/case/fields";
 import type { JobRecord, ModelPack, PackCheckRecord, PackCellReading } from "@/data/types";
 import { packLayout, scaledLeadAcidLimits } from "@/lib/pack-layout";
 import {
+  applyBulkAgeUnreadable,
+  packSaveBlockers,
+  typedVoltage,
+} from "@/lib/pack-form";
+import {
   evaluateLeadAcid,
   irSpreadNote,
   monthsOld,
@@ -52,9 +57,10 @@ export function PackGate({ job, pack }: { job: JobRecord; pack: ModelPack }) {
   const [testPath, setTestPath] = useState(false);
   const [testNote, setTestNote] = useState(job.testBattery?.measuredProblem ?? "");
   const [error, setError] = useState<string | null>(null);
+  const [blockers, setBlockers] = useState<string[]>([]);
 
   const numericCells = useMemo(
-    () => cells.map((c) => parseVolts(c.volts)).filter((n): n is number => n != null),
+    () => cells.map((c) => typedVoltage(c.volts)).filter((n): n is number => n != null),
     [cells],
   );
   const agesMonths = useMemo(
@@ -83,11 +89,21 @@ export function PackGate({ job, pack }: { job: JobRecord; pack: ModelPack }) {
     setCells((prev) => prev.map((x, idx) => (idx === i ? { ...x, ...patch } : x)));
   }
 
-  function irAgeReady(): boolean {
-    if (lithium) return true;
-    const irOk = irSkip ? irSkipReason.trim().length >= 4 : cells.every((c) => c.ir.trim().length > 0);
-    const ageOk = cells.every((c) => c.ageSkip || parseAgeMonthYear(c.age));
-    return irOk && ageOk;
+  function currentBlockers() {
+    return packSaveBlockers({
+      lithium,
+      cellCount: layout.count,
+      cells,
+      irSkip,
+      irSkipReason,
+      monitorV,
+      noMonitor,
+    });
+  }
+
+  function showBlockers(list: ReturnType<typeof packSaveBlockers>) {
+    setBlockers(list.map((b) => b.message));
+    setError(list.length ? `Cannot save yet. ${list.length} field${list.length === 1 ? "" : "s"} still need a value.` : null);
   }
 
   function buildRecord(verdict: PackCheckRecord["verdict"], issues: string[]): PackCheckRecord {
@@ -122,28 +138,14 @@ export function PackGate({ job, pack }: { job: JobRecord; pack: ModelPack }) {
   }
 
   function continuePass() {
+    const missing = currentBlockers();
+    if (missing.length) {
+      showBlockers(missing);
+      return;
+    }
+    setBlockers([]);
     setError(null);
-    if (lithium) {
-      if (!noMonitor && !monitorV.trim()) {
-        setError("Type the monitor pack voltage, or check that no monitor is connected.");
-        return;
-      }
-      save(job.id, buildRecord("pass", []));
-      return;
-    }
-    if (numericCells.length < layout.count) {
-      setError(`Type resting voltage for each of the ${layout.count} batteries.`);
-      return;
-    }
-    if (!irAgeReady()) {
-      setError(
-        irSkip && irSkipReason.trim().length < 4
-          ? "Write a short reason that the IR meter could not be used."
-          : "Write internal resistance from the IR meter for each battery (or check could not measure), and month/year age or age not readable.",
-      );
-      return;
-    }
-    if (!evalr.pass) {
+    if (!lithium && !evalr.pass) {
       setError("This pack does not pass. Charge or fix it first, or continue on a test battery.");
       return;
     }
@@ -151,30 +153,25 @@ export function PackGate({ job, pack }: { job: JobRecord; pack: ModelPack }) {
   }
 
   function stayAndCharge() {
-    if (!lithium && numericCells.length < layout.count) {
-      setError(`Type resting voltage for each of the ${layout.count} batteries.`);
-      return;
-    }
-    if (!irAgeReady()) {
-      setError("Still write each battery’s internal resistance and age (or the skip reasons) before you leave this pack.");
+    const missing = currentBlockers();
+    if (missing.length) {
+      showBlockers(missing);
       return;
     }
     save(job.id, buildRecord("fail", evalr.issues));
+    setBlockers([]);
     setError(null);
     setTestPath(false);
   }
 
   function continueTestBattery() {
+    const missing = currentBlockers();
+    if (missing.length) {
+      showBlockers(missing);
+      return;
+    }
     if (!testNote.trim() || testNote.trim().length < 8) {
       setError("Write what you measured on the pack, and that later steps used a known-good test battery.");
-      return;
-    }
-    if (!lithium && numericCells.length < layout.count) {
-      setError(`Type resting voltage for each of the ${layout.count} batteries first.`);
-      return;
-    }
-    if (!irAgeReady()) {
-      setError("Keep this pack’s voltage, internal resistance, and age on the case even if you continue on a test battery.");
       return;
     }
     save(job.id, buildRecord("fail", evalr.issues), { used: true, measuredProblem: testNote.trim() });
@@ -219,12 +216,12 @@ export function PackGate({ job, pack }: { job: JobRecord; pack: ModelPack }) {
               A cart that runs is not a finished lithium conversion. Do not claim UL listing or a ten-year warranty. Do
               not use the lead-acid shop voltage rules on this pack. Lead-acid internal resistance is not applicable.
             </div>
-            <Field label="Monitor or battery-management pack voltage">
+            <Field label="Monitor or battery-management pack voltage" hint="Type the number from the monitor. Example: 48.2 V">
               <VoltageInput
                 value={monitorV}
                 onChange={setMonitorV}
                 className={inputClass}
-                placeholder="48.2"
+                placeholder="Type the number from the monitor"
                 aria-label="Monitor pack voltage"
               />
             </Field>
@@ -263,20 +260,37 @@ export function PackGate({ job, pack }: { job: JobRecord; pack: ModelPack }) {
             </label>
             {irSkip ? (
               <Field label="Short reason" hint="Say what blocked the IR meter. Do not invent a reading.">
-                <input value={irSkipReason} onChange={(e) => setIrSkipReason(e.target.value)} className={inputClass} />
+                <input
+                  value={irSkipReason}
+                  onChange={(e) => setIrSkipReason(e.target.value)}
+                  className={inputClass}
+                  aria-label="Short reason"
+                />
               </Field>
             ) : null}
+            <label className="flex min-h-12 items-start gap-2 text-sm text-ink">
+              <input
+                type="checkbox"
+                checked={cells.length > 0 && cells.every((c) => c.ageSkip)}
+                onChange={(e) => setCells((prev) => applyBulkAgeUnreadable(prev, e.target.checked))}
+                className="mt-1 size-4 accent-navy"
+              />
+              All ages not readable
+            </label>
             <div className="grid gap-3">
               {cells.map((c, i) => (
                 <div key={`battery-${i}`} className="rounded-md border border-line p-3">
                   <p className="mb-2 font-medium text-ink">Battery {i + 1}</p>
                   <div className="grid gap-2 sm:grid-cols-3">
-                    <Field label={`Battery ${i + 1} resting volts`}>
+                    <Field
+                      label={`Battery ${i + 1} resting volts`}
+                      hint={`Type the meter number. Example: ${lim.chargeTarget} V`}
+                    >
                       <VoltageInput
                         value={c.volts}
                         onChange={(next) => patchCell(i, { volts: next })}
                         className={inputClass + " font-mono"}
-                        placeholder={String(lim.chargeTarget)}
+                        placeholder="Type the number from your meter"
                         aria-label={`Battery ${i + 1} resting volts`}
                       />
                     </Field>
@@ -292,13 +306,14 @@ export function PackGate({ job, pack }: { job: JobRecord; pack: ModelPack }) {
                         disabled={irSkip}
                       />
                     </Field>
-                    <Field label={`Battery ${i + 1} age`} hint="Month and year only, such as 09/2024.">
+                    <Field label={`Battery ${i + 1} age`} hint="Month and year only. Example: 09/2024">
                       <input
                         value={c.age}
                         onChange={(e) => patchCell(i, { age: e.target.value })}
                         className={inputClass}
-                        placeholder="09/2024"
+                        placeholder="Type month and year"
                         disabled={c.ageSkip}
+                        aria-label={`Battery ${i + 1} age`}
                       />
                     </Field>
                   </div>
@@ -320,13 +335,13 @@ export function PackGate({ job, pack }: { job: JobRecord; pack: ModelPack }) {
             </Field>
             <Field
               label="Short load drop percent (optional)"
-              hint="Wheels up. Pack should not drop more than about 5 percent."
+              hint="Wheels up. Pack should not drop more than about 5 percent. Example: 3.2"
             >
               <VoltageInput
                 value={loadDrop}
                 onChange={setLoadDrop}
                 className={inputClass + " font-mono"}
-                placeholder="3.2"
+                placeholder="Type the number from your meter"
                 aria-label="Short load drop percent"
               />
             </Field>
@@ -383,20 +398,23 @@ export function PackGate({ job, pack }: { job: JobRecord; pack: ModelPack }) {
         ) : null}
 
         {error ? <p className="mt-3 text-sm text-danger">{error}</p> : null}
+        {blockers.length > 0 ? (
+          <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-danger" role="alert">
+            {blockers.map((b) => (
+              <li key={b}>{b}</li>
+            ))}
+          </ul>
+        ) : null}
 
         <InFlowGuidance job={job} pack={pack} phaseLabel="Pack check" />
 
         <div className="mt-5 flex flex-wrap gap-2">
           {lithium || evalr.pass || numericCells.length < layout.count ? (
-            <Button onClick={continuePass} className="min-w-44" disabled={!lithium && numericCells.length >= layout.count && !irAgeReady()}>
+            <Button onClick={continuePass} className="min-w-44">
               Save pack and go on
             </Button>
           ) : testPath ? (
-            <Button
-              onClick={continueTestBattery}
-              className="min-w-44"
-              disabled={testNote.trim().length < 8 || !irAgeReady()}
-            >
+            <Button onClick={continueTestBattery} className="min-w-44">
               Save test-battery note and go on
             </Button>
           ) : null}

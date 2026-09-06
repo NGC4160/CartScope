@@ -1,5 +1,7 @@
 import type { JobRecord, ModelPack } from "@/data/types";
 import { packRecordPass } from "@/lib/pack-rules";
+import { sheetsForPack } from "@/data/wiring";
+import { manualsOnFile } from "@/lib/manuals";
 
 export interface Proof {
   packStatus: "unknown" | "pass" | "fail" | "test-battery" | "lithium" | "gas";
@@ -101,10 +103,22 @@ function nextHintFor(
     if (pack.powertrain !== "electric") {
       return "This is a gas cart. Skip the pack screen and follow the factory checks.";
     }
+    const coverage = job.manualStatus ?? manualsOnFile(pack, sheetsForPack(pack.id));
+    const missingBook = coverage.onFile === false;
     if (job.batteryType === "lithium") {
-      return "Read the battery monitor or battery-management numbers. Do not use the lead-acid shop rules on a lithium pack.";
+      return (
+        "Read the battery monitor or battery-management numbers. Do not use the lead-acid shop rules on a lithium pack." +
+        (missingBook
+          ? " No service manual is on file — meter evidence only. Do not invent a book."
+          : "")
+      );
     }
-    return "Block the wheels. Measure each battery at rest. Then measure internal resistance with the IR meter. Write month and year from each date code. Do not invent a reading or an age.";
+    return (
+      "Block the wheels. Measure each battery at rest. Then measure internal resistance with the IR meter. Write month and year from each date code. Do not invent a reading or an age." +
+      (missingBook
+        ? " No service manual is on file. Stay on this meter-evidence path. Do not auto-add a manual."
+        : "")
+    );
   }
   if (job.casePhase === "codes") {
     return "Connect the handheld. Save a program file before you clear. Present codes and history codes live in that program file. If you did not use the logger, check that box. Write fault counters and odometer if the screen shows them. Do not replace a controller from counters alone.";

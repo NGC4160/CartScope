@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Field, inputClass } from "@/components/case/fields";
 import { InFlowGuidance } from "@/components/case/InFlowGuidance";
 import type { JobRecord, ModelPack } from "@/data/types";
+import { handheldSaveBlockers } from "@/lib/handheld-form";
 import { suggestedHandheldName } from "@/lib/handheld";
 import { useJobStore } from "@/store/jobs";
 
@@ -31,31 +32,33 @@ export function CodeGate({ job, pack }: { job: JobRecord; pack: ModelPack }) {
   const [faultOdo, setFaultOdo] = useState(prior?.faultOdometer ?? "");
   const [noReadings, setNoReadings] = useState(Boolean(prior?.noControllerReadings));
   const [error, setError] = useState<string | null>(null);
+  const [blockers, setBlockers] = useState<string[]>([]);
 
-  const programOk = noConnect || programFile.trim().length > 0;
-  const codesOk = noConnect || (present.trim().length > 0 && history.trim().length > 0);
-  const logOk = noConnect || loggerNotUsed || logFile.trim().length > 0;
   const hasCounter = counters.some((r) => r.fault.trim() && r.count.trim());
-  const readingsOk =
-    noConnect ||
-    noReadings ||
-    odometer.trim().length > 0 ||
-    faultOdo.trim().length > 0 ||
-    counterNotes.trim().length > 0 ||
-    hasCounter;
-  const connectOk = !noConnect || connectReason.trim().length >= 4;
-  const captured = programOk && codesOk && logOk && readingsOk && connectOk;
+  const missing = handheldSaveBlockers({
+    noConnect,
+    connectReason,
+    programFile,
+    present,
+    history,
+    loggerNotUsed,
+    logFile,
+    noReadings,
+    odometer,
+    faultOdo,
+    counterNotes,
+    hasCounter,
+  });
+  const captured = missing.length === 0;
 
   function go() {
     setError(null);
     if (!captured) {
-      setError(
-        noConnect
-          ? "Write a short reason that the handheld could not connect or could not save."
-          : "Save a program file name, present codes, and history codes. Check logger not used, or enter the log file name. Write the odometer screens, or check that this controller does not show them.",
-      );
+      setBlockers(missing.map((b) => b.message));
+      setError(`Cannot save yet. ${missing.length} field${missing.length === 1 ? "" : "s"} still need a value.`);
       return;
     }
+    setBlockers([]);
     save(job.id, {
       at: new Date().toISOString(),
       present: present.trim(),
@@ -284,8 +287,15 @@ export function CodeGate({ job, pack }: { job: JobRecord; pack: ModelPack }) {
         </label>
 
         {error ? <p className="mt-3 text-sm text-danger">{error}</p> : null}
+        {blockers.length > 0 ? (
+          <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-danger" role="alert">
+            {blockers.map((b) => (
+              <li key={b}>{b}</li>
+            ))}
+          </ul>
+        ) : null}
 
-        <Button className="mt-5 min-w-44" onClick={go} disabled={!captured}>
+        <Button className="mt-5 min-w-44" onClick={go}>
           Save codes and go on
         </Button>
 
