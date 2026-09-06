@@ -1,4 +1,6 @@
-import type { InputHTMLAttributes, ReactNode } from "react";
+import { forwardRef, type InputHTMLAttributes, type ReactNode } from "react";
+import type { MeasurementKind } from "@/data/types";
+import { commitMeterReading, sanitizeMeterInput } from "@/lib/meter-input";
 import { sanitizeVoltageInput } from "@/lib/voltage-input";
 
 export const inputClass =
@@ -48,6 +50,43 @@ export function VoltageInput({
     />
   );
 }
+
+export const MeterNumberInput = forwardRef<
+  HTMLInputElement,
+  Omit<InputHTMLAttributes<HTMLInputElement>, "value" | "onChange" | "type"> & {
+    value: string;
+    onChange: (next: string) => void;
+    kind: MeasurementKind;
+  }
+>(function MeterNumberInput(
+  { value, onChange, kind, className = "", onFocus, onBlur, onKeyDown, ...rest },
+  ref,
+) {
+  return (
+    <input
+      {...rest}
+      ref={ref}
+      type="text"
+      inputMode="decimal"
+      autoComplete="off"
+      autoCorrect="off"
+      spellCheck={false}
+      value={value}
+      onFocus={(e) => {
+        e.currentTarget.select();
+        onFocus?.(e);
+      }}
+      onChange={(e) => onChange(sanitizeMeterInput(e.target.value, kind))}
+      onBlur={(e) => {
+        const commit = commitMeterReading(e.currentTarget.value, { kind });
+        if (commit.ok) onChange(commit.raw);
+        onBlur?.(e);
+      }}
+      onKeyDown={onKeyDown}
+      className={className}
+    />
+  );
+});
 
 export function YesNo({
   value,

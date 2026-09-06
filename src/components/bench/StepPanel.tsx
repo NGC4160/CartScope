@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import {
   AlertTriangle,
@@ -11,10 +11,18 @@ import {
 import type { JobRecord, ModelPack } from "@/data/types";
 import { termHints, unitHelp } from "@/data/plain-terms";
 import { InFlowGuidance } from "@/components/case/InFlowGuidance";
+import { MeterNumberInput } from "@/components/case/fields";
 import { Button } from "@/components/ui/button";
 import { isMotorIsolationStep } from "@/lib/case-flow";
 import { formatClock } from "@/lib/utils";
 import { formatReading, rangeLabel } from "@/lib/diagnostics";
+import {
+  commitMeterReading,
+  meterExampleHint,
+  meterFieldLabel,
+  meterPlaceholderText,
+  savedContinueNote,
+} from "@/lib/meter-input";
 import { evaluateProof } from "@/lib/proof";
 import { useJobStore } from "@/store/jobs";
 
@@ -40,8 +48,11 @@ export function StepPanel({ job, pack }: { job: JobRecord; pack: ModelPack }) {
   const [raw, setRaw] = useState("");
   const [selected, setSelected] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [missing, setMissing] = useState<string[]>([]);
+  const [savedNote, setSavedNote] = useState<string | null>(null);
   const [skipReason, setSkipReason] = useState("");
   const [showSkip, setShowSkip] = useState(false);
+  const meterRef = useRef<HTMLInputElement>(null);
 
   const attemptCount = pending?.attempts.length ?? 0;
   const verifyPhase = pending ? attemptCount : 0;
@@ -61,25 +72,71 @@ export function StepPanel({ job, pack }: { job: JobRecord; pack: ModelPack }) {
   const motorStep = step ? isMotorIsolationStep(step) : false;
   const motorReady = Boolean(job.motorUnlock?.commandedNoMove && job.motorUnlock?.controllerUnplugged);
 
+  function failContinue(message: string, fields: string[]) {
+    setSavedNote(null);
+    setError(message);
+    setMissing(fields);
+  }
+
   function onSubmit() {
     if (!step || !spec) return;
     setError(null);
+    setMissing([]);
     if (motorStep && !motorReady) {
-      setError("Unlock this motor check first. The controller must be unplugged from the motor.");
+      const fields = [
+        !job.motorUnlock?.commandedNoMove ? "Commanded, no move" : null,
+        !job.motorUnlock?.controllerUnplugged ? "Controller unplugged from the motor" : null,
+      ].filter((f): f is string => Boolean(f));
+      failContinue("Unlock this motor check first. The controller must be unplugged from the motor.", fields);
       return;
     }
+    let payload = numeric ? raw : (selected ?? raw);
     if (numeric) {
-      if (!raw.trim()) {
-        setError("Type the number from your meter. Then we can go on.");
+      const live = meterRef.current?.value ?? raw;
+      const commit = commitMeterReading(live, {
+        kind: spec.kind,
+        fieldLabel: meterFieldLabel(spec.kind, verifyPhase),
+      });
+      if (!commit.ok) {
+        failContinue(commit.message, commit.missingFields);
+        if (live !== raw) setRaw(live);
         return;
       }
+      payload = commit.raw;
+      if (payload !== raw) setRaw(payload);
     } else if (!selected) {
-      setError("Tap what you saw. Then we can go on.");
+      failContinue("Tap what you saw. Then we can go on.", [meterFieldLabel(spec.kind)]);
       return;
     }
-    submit(job.id, pack, numeric ? raw.trim() : selected ?? raw, selected ?? undefined);
+    const result = submit(job.id, pack, payload, selected ?? undefined);
+    if (result.status === "invalid") {
+      failContinue(
+        result.message ?? "We could not save that check.",
+        result.missingFields ?? [numeric ? meterFieldLabel(spec.kind, verifyPhase) : meterFieldLabel(spec.kind)],
+      );
+      return;
+    }
+    const shown = numeric
+      ? payload
+      : (spec.options?.find((o) => o.id === selected)?.label ?? payload);
+    const nextTitle = pack.steps[result.job.currentStepId]?.title;
+    setSavedNote(
+      savedContinueNote(shown, spec, {
+        ok: true,
+        raw: shown,
+        unusual: result.status === "verify",
+        verifyAgain: result.status === "verify",
+        result: result.status === "diagnosed" ? "fail" : "pass",
+        next:
+          result.status === "diagnosed"
+            ? { kind: "diagnosis", id: result.job.diagnosisId ?? "" }
+            : { kind: "step", id: result.job.currentStepId },
+      }, nextTitle),
+    );
     setRaw("");
     setSelected(null);
+    setError(null);
+    setMissing([]);
   }
 
   if (diagnosis && (job.casePhase === "report" || job.status === "diagnosed" || job.status === "complete")) {
@@ -237,15 +294,30 @@ export function StepPanel({ job, pack }: { job: JobRecord; pack: ModelPack }) {
           {numeric ? (
             <label className="mt-4 block">
               <span className="text-xs font-medium uppercase tracking-wide text-ink-subtle">
-                {verifyPhase === 0 ? "Your number" : verifyPhase === 1 ? "Second number" : "Third number"}
+                {meterFieldLabel(spec.kind, verifyPhase)}
                 {spec.unit ? ` (${spec.unit})` : ""}
               </span>
               <div className="mt-1 flex gap-2">
-                <input
-                  inputMode="decimal"
+                <MeterNumberInput
+                  ref={meterRef}
+                  kind={spec.kind}
                   value={raw}
-                  onChange={(e) => setRaw(e.target.value)}
-                  placeholder={spec.placeholder ?? "Type the number"}
+                  onChange={(next) => {
+                    setRaw(next);
+                    if (error) {
+                      setError(null);
+                      setMissing([]);
+                    }
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      onSubmit();
+                    }
+                  }}
+                  placeholder={meterPlaceholderText()}
+                  aria-label={meterFieldLabel(spec.kind, verifyPhase)}
+                  aria-invalid={Boolean(error && missing.length > 0)}
                   className="min-h-14 flex-1 rounded-md bg-surface px-3 font-mono text-xl tabular-nums text-ink shadow-[var(--shadow-border)] outline-none placeholder:text-ink-subtle"
                 />
                 {spec.kind === "resistance" ? (
@@ -254,6 +326,9 @@ export function StepPanel({ job, pack }: { job: JobRecord; pack: ModelPack }) {
                   </Button>
                 ) : null}
               </div>
+              {meterExampleHint(spec.placeholder, spec.unit) ? (
+                <span className="mt-1 block text-xs text-ink-muted">{meterExampleHint(spec.placeholder, spec.unit)}</span>
+              ) : null}
             </label>
           ) : (
             <div className="mt-4 grid gap-2">
@@ -261,7 +336,11 @@ export function StepPanel({ job, pack }: { job: JobRecord; pack: ModelPack }) {
                 <button
                   key={opt.id}
                   type="button"
-                  onClick={() => setSelected(opt.id)}
+                  onClick={() => {
+                    setSelected(opt.id);
+                    setError(null);
+                    setMissing([]);
+                  }}
                   className={
                     "min-h-14 rounded-md px-4 text-left text-sm font-medium shadow-[var(--shadow-border)] transition-[background-color,box-shadow] duration-150 " +
                     (selected === opt.id
@@ -276,7 +355,21 @@ export function StepPanel({ job, pack }: { job: JobRecord; pack: ModelPack }) {
           )}
         </div>
 
-        {error ? <p className="mt-2 text-sm text-danger">{error}</p> : null}
+        {error ? (
+          <div className="mt-2 text-sm text-danger" role="alert">
+            <p>{error}</p>
+            {missing.length > 0 ? (
+              <p className="mt-1">
+                Still needed: {missing.join(", ")}.
+              </p>
+            ) : null}
+          </div>
+        ) : null}
+        {savedNote && !error ? (
+          <p className="mt-2 text-sm text-ok" role="status">
+            {savedNote}
+          </p>
+        ) : null}
 
         <div className="mt-4 flex flex-wrap gap-2">
           <Button onClick={onSubmit} className="min-w-40 flex-1" disabled={motorStep && !motorReady}>

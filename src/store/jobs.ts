@@ -15,10 +15,12 @@ import type {
 import { initialPhase, phaseAfterPack } from "@/lib/case-flow";
 import {
   buildAttempt,
+  isNumericKind,
   nextAttempt,
   outcomeFor,
   resultFromAttempt,
 } from "@/lib/diagnostics";
+import { commitMeterReading, meterFieldLabel } from "@/lib/meter-input";
 import { uid } from "@/lib/utils";
 
 export interface CreateJobInput {
@@ -51,7 +53,12 @@ interface JobState {
     pack: ModelPack,
     raw: string,
     optionId?: string,
-  ) => { status: "verify" | "advanced" | "diagnosed"; job: JobRecord };
+  ) => {
+    status: "verify" | "advanced" | "diagnosed" | "invalid";
+    job: JobRecord;
+    message?: string;
+    missingFields?: string[];
+  };
   skipToReport: (jobId: string, stepId: string, reason: string) => void;
   skipCheck: (jobId: string, pack: ModelPack, reason: string) => void;
   resetPending: (jobId: string) => void;
@@ -143,6 +150,26 @@ export const useJobStore = create<JobState>()(
         if (!job) throw new Error("Job not found");
         const step = pack.steps[job.pending?.stepId ?? job.currentStepId];
         if (!step) throw new Error("Step not found");
+
+        if (isNumericKind(step.measurement.kind)) {
+          const commit = commitMeterReading(raw, { kind: step.measurement.kind });
+          if (!commit.ok) {
+            return {
+              status: "invalid" as const,
+              job,
+              message: commit.message,
+              missingFields: commit.missingFields,
+            };
+          }
+          raw = commit.raw;
+        } else if (!optionId) {
+          return {
+            status: "invalid" as const,
+            job,
+            message: "Tap what you saw. Then we can go on.",
+            missingFields: [meterFieldLabel(step.measurement.kind)],
+          };
+        }
 
         const prior = job.pending?.stepId === step.id ? job.pending.attempts : [];
         const attempt = buildAttempt(step.measurement, raw, nextAttempt(prior.length), optionId);

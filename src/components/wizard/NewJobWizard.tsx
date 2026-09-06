@@ -46,6 +46,7 @@ export function NewJobWizard({
     hcpJobNumber: hcp,
     powertrain: model?.powertrain,
     batteryType,
+    technician,
   });
   const headerReady = canStartChecks(gaps);
   const headerMessage = jobHeaderSummary(gaps);
@@ -68,7 +69,9 @@ export function NewJobWizard({
       startStepId: symptom?.startStepId ?? null,
       gaps,
     });
-    if (!resolved.ok || !model) return;
+    if (!resolved.ok || !model) {
+      return;
+    }
     onStartJob({
       modelId: model.id,
       symptomId: resolved.symptomId,
@@ -218,8 +221,8 @@ export function NewJobWizard({
       {step === 4 && model ? (
         <div>
           <p className="mb-3 text-sm text-ink-muted">
-            Every case needs the customer last name and the Housecall Pro job number
-            {electricCart ? ", and the battery type" : ""}. Then we can start checks.
+            Every case needs the customer last name, the Housecall Pro job number, and who checked it
+            {electricCart ? ", plus the battery type" : ""}. Then we can start checks.
           </p>
           <div className="grid gap-3 sm:grid-cols-2">
             <Field label="Customer last name">
@@ -228,6 +231,7 @@ export function NewJobWizard({
                 onChange={(e) => setLastName(e.target.value)}
                 className={inputClass}
                 aria-label="Customer last name"
+                aria-required
                 aria-invalid={gaps.includes("lastName")}
               />
               {gaps.includes("lastName") ? (
@@ -240,10 +244,25 @@ export function NewJobWizard({
                 onChange={(e) => setHcp(e.target.value)}
                 className={inputClass}
                 aria-label="Housecall Pro job number"
+                aria-required
                 aria-invalid={gaps.includes("hcpJobNumber")}
               />
               {gaps.includes("hcpJobNumber") ? (
                 <span className="mt-1 block text-sm text-danger">{JOB_HEADER_MESSAGES.hcpJobNumber}</span>
+              ) : null}
+            </Field>
+            <Field label="Who checked it">
+              <input
+                value={technician}
+                onChange={(e) => setTechnician(e.target.value)}
+                className={inputClass}
+                aria-label="Who checked it"
+                aria-required
+                aria-invalid={gaps.includes("technician")}
+                autoComplete="name"
+              />
+              {gaps.includes("technician") ? (
+                <span className="mt-1 block text-sm text-danger">{JOB_HEADER_MESSAGES.technician}</span>
               ) : null}
             </Field>
             <Field label="Year">
@@ -297,9 +316,6 @@ export function NewJobWizard({
                 className={inputClass}
                 placeholder="Lights on, codes not checked yet, intermittent…"
               />
-            </Field>
-            <Field label="Who checked it (optional)">
-              <input value={technician} onChange={(e) => setTechnician(e.target.value)} className={inputClass} />
             </Field>
           </div>
           <p className="mt-2 text-xs text-ink-subtle">{model.years}</p>

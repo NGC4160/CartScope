@@ -34,8 +34,9 @@ test("electric DS IQ no-run: complaint → header → fill → Start reaches ben
     hcpJobNumber: "",
     powertrain: "electric",
     batteryType: "",
+    technician: "",
   });
-  assert.deepEqual(empty, ["lastName", "hcpJobNumber", "batteryType"]);
+  assert.deepEqual(empty, ["lastName", "hcpJobNumber", "batteryType", "technician"]);
   assert.equal(canStartChecks(empty), false);
   assert.equal(
     resolveStartJob({
@@ -52,6 +53,7 @@ test("electric DS IQ no-run: complaint → header → fill → Start reaches ben
     hcpJobNumber: "17411",
     powertrain: "electric",
     batteryType: "lead-acid",
+    technician: "Alex",
   });
   assert.deepEqual(filled, []);
   assert.equal(canStartChecks(filled), true);
@@ -78,8 +80,9 @@ test("gas FE290 no-crank: header then Start reaches bench without battery type",
     hcpJobNumber: "",
     powertrain: "gasoline",
     batteryType: "",
+    technician: "",
   });
-  assert.deepEqual(empty, ["lastName", "hcpJobNumber"]);
+  assert.deepEqual(empty, ["lastName", "hcpJobNumber", "technician"]);
   assert.equal(canStartChecks(empty), false);
 
   const filled = jobHeaderGaps({
@@ -87,6 +90,7 @@ test("gas FE290 no-crank: header then Start reaches bench without battery type",
     hcpJobNumber: "17411",
     powertrain: "gasoline",
     batteryType: "",
+    technician: "Alex",
   });
   assert.deepEqual(filled, []);
   assert.equal(canStartChecks(filled), true);
