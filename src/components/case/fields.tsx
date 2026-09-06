@@ -18,11 +18,38 @@ export function Field({
   hint?: string;
 }) {
   return (
-    <label className={className}>
+    <div className={className}>
       <span className="mb-1 block text-xs font-medium uppercase tracking-wide text-ink-subtle">{label}</span>
       {children}
       {hint ? <span className="mt-1 block text-xs text-ink-muted">{hint}</span> : null}
-    </label>
+    </div>
+  );
+}
+
+/** Controlled header / note field. Reads every keystroke and stays in React state. */
+export function HeaderNoteInput({
+  name,
+  value,
+  onChange,
+  className = inputClass,
+  ...rest
+}: Omit<InputHTMLAttributes<HTMLInputElement>, "value" | "onChange" | "type"> & {
+  name: string;
+  value: string;
+  onChange: (next: string) => void;
+}) {
+  return (
+    <input
+      {...rest}
+      name={name}
+      type="text"
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      autoComplete={rest.autoComplete ?? "off"}
+      autoCorrect="off"
+      spellCheck={false}
+      className={className}
+    />
   );
 }
 

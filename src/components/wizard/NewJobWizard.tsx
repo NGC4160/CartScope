@@ -1,17 +1,18 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState, type FormEvent } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { Field, inputClass } from "@/components/case/fields";
+import { Field, HeaderNoteInput, inputClass } from "@/components/case/fields";
 import { Button } from "@/components/ui/button";
-import { MANUFACTURERS, getSymptom, packsFor } from "@/data/index";
+import { MANUFACTURERS, packsFor } from "@/data/index";
 import type { BatteryType, ManufacturerId, ModelPack } from "@/data/types";
 import { JOB_HEADER_MESSAGES, jobHeaderGaps, jobHeaderSummary } from "@/lib/job-header";
+import { attemptStartChecks, readHeaderSnapshot, type HeaderSnapshot } from "@/lib/start-checks";
 import {
   canStartChecks,
   canVisitWizardStep,
   openJobHeader,
-  resolveStartJob,
   stepAfterComplaintSelected,
 } from "@/lib/wizard-nav";
+import { yearCompatibility } from "@/lib/year-compat";
 import type { CreateJobInput } from "@/store/jobs";
 
 const STEPS = ["Brand", "Which cart", "What’s wrong", "Job header"] as const;
@@ -35,11 +36,26 @@ export function NewJobWizard({
   const [batteryType, setBatteryType] = useState<BatteryType | "">("");
   const [complaintNote, setComplaintNote] = useState("");
   const [fuelNote, setFuelNote] = useState("");
+  const [startErrors, setStartErrors] = useState<string[]>([]);
+  const [starting, setStarting] = useState(false);
 
   const models = useMemo(() => (mfg ? packsFor(mfg) : []), [mfg]);
   const electric = models.filter((p) => p.powertrain === "electric");
   const gas = models.filter((p) => p.powertrain === "gasoline");
   const electricCart = model?.powertrain === "electric";
+
+  const header: HeaderSnapshot = {
+    lastName,
+    hcpJobNumber: hcp,
+    technician,
+    cartYear: year,
+    serialNumber: serial,
+    batteryType,
+    complaintNote,
+    fuelNote,
+  };
+  const liveRef = useRef(header);
+  liveRef.current = header;
 
   const gaps = jobHeaderGaps({
     lastName,
@@ -50,6 +66,14 @@ export function NewJobWizard({
   });
   const headerReady = canStartChecks(gaps);
   const headerMessage = jobHeaderSummary(gaps);
+  const yearCheck = model
+    ? yearCompatibility({
+        cartYear: year,
+        packYears: model.years,
+        packName: model.fullName,
+      })
+    : { status: "ok" as const };
+  const yearMessage = yearCheck.status === "unsupported" ? yearCheck.message : null;
 
   function goToHeader() {
     const next = openJobHeader(symptomId);
@@ -61,33 +85,38 @@ export function NewJobWizard({
     setStep(stepAfterComplaintSelected());
   }
 
-  function start() {
-    const symptom = model && symptomId ? getSymptom(model, symptomId) : undefined;
-    const resolved = resolveStartJob({
-      hasModel: Boolean(model),
+  function applySnapshot(next: HeaderSnapshot) {
+    setLastName(next.lastName);
+    setHcp(next.hcpJobNumber);
+    setTechnician(next.technician);
+    setYear(next.cartYear);
+    setSerial(next.serialNumber);
+    setBatteryType(next.batteryType);
+    setComplaintNote(next.complaintNote);
+    setFuelNote(next.fuelNote);
+  }
+
+  function startFromForm(form?: HTMLFormElement | null) {
+    const snapshot = readHeaderSnapshot(form ? new FormData(form) : null, liveRef.current);
+    applySnapshot(snapshot);
+    const attempted = attemptStartChecks({
+      pack: model,
       symptomId,
-      startStepId: symptom?.startStepId ?? null,
-      gaps,
+      header: snapshot,
     });
-    if (!resolved.ok || !model) {
+    if (!attempted.ok) {
+      setStarting(false);
+      setStartErrors(attempted.messages);
       return;
     }
-    onStartJob({
-      modelId: model.id,
-      symptomId: resolved.symptomId,
-      startStepId: resolved.startStepId,
-      technician,
-      serialNumber: serial,
-      notes: complaintNote,
-      lastName,
-      hcpJobNumber: hcp,
-      cartYear: year,
-      cartMake: model.manufacturerLabel,
-      cartModel: model.name,
-      batteryType: electricCart ? (batteryType as BatteryType) : undefined,
-      complaintNote,
-      fuelNote,
-    });
+    setStartErrors([]);
+    setStarting(true);
+    onStartJob(attempted.jobInput);
+  }
+
+  function onStartSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    startFromForm(e.currentTarget);
   }
 
   return (
@@ -219,30 +248,31 @@ export function NewJobWizard({
       ) : null}
 
       {step === 4 && model ? (
-        <div>
+        <form onSubmit={onStartSubmit}>
           <p className="mb-3 text-sm text-ink-muted">
             Every case needs the customer last name, the Housecall Pro job number, and who checked it
             {electricCart ? ", plus the battery type" : ""}. Then we can start checks.
           </p>
           <div className="grid gap-3 sm:grid-cols-2">
             <Field label="Customer last name">
-              <input
+              <HeaderNoteInput
+                name="lastName"
                 value={lastName}
-                onChange={(e) => setLastName(e.target.value)}
-                className={inputClass}
+                onChange={setLastName}
                 aria-label="Customer last name"
                 aria-required
                 aria-invalid={gaps.includes("lastName")}
+                autoComplete="family-name"
               />
               {gaps.includes("lastName") ? (
                 <span className="mt-1 block text-sm text-danger">{JOB_HEADER_MESSAGES.lastName}</span>
               ) : null}
             </Field>
             <Field label="Housecall Pro job number">
-              <input
+              <HeaderNoteInput
+                name="hcpJobNumber"
                 value={hcp}
-                onChange={(e) => setHcp(e.target.value)}
-                className={inputClass}
+                onChange={setHcp}
                 aria-label="Housecall Pro job number"
                 aria-required
                 aria-invalid={gaps.includes("hcpJobNumber")}
@@ -252,10 +282,10 @@ export function NewJobWizard({
               ) : null}
             </Field>
             <Field label="Who checked it">
-              <input
+              <HeaderNoteInput
+                name="technician"
                 value={technician}
-                onChange={(e) => setTechnician(e.target.value)}
-                className={inputClass}
+                onChange={setTechnician}
                 aria-label="Who checked it"
                 aria-required
                 aria-invalid={gaps.includes("technician")}
@@ -266,10 +296,25 @@ export function NewJobWizard({
               ) : null}
             </Field>
             <Field label="Year">
-              <input value={year} onChange={(e) => setYear(e.target.value)} className={inputClass} placeholder="2018" />
+              <HeaderNoteInput
+                name="cartYear"
+                value={year}
+                onChange={setYear}
+                placeholder="2018"
+                inputMode="numeric"
+                aria-label="Year"
+                aria-invalid={Boolean(yearMessage)}
+              />
+              {yearMessage ? <span className="mt-1 block text-sm text-danger">{yearMessage}</span> : null}
             </Field>
             <Field label="Serial (recommended)">
-              <input value={serial} onChange={(e) => setSerial(e.target.value)} className={inputClass + " font-mono"} />
+              <HeaderNoteInput
+                name="serialNumber"
+                value={serial}
+                onChange={setSerial}
+                className={inputClass + " font-mono"}
+                aria-label="Serial"
+              />
             </Field>
             <Field label="Make">
               <input value={model.manufacturerLabel} readOnly className={inputClass + " bg-paper-sunken"} />
@@ -280,6 +325,7 @@ export function NewJobWizard({
             {electricCart ? (
               <div className="sm:col-span-2">
                 <p className="mb-1 text-xs font-medium uppercase tracking-wide text-ink-subtle">Battery type</p>
+                <input type="hidden" name="batteryType" value={batteryType} />
                 <div className="grid grid-cols-2 gap-2">
                   {(["lead-acid", "lithium"] as const).map((t) => (
                     <button
@@ -301,20 +347,22 @@ export function NewJobWizard({
               </div>
             ) : (
               <Field label="Fuel note (optional)" className="sm:col-span-2">
-                <input
+                <HeaderNoteInput
+                  name="fuelNote"
                   value={fuelNote}
-                  onChange={(e) => setFuelNote(e.target.value)}
-                  className={inputClass}
+                  onChange={setFuelNote}
                   placeholder="Carburetor, fuel injection, old fuel…"
+                  aria-label="Fuel note"
                 />
               </Field>
             )}
             <Field label="Short complaint note (optional)" className="sm:col-span-2">
-              <input
+              <HeaderNoteInput
+                name="complaintNote"
                 value={complaintNote}
-                onChange={(e) => setComplaintNote(e.target.value)}
-                className={inputClass}
+                onChange={setComplaintNote}
                 placeholder="Lights on, codes not checked yet, intermittent…"
+                aria-label="Short complaint note"
               />
             </Field>
           </div>
@@ -324,22 +372,47 @@ export function NewJobWizard({
               {headerMessage}
             </p>
           ) : null}
+          {yearMessage && !headerMessage ? (
+            <p className="mt-3 text-sm text-danger" role="alert">
+              {yearMessage}
+            </p>
+          ) : null}
+          {startErrors.length > 0 ? (
+            <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-danger" role="alert">
+              {startErrors
+                .filter(
+                  (m) =>
+                    m !== headerMessage &&
+                    m !== yearMessage &&
+                    !Object.values(JOB_HEADER_MESSAGES).includes(m),
+                )
+                .map((m) => (
+                  <li key={m}>{m}</li>
+                ))}
+            </ul>
+          ) : null}
           <div className="relative z-10 mt-5 flex flex-wrap gap-2 pb-16">
-            <Button variant="ghost" onClick={() => setStep(3)}>
+            <Button type="button" variant="ghost" onClick={() => setStep(3)}>
               <ChevronLeft className="size-4" />
               What’s wrong
             </Button>
             {onCancel ? (
-              <Button variant="ghost" onClick={onCancel}>
+              <Button type="button" variant="ghost" onClick={onCancel}>
                 Cancel
               </Button>
             ) : null}
-            <Button className="ml-auto min-w-44" disabled={!headerReady} onClick={start}>
-              Start checks
-              <ChevronRight className="size-4" />
+            <Button
+              type="submit"
+              className={"ml-auto min-w-44" + (headerReady && !yearMessage ? "" : " opacity-40")}
+              aria-disabled={!headerReady || Boolean(yearMessage) || starting}
+              aria-busy={starting}
+              disabled={starting}
+            >
+              {starting ? "Starting checks…" : "Start checks"}
+              {starting ? null : <ChevronRight className="size-4" />}
             </Button>
           </div>
-        </div>
+        </form>
       ) : null}
     </div>
   );
