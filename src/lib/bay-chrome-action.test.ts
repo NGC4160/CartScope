@@ -91,6 +91,24 @@ test("submit gate lets the first save through and blocks the duplicate click", (
   assert.deepEqual(calls, ["one"]);
 });
 
+test("submit gate keys leftover clicks by form so Report confirm is not blocked", () => {
+  const gate = createBaySubmitGate(400);
+  const calls: string[] = [];
+  assert.equal(
+    gate.run(() => calls.push("pack"), "bay-check-form"),
+    true,
+  );
+  assert.equal(
+    gate.run(() => calls.push("codes"), "bay-check-form"),
+    false,
+  );
+  assert.equal(
+    gate.run(() => calls.push("report"), "bay-report-form"),
+    true,
+  );
+  assert.deepEqual(calls, ["pack", "report"]);
+});
+
 test("shared Save gate is not the Start hook", () => {
   assert.equal(typeof bayFormSubmitGate.run, "function");
 });

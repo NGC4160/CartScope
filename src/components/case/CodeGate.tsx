@@ -107,7 +107,7 @@ export function CodeGate({
       className="flex h-full min-h-0 flex-col bg-surface"
       onSubmit={(e) => {
         e.preventDefault();
-        submitGate.run(go);
+        submitGate.run(go, BAY_CHECK_FORM_ID);
       }}
     >
       <div className="min-h-0 flex-1 overflow-auto p-4">

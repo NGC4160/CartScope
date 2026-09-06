@@ -95,14 +95,15 @@ export function createBaySubmitSlot(): BaySubmitSlot {
  * preventDefault that can kill #bay-check-form.
  */
 export function createBaySubmitGate(windowMs = 400): {
-  run: (fn: () => void) => boolean;
+  run: (fn: () => void, key?: string) => boolean;
 } {
-  let last = 0;
+  const lastByKey = new Map<string, number>();
   return {
-    run(fn) {
+    run(fn, key = "default") {
       const now = Date.now();
+      const last = lastByKey.get(key) ?? 0;
       if (last > 0 && now - last < windowMs) return false;
-      last = now;
+      lastByKey.set(key, now);
       fn();
       return true;
     },

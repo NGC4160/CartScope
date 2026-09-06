@@ -198,7 +198,7 @@ export function StepPanel({
         className="flex h-full min-h-0 flex-col"
         onSubmit={(e) => {
           e.preventDefault();
-          submitGate.run(primarySubmit);
+          submitGate.run(primarySubmit, BAY_CHECK_FORM_ID);
         }}
       >
         <Header symptom={symptom?.label} progress={100} done />
@@ -250,7 +250,7 @@ export function StepPanel({
       className="flex h-full min-h-0 flex-col"
       onSubmit={(e) => {
         e.preventDefault();
-        submitGate.run(primarySubmit);
+        submitGate.run(primarySubmit, BAY_CHECK_FORM_ID);
       }}
     >
       <Header symptom={symptom?.label} progress={progress} />

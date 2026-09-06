@@ -111,7 +111,7 @@ export function CaseReport({
       className={"flex h-full min-h-0 flex-col " + (printMode ? "bg-white" : "bg-surface")}
       onSubmit={(e) => {
         e.preventDefault();
-        if (!printMode) submitGate.run(primarySubmit);
+        if (!printMode) submitGate.run(primarySubmit, BAY_REPORT_FORM_ID);
       }}
     >
       <div className="min-h-0 flex-1 overflow-auto p-4 sm:p-6">
