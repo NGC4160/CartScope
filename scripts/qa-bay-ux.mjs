@@ -110,10 +110,19 @@ async function mouseClickLocator(page, locator, label) {
   await installLiveChrome(page);
   await locator.waitFor({ state: "visible" });
   await locator.scrollIntoViewIfNeeded();
+  if (label.includes("helper jump")) {
+    await page.evaluate(() => {
+      document.querySelector("[data-testid='helper-redirect-list']")?.scrollIntoView({
+        block: "center",
+        inline: "nearest",
+      });
+    });
+  }
   const box = await locator.boundingBox();
   if (!box) throw new Error(`${label} has no box`);
-  const x = box.x + box.width / 2;
-  const y = box.y + box.height / 2;
+  // Live re-test taps the lower-right, next to the Grok chat pill.
+  const x = label.includes("helper jump") ? box.x + box.width * 0.85 : box.x + box.width / 2;
+  const y = label.includes("helper jump") ? box.y + box.height * 0.7 : box.y + box.height / 2;
   const hit = await page.evaluate(
     ({ x, y, label }) => {
       const el = document.elementFromPoint(x, y);
@@ -123,11 +132,12 @@ async function mouseClickLocator(page, locator, label) {
         testid: el?.getAttribute?.("data-testid") ?? null,
         helperJump: Boolean(el?.closest?.("[data-helper-jump]")),
         save: Boolean(el?.closest?.("[data-testid='bay-primary-action']")),
+        pill: Boolean(el?.closest?.("[data-testid='grok-pill-sim']")),
       };
     },
     { x, y, label },
   );
-  if (label.includes("helper jump") && (hit.save || !hit.helperJump)) {
+  if (label.includes("helper jump") && (hit.save || hit.pill || !hit.helperJump)) {
     throw new Error(`helper jump mouse target is wrong: ${JSON.stringify(hit)}`);
   }
   await page.mouse.click(x, y, { button: "left" });
@@ -175,7 +185,17 @@ async function runAt(width, height, tag) {
   await dock.getByRole("tab", { name: "Helper" }).click();
   await page.getByTestId("bay-helper-sheet").waitFor({ state: "visible" });
   check(`${tag} helper sheet`, await page.getByTestId("bay-helper-sheet").isVisible());
-  check(`${tag} save still visible with helper`, await save.isVisible());
+  const saveUnderHelper = await page.evaluate(() => {
+    const saveEl = document.querySelector("[data-testid='bay-primary-action']");
+    if (!saveEl) return { covered: true };
+    const box = saveEl.getBoundingClientRect();
+    const el = document.elementFromPoint(box.x + box.width * 0.85, box.y + box.height * 0.7);
+    return {
+      covered: Boolean(el?.closest("[data-testid='bay-helper-sheet']")),
+      save: Boolean(el?.closest("[data-testid='bay-primary-action']")),
+    };
+  });
+  check(`${tag} helper covers Save tap`, saveUnderHelper.covered && !saveUnderHelper.save, JSON.stringify(saveUnderHelper));
   const helperHeaders = page.getByTestId("bay-helper-sheet").getByText(/^HELPER$/);
   check(`${tag} single helper chrome`, (await helperHeaders.count()) === 1, String(await helperHeaders.count()));
   const sawBox = page.getByLabel(/^What you see$/i);
@@ -455,11 +475,12 @@ async function runHelperRedirect() {
   await sawBox.fill("solenoid clicks but the starter does not crank — try the direction switch");
   await page.getByTestId("helper-use-observation").click();
   const jumps = page.getByTestId("helper-redirect-list");
-  await jumps.waitFor({ state: "visible", timeout: 9000 });
+  await jumps.waitFor({ state: "visible", timeout: 2000 });
   check("helper redirect list appears", await jumps.isVisible());
   const looking = page.getByTestId("helper-looking");
-  await looking.waitFor({ state: "hidden", timeout: 10000 }).catch(() => {});
+  await looking.waitFor({ state: "hidden", timeout: 12000 }).catch(() => {});
   check("helper use-this finished", (await looking.count()) === 0 || !(await looking.isVisible()));
+  check("helper jump buttons still there after ask", await jumps.isVisible());
   const jumpBtn = jumps.getByRole("button").first();
   check("helper jump button tappable", await jumpBtn.isVisible());
   await mouseClickLocator(page, jumpBtn, "helper jump");
@@ -486,7 +507,10 @@ async function runHelperJumpFromPack() {
   await sawBox.fill("direction switch stuck in reverse — only runs one way");
   await page.getByTestId("helper-use-observation").click();
   const jumps = page.getByTestId("helper-redirect-list");
-  await jumps.waitFor({ state: "visible", timeout: 9000 });
+  await jumps.waitFor({ state: "visible", timeout: 2000 });
+  const looking = page.getByTestId("helper-looking");
+  await looking.waitFor({ state: "hidden", timeout: 12000 }).catch(() => {});
+  check("pack helper use-this left loading", (await looking.count()) === 0 || !(await looking.isVisible()));
   const jumpBtn = jumps.getByRole("button").first();
   check("pack helper jump button tappable", await jumpBtn.isVisible());
   await mouseClickLocator(page, jumpBtn, "pack helper jump");
@@ -516,12 +540,82 @@ async function runHelperJumpFromPack() {
   await page.close();
 }
 
+async function runHelperJumpFromNotFullyCharged() {
+  const page = await browser.newPage({ viewport: { width: 1024, height: 768 } });
+  page.on("pageerror", (e) => console.log("PAGEERROR", e.message));
+  await page.goto(BASE, { waitUntil: "networkidle" });
+  await installLiveChrome(page);
+  const neu = page.getByRole("button", { name: /New job/i });
+  if (await neu.count()) await neu.click();
+  await page.getByRole("button", { name: /Club Car/i }).click();
+  await page.getByRole("button", { name: /DS PowerDrive 48/i }).first().click();
+  await page.getByRole("button", { name: /Cart not being fully charged/i }).click();
+  const headerBtn = page.getByRole("button", { name: /Job header/i });
+  if (await headerBtn.count()) await headerBtn.click();
+  await fillHeader(page, {
+    last: "Chgjump",
+    job: "HCP-5520",
+    year: "1998",
+    battery: "Lead-acid",
+    serial: "PD48CHG1",
+    who: "Hayden",
+    complaint: "Not fully charged.",
+  });
+  await mouseClickStart(page);
+  await page.waitForURL("**/bench/**", { timeout: 15000 });
+  await page.getByRole("heading", { name: /Check the pack before you blame other parts/i }).waitFor();
+  await fillLeadAcidPack(page, { count: 6, volts: "8.45", ir: "3.4", age: "03/2026" });
+  await mouseClickPrimary(page);
+  await page.getByText(/Not fully charged/i).first().waitFor({ timeout: 10000 });
+  check("charge job reached Check 1 Not fully charged", await page.getByText(/Not fully charged/i).first().isVisible());
+  check("charge job Check 1 chip", await page.getByTestId("bay-action-bar").getByText(/Check 1 of /i).isVisible());
+  const before = await readStoredJob(page);
+  check("charge job who is Hayden before jump", before?.technician === "Hayden", String(before?.technician));
+  check("charge job still on dchg", before?.currentStepId === "dchg" || /dchg|not fully charged/i.test(`${before?.currentStepId} ${before?.casePhase}`), String(before?.currentStepId));
+
+  await page.getByTestId("bay-dock").getByRole("tab", { name: "Helper" }).click();
+  await page.getByTestId("bay-helper-sheet").waitFor({ state: "visible" });
+  const sawBox = page.getByLabel(/^What you see$/i);
+  await sawBox.fill("won't charge — solenoid clicks, try the direction switch");
+  await page.getByTestId("helper-use-observation").click();
+  const jumps = page.getByTestId("helper-redirect-list");
+  await jumps.waitFor({ state: "visible", timeout: 2000 });
+  check("charge helper local jumps while looking or after", await jumps.isVisible());
+  const looking = page.getByTestId("helper-looking");
+  await looking.waitFor({ state: "hidden", timeout: 12000 }).catch(() => {});
+  check("charge helper left loading after AI timeout", (await looking.count()) === 0 || !(await looking.isVisible()));
+  check("charge helper jump buttons after timeout", await jumps.isVisible());
+  const jumpBtn = jumps.getByRole("button").first();
+  check("charge helper jump button tappable", await jumpBtn.isVisible());
+  await mouseClickLocator(page, jumpBtn, "charge helper jump");
+  await page.getByText(/Not fully charged/i).first().waitFor({ state: "hidden", timeout: 8000 }).catch(() => {});
+  const after = await readStoredJob(page);
+  check(
+    "charge helper jump left Check 1",
+    after?.casePhase === "steps" && after?.currentStepId && after.currentStepId !== before?.currentStepId,
+    `${before?.casePhase}:${before?.currentStepId} -> ${after?.casePhase}:${after?.currentStepId}`,
+  );
+  check("charge helper jump kept who checked it", after?.technician === "Hayden", String(after?.technician));
+  check(
+    "charge helper jump changed the active check",
+    (await page.getByRole("heading", { name: /^Not fully charged$/i }).count()) === 0,
+  );
+  check(
+    "charge helper jump kept pack draft",
+    Boolean(after?.packDraft) || Boolean(after?.packCheck) || before?.packDraft == null,
+    JSON.stringify({ draft: after?.packDraft ?? null, pack: Boolean(after?.packCheck) }),
+  );
+  await page.screenshot({ path: `${out}/bay-helper-jump-check1.png` });
+  await page.close();
+}
+
 await runAt(1024, 768, "tablet");
 await runAt(390, 844, "phone");
 await runFactoryCheck();
 await runStickySaveAdvance();
 await runHelperRedirect();
 await runHelperJumpFromPack();
+await runHelperJumpFromNotFullyCharged();
 
 await browser.close();
 if (fails.length) {

@@ -32,6 +32,28 @@ export function mergeHelperJumps(opts: {
   return uniqueSteps([...fromId, ...fromReply, ...local]).slice(0, 4);
 }
 
+/** Other factory checks when keywords / AI do not name one. */
+export function fallbackHelperJumps(pack: ModelPack, currentStepId?: string): DiagnosticStep[] {
+  const fromSymptoms = (pack.symptoms ?? [])
+    .map((s) => pack.steps[s.startStepId])
+    .filter((step): step is DiagnosticStep => Boolean(step) && step.id !== currentStepId);
+  if (fromSymptoms.length > 0) return uniqueSteps(fromSymptoms).slice(0, 4);
+  return uniqueSteps(Object.values(pack.steps).filter((step) => step.id !== currentStepId)).slice(0, 4);
+}
+
+/** Local + AI hits, or other factory checks so Use this never ends with zero buttons. */
+export function resolveHelperJumps(opts: {
+  pack: ModelPack;
+  observation: string;
+  currentStepId?: string;
+  suggestedStepId?: string;
+  replyText?: string;
+}): DiagnosticStep[] {
+  const matched = mergeHelperJumps(opts);
+  if (matched.length > 0) return matched;
+  return fallbackHelperJumps(opts.pack, opts.currentStepId);
+}
+
 export async function settleHelperAsk<T>(
   work: Promise<T>,
   ms = HELPER_AI_TIMEOUT_MS,

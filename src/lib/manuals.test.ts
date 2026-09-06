@@ -81,6 +81,30 @@ test("direction-switch slang jumps to the rocker check", () => {
   assert.ok(hits.some((s) => s.id === "t-fr"), hits.map((s) => s.id).join(","));
 });
 
+test("charge slang is a strong match for a charger check", () => {
+  const pack = {
+    ...fake,
+    steps: {
+      ...fake.steps,
+      "t-chg": {
+        id: "t-chg",
+        title: "Not fully charged",
+        instruction: "Check charger output and the charge path.",
+        manualRef: "Book charge",
+        highlight: [],
+        measurement: { kind: "observation", prompt: "charging", meterSetup: "", expectedLabel: "ok" },
+        pass: { kind: "step", id: "t-sol" },
+        fail: { kind: "step", id: "t-sol" },
+      },
+    },
+  } as unknown as ModelPack;
+  const hits = matchObservationToSteps(pack, "won't charge this morning", "t-setup");
+  assert.ok(
+    hits.some((s) => s.id === "t-chg"),
+    hits.map((s) => s.id).join(","),
+  );
+});
+
 test("helper notes without a STEP marker still name a factory check", () => {
   const hits = matchStepsFromReply(fake, "Next do Direction switch rocker (book test 15).", "t-setup");
   assert.ok(hits.some((s) => s.id === "t-fr"));
