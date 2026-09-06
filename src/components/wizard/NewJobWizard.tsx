@@ -66,10 +66,7 @@ export function NewJobWizard({
       hasModel: Boolean(model),
       symptomId,
       startStepId: symptom?.startStepId ?? null,
-      lastName,
-      hcpJobNumber: hcp,
-      powertrain: model?.powertrain,
-      batteryType,
+      gaps,
     });
     if (!resolved.ok || !model) return;
     onStartJob({

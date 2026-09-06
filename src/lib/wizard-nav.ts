@@ -1,5 +1,4 @@
-import type { BatteryType, Powertrain } from "../data/types.ts";
-import { jobHeaderGaps, type JobHeaderGap } from "./job-header.ts";
+import type { JobHeaderGap } from "@/lib/job-header";
 
 export type WizardStep = 1 | 2 | 3 | 4;
 
@@ -30,34 +29,17 @@ export function benchUrl(jobId: string): string {
   return `/bench/${encodeURIComponent(jobId)}`;
 }
 
-export type StartJobRequest = {
+export type StartJobResolution =
+  | { ok: true; symptomId: string; startStepId: string }
+  | { ok: false };
+
+export function resolveStartJob(input: {
   hasModel: boolean;
   symptomId: string | null;
   startStepId: string | null;
-  lastName: string;
-  hcpJobNumber: string;
-  powertrain?: Powertrain;
-  batteryType?: BatteryType | "";
-};
-
-export type StartJobResolution =
-  | { ok: true; symptomId: string; startStepId: string; gaps: [] }
-  | { ok: false; gaps: JobHeaderGap[] };
-
-export function resolveStartJob(input: StartJobRequest): StartJobResolution {
-  const gaps = jobHeaderGaps({
-    lastName: input.lastName,
-    hcpJobNumber: input.hcpJobNumber,
-    powertrain: input.powertrain,
-    batteryType: input.batteryType,
-  });
-  if (!input.hasModel || !input.symptomId || !input.startStepId || gaps.length > 0) {
-    return { ok: false, gaps };
-  }
-  return {
-    ok: true,
-    symptomId: input.symptomId,
-    startStepId: input.startStepId,
-    gaps: [],
-  };
+  gaps: readonly JobHeaderGap[];
+}): StartJobResolution {
+  if (!canStartChecks(input.gaps)) return { ok: false };
+  if (!input.hasModel || !input.symptomId || !input.startStepId) return { ok: false };
+  return { ok: true, symptomId: input.symptomId, startStepId: input.startStepId };
 }

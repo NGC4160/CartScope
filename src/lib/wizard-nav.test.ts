@@ -42,10 +42,7 @@ test("electric DS IQ no-run: complaint → header → fill → Start reaches ben
       hasModel: true,
       symptomId,
       startStepId: "pno-setup",
-      lastName: "",
-      hcpJobNumber: "",
-      powertrain: "electric",
-      batteryType: "",
+      gaps: empty,
     }).ok,
     false,
   );
@@ -63,10 +60,7 @@ test("electric DS IQ no-run: complaint → header → fill → Start reaches ben
     hasModel: true,
     symptomId,
     startStepId: "pno-setup",
-    lastName: "Smith",
-    hcpJobNumber: "17411",
-    powertrain: "electric",
-    batteryType: "lead-acid",
+    gaps: filled,
   });
   assert.equal(started.ok, true);
   if (started.ok) {
@@ -101,10 +95,7 @@ test("gas FE290 no-crank: header then Start reaches bench without battery type",
     hasModel: true,
     symptomId,
     startStepId: "g-setup",
-    lastName: "Smith",
-    hcpJobNumber: "17411",
-    powertrain: "gasoline",
-    batteryType: "",
+    gaps: filled,
   });
   assert.equal(started.ok, true);
   if (started.ok) {
