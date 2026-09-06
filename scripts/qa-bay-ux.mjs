@@ -22,8 +22,9 @@ async function fillHeader(page, { last, job, year, battery, complaint, serial, w
   }
 }
 
-async function startIqJob(page) {
+async function startIqJob(page, who = "Ryan") {
   await page.goto(BASE, { waitUntil: "networkidle" });
+  await installLiveChrome(page);
   const neu = page.getByRole("button", { name: /New job/i });
   if (await neu.count()) await neu.click();
   await page.getByRole("button", { name: /Club Car/i }).click();
@@ -37,7 +38,7 @@ async function startIqJob(page) {
     year: "2006",
     battery: "Lead-acid",
     serial: "IQBAY01",
-    who: "Ryan",
+    who,
     complaint: "No run in the bay.",
   });
   await mouseClickStart(page);
@@ -51,28 +52,44 @@ function check(name, ok, extra = "") {
   if (!ok) fails.push(name);
 }
 
+/** Live cart-scope.vercel.app has a fixed Grok pill on the lower-right. */
+async function installLiveChrome(page) {
+  await page.evaluate(() => {
+    if (document.getElementById("grok-pill-sim")) return;
+    const el = document.createElement("div");
+    el.id = "grok-pill-sim";
+    el.setAttribute("data-testid", "grok-pill-sim");
+    el.style.cssText =
+      "position:fixed;right:12px;bottom:12px;z-index:2147483647;width:180px;height:40px;background:rgba(20,20,20,0.55);pointer-events:auto;border-radius:999px;";
+    document.body.appendChild(el);
+  });
+}
+
 /** Real mouse click on the sticky Save — not keyboard Enter, not a JS click. */
 async function mouseClickPrimary(page) {
+  await installLiveChrome(page);
   const btn = page.getByTestId("bay-primary-action").filter({ visible: true });
   await btn.waitFor({ state: "visible" });
   const box = await btn.boundingBox();
   if (!box) throw new Error("sticky Save has no box");
-  const x = box.x + box.width / 2;
-  const y = box.y + box.height / 2;
+  // Live testers tap the lower-right of the wide Save, under the Grok pill.
+  const x = box.x + box.width * 0.85;
+  const y = box.y + box.height * 0.7;
   const hit = await page.evaluate(
     ({ x, y }) => {
       const el = document.elementFromPoint(x, y);
-      if (!el) return { hitSave: false, start: false, tag: null };
+      if (!el) return { hitSave: false, start: false, pill: false, tag: null };
       return {
         hitSave: Boolean(el.closest("[data-testid='bay-primary-action']")),
         start: Boolean(el.closest("[data-testid='start-checks']")),
+        pill: Boolean(el.closest("[data-testid='grok-pill-sim']")),
         tag: el.tagName,
         testid: el.getAttribute("data-testid"),
       };
     },
     { x, y },
   );
-  if (!hit.hitSave || hit.start) {
+  if (!hit.hitSave || hit.start || hit.pill) {
     throw new Error(`sticky Save mouse target is not Save: ${JSON.stringify(hit)}`);
   }
   await page.mouse.click(x, y, { button: "left" });
@@ -80,6 +97,7 @@ async function mouseClickPrimary(page) {
 
 /** Real mouse click on Job header Start checks — same path the bay tech uses. */
 async function mouseClickStart(page) {
+  await installLiveChrome(page);
   const btn = page.getByTestId("start-checks");
   await btn.waitFor({ state: "visible" });
   await btn.scrollIntoViewIfNeeded();
@@ -89,11 +107,30 @@ async function mouseClickStart(page) {
 }
 
 async function mouseClickLocator(page, locator, label) {
+  await installLiveChrome(page);
   await locator.waitFor({ state: "visible" });
   await locator.scrollIntoViewIfNeeded();
   const box = await locator.boundingBox();
   if (!box) throw new Error(`${label} has no box`);
-  await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2, { button: "left" });
+  const x = box.x + box.width / 2;
+  const y = box.y + box.height / 2;
+  const hit = await page.evaluate(
+    ({ x, y, label }) => {
+      const el = document.elementFromPoint(x, y);
+      return {
+        label,
+        tag: el?.tagName ?? null,
+        testid: el?.getAttribute?.("data-testid") ?? null,
+        helperJump: Boolean(el?.closest?.("[data-helper-jump]")),
+        save: Boolean(el?.closest?.("[data-testid='bay-primary-action']")),
+      };
+    },
+    { x, y, label },
+  );
+  if (label.includes("helper jump") && (hit.save || !hit.helperJump)) {
+    throw new Error(`helper jump mouse target is wrong: ${JSON.stringify(hit)}`);
+  }
+  await page.mouse.click(x, y, { button: "left" });
 }
 
 async function runAt(width, height, tag) {
@@ -184,11 +221,24 @@ async function runAt(width, height, tag) {
   await dock.getByRole("tab", { name: "Report" }).click();
   await page.getByText(/Report peek|Report draft/i).first().waitFor();
   const checksPane = page.getByTestId("bay-checks-pane");
-  check(`${tag} checks pane parked`, (await checksPane.getAttribute("hidden")) !== null || !(await checksPane.isVisible()));
-  check(`${tag} checks pane not hittable`, !(await checksPane.isVisible()));
+  check(`${tag} checks pane parked`, (await checksPane.count()) === 0 || (await checksPane.getAttribute("hidden")) !== null || !(await checksPane.isVisible()));
+  check(`${tag} checks pane not hittable`, (await checksPane.count()) === 0 || !(await checksPane.isVisible()));
   check(`${tag} pack heading hidden on report`, (await page.getByRole("heading", { name: /Check the pack before you blame other parts/i }).count()) === 0 || !(await page.getByRole("heading", { name: /Check the pack before you blame other parts/i }).isVisible()));
   check(`${tag} no live check form`, (await page.locator("#bay-check-form").count()) === 0 || !(await page.locator("#bay-check-form").isVisible()));
   check(`${tag} no report checks table`, (await page.getByTestId("report-check-log").count()) === 0);
+  check(`${tag} Checks tab hidden on Report`, (await dock.getByRole("tab", { name: "Checks" }).count()) === 0);
+  check(`${tag} Checks tab not hittable on Report`, !(await dock.getByRole("tab", { name: "Checks" }).isVisible().catch(() => false)));
+  const checksTabHit = await page.evaluate(() => {
+    const dockEl = document.querySelector("[data-testid='bay-dock']");
+    if (!dockEl) return { hittable: false };
+    const box = dockEl.getBoundingClientRect();
+    const el = document.elementFromPoint(box.x + 24, box.y + box.height / 2);
+    return {
+      hittable: Boolean(el?.closest("[data-bay-dock-checks], [role='tab']") && /checks/i.test(el.textContent || "")),
+      text: (el?.textContent || "").trim(),
+    };
+  });
+  check(`${tag} first dock slot is not Checks`, !checksTabHit.hittable, JSON.stringify(checksTabHit));
   const reportPane = page.getByTestId("bay-report-pane");
   check(`${tag} report pane up`, await reportPane.isVisible());
   check(
@@ -337,6 +387,7 @@ async function runStickySaveAdvance() {
 
   const gas = await browser.newPage({ viewport: { width: 1024, height: 768 } });
   await gas.goto(BASE, { waitUntil: "networkidle" });
+  await installLiveChrome(gas);
   const neu = gas.getByRole("button", { name: /New job/i });
   if (await neu.count()) await neu.click();
   await gas.getByRole("button", { name: /Club Car/i }).click();
@@ -424,9 +475,10 @@ async function runHelperRedirect() {
 async function runHelperJumpFromPack() {
   const page = await browser.newPage({ viewport: { width: 1024, height: 768 } });
   page.on("pageerror", (e) => console.log("PAGEERROR", e.message));
-  await startIqJob(page);
+  await startIqJob(page, "Hayden");
   await page.getByRole("heading", { name: /Check the pack before you blame other parts/i }).waitFor();
   const before = await readStoredJob(page);
+  check("pack helper who is Hayden before jump", before?.technician === "Hayden", String(before?.technician));
   await page.getByTestId("bay-dock").getByRole("tab", { name: "Helper" }).click();
   await page.getByTestId("bay-helper-sheet").waitFor({ state: "visible" });
   check("pack helper still on Pack check", await page.getByTestId("bay-helper-sheet").getByText("Pack check").first().isVisible());
@@ -445,7 +497,12 @@ async function runHelperJumpFromPack() {
     after?.casePhase === "steps" && after?.currentStepId && after.currentStepId !== before?.currentStepId,
     `${before?.casePhase}:${before?.currentStepId} -> ${after?.casePhase}:${after?.currentStepId}`,
   );
-  check("pack helper jump kept who checked it", after?.technician === "Ryan", String(after?.technician));
+  check("pack helper jump kept who checked it", after?.technician === "Hayden", String(after?.technician));
+  check(
+    "pack helper jump changed active check heading",
+    (await page.getByRole("heading", { name: /Check the pack before you blame other parts/i }).count()) === 0 &&
+      (await page.getByText(/CHECK /i).count()) > 0,
+  );
   check(
     "pack helper jump kept pack draft",
     Boolean(after?.packDraft) || before?.packDraft == null,

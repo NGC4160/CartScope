@@ -7,7 +7,7 @@ import { BrainStatus } from "@/components/case/BrainStatus";
 import { Field, inputClass } from "@/components/case/fields";
 import type { JobRecord, ModelPack } from "@/data/types";
 import { bayProgressChip, bayReportActionLabel } from "@/lib/bay-chrome";
-import { BAY_REPORT_FORM_ID } from "@/lib/bay-chrome-action";
+import { BAY_REPORT_FORM_ID, bayFormSubmitGate } from "@/lib/bay-chrome-action";
 import { reportShowsFactoryCheckLog } from "@/lib/bay-layer";
 import { submitBrainCopy } from "@/lib/brain-submit";
 import { helperNoteSpeaker, helperNotesForReport, plainCaseSummary, reportWhoCheckedIt } from "@/lib/case-summary";
@@ -42,6 +42,7 @@ export function CaseReport({
   bindSubmit?: (fn: () => void) => void;
 }) {
   const proof = evaluateProof(job, pack);
+  const submitGate = bayFormSubmitGate;
   const confirm = useJobStore((s) => s.confirmReport);
   const patch = useJobStore((s) => s.patchJob);
   const setPhase = useJobStore((s) => s.setPhase);
@@ -110,7 +111,7 @@ export function CaseReport({
       className={"flex h-full min-h-0 flex-col " + (printMode ? "bg-white" : "bg-surface")}
       onSubmit={(e) => {
         e.preventDefault();
-        if (!printMode) primarySubmit();
+        if (!printMode) submitGate.run(primarySubmit);
       }}
     >
       <div className="min-h-0 flex-1 overflow-auto p-4 sm:p-6">

@@ -1,6 +1,11 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { bayChecksPaneIsParked, bayChecksPaneProps, reportShowsFactoryCheckLog } from "./bay-layer.ts";
+import {
+  bayChecksPaneIsParked,
+  bayChecksPaneProps,
+  bayChecksWorkspaceMounted,
+  reportShowsFactoryCheckLog,
+} from "./bay-layer.ts";
 
 test("Report parks Checks with display none, inert, and no flex", () => {
   const parked = bayChecksPaneProps(true);
@@ -19,6 +24,11 @@ test("Checks pane is a flex layer only when Report is closed", () => {
   assert.equal(live.inert, undefined);
   assert.equal(live.style, undefined);
   assert.match(live.className, /\bflex\b/);
+});
+
+test("Report unmounts the Checks workspace instead of leaving it parked and hittable", () => {
+  assert.equal(bayChecksWorkspaceMounted(true), false);
+  assert.equal(bayChecksWorkspaceMounted(false), true);
 });
 
 test("bay Report pane never renders the factory Checks table", () => {

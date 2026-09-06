@@ -2,11 +2,10 @@ import { useCallback, useLayoutEffect, useRef, useState, type PointerEvent } fro
 import { ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
+  emptyBayChrome,
   bayChromeClear,
   bayChromePublish,
-  bayPrimaryClickBlocksNativeSubmit,
-  emptyBayChrome,
-  fireBaySave,
+  requestBayFormSubmit,
   type BayActionChrome,
   type BayChromeSnapshot,
 } from "@/lib/bay-chrome-action";
@@ -89,28 +88,12 @@ export function usePublishBayChrome(
 export function BayActionBar({
   chrome,
   formId,
-  fire,
 }: {
   chrome: BayActionChrome | null;
   formId?: string;
-  fire?: () => boolean;
 }) {
-  const lastFire = useRef(0);
   if (!chrome) return null;
   const live = chrome;
-
-  function runSave() {
-    if (live.disabled || live.busy) return false;
-    if (bayPrimaryClickBlocksNativeSubmit(lastFire.current)) return true;
-    const ok = fireBaySave({
-      fire,
-      fallback: live.onAction,
-      formId,
-      document: typeof document !== "undefined" ? document : undefined,
-    });
-    if (ok) lastFire.current = Date.now();
-    return ok;
-  }
 
   function onPrimaryPointerDown(event: PointerEvent<HTMLButtonElement>) {
     if (live.disabled || live.busy) return;
@@ -118,25 +101,17 @@ export function BayActionBar({
   }
 
   function onPrimaryPointerUp(event: PointerEvent<HTMLButtonElement>) {
+    if (live.disabled || live.busy) return;
     if (event.pointerType === "mouse" && event.button !== 0) return;
-    runSave();
-  }
-
-  function onPrimaryClick(event: { preventDefault: () => void }) {
-    // Only cancel native submit when pointer-up already saved. Always
-    // preventDefault was the #15 Start collision: click never submitted
-    // #bay-check-form if pointer-up missed or the slot had not bound yet.
-    if (bayPrimaryClickBlocksNativeSubmit(lastFire.current)) {
-      event.preventDefault();
-      return;
-    }
-    if (runSave()) event.preventDefault();
+    // Missed-click backup only. Do not preventDefault on click — that is
+    // what killed #bay-check-form after #15/#16. The form onSubmit is Save.
+    requestBayFormSubmit(typeof document !== "undefined" ? document : undefined, formId);
   }
 
   return (
     <div
       data-testid="bay-action-bar"
-      className="no-print relative z-30 isolate shrink-0 border-t border-navy-deep bg-surface px-3 pt-2 pb-[max(2.75rem,calc(env(safe-area-inset-bottom)+2.25rem))]"
+      className="no-print relative z-20 isolate shrink-0 border-t border-navy-deep bg-surface px-3 pt-2 pb-[max(4.5rem,calc(env(safe-area-inset-bottom)+3.5rem))]"
     >
       <div className="flex items-center gap-2">
         <p className="shrink-0 rounded-md bg-paper-sunken px-2.5 py-1 font-mono text-xs font-semibold tabular-nums text-navy">
@@ -162,7 +137,6 @@ export function BayActionBar({
           style={{ minHeight: Math.max(BAY_TAP_MIN_PX, 48) }}
           onPointerDown={onPrimaryPointerDown}
           onPointerUp={onPrimaryPointerUp}
-          onClick={onPrimaryClick}
           disabled={live.disabled || live.busy}
         >
           <span className="pointer-events-none truncate">{live.label}</span>

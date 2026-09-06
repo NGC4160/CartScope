@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Field, inputClass } from "@/components/case/fields";
 import type { JobRecord, ModelPack } from "@/data/types";
 import { bayCodesActionLabel, bayProgressChip } from "@/lib/bay-chrome";
-import { BAY_CHECK_FORM_ID } from "@/lib/bay-chrome-action";
+import { BAY_CHECK_FORM_ID, bayFormSubmitGate } from "@/lib/bay-chrome-action";
 import { handheldSaveBlockers } from "@/lib/handheld-form";
 import { suggestedHandheldName } from "@/lib/handheld";
 import { useJobStore } from "@/store/jobs";
@@ -23,6 +23,7 @@ export function CodeGate({
   bindSubmit?: (fn: () => void) => void;
 }) {
   const save = useJobStore((s) => s.saveCodeSave);
+  const submitGate = bayFormSubmitGate;
   const prior = job.codeSave;
   const suggestProgram = useMemo(() => suggestedHandheldName(job, "Program"), [job.id, job.lastName, job.hcpJobNumber, job.createdAt]);
   const suggestLog = useMemo(() => suggestedHandheldName(job, "Log"), [job.id, job.lastName, job.hcpJobNumber, job.createdAt]);
@@ -106,7 +107,7 @@ export function CodeGate({
       className="flex h-full min-h-0 flex-col bg-surface"
       onSubmit={(e) => {
         e.preventDefault();
-        go();
+        submitGate.run(go);
       }}
     >
       <div className="min-h-0 flex-1 overflow-auto p-4">

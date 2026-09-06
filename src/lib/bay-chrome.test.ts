@@ -14,6 +14,7 @@ import {
   bayProgressChip,
   bayReportActionLabel,
   bayStepActionLabel,
+  bayDockPanes,
   defaultBayPane,
   readMeterDraft,
 } from "./bay-chrome.ts";
@@ -170,6 +171,21 @@ test("dock switching never writes case phase and always keeps place", () => {
   assert.equal(bayPaneKeepsPlace("diagram", "helper"), true);
   assert.equal(bayPaneKeepsPlace("helper", "report"), true);
   assert.equal(bayPaneKeepsPlace("report", "checks"), true);
+});
+
+test("Report dock hides the Checks tab so it is not visible or hittable", () => {
+  assert.deepEqual(
+    bayDockPanes().map((p) => p.id),
+    ["checks", "diagram", "helper", "report"],
+  );
+  assert.deepEqual(
+    bayDockPanes({ hideChecks: true }).map((p) => p.id),
+    ["diagram", "helper", "report"],
+  );
+  assert.equal(
+    bayDockPanes({ hideChecks: true }).some((p) => p.label === "Checks"),
+    false,
+  );
 });
 
 test("report pane is the default only after the case is ready to review", () => {

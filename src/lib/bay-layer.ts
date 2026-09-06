@@ -33,6 +33,10 @@ export function bayChecksPaneProps(showReport: boolean): {
   };
 }
 
+export function bayChecksWorkspaceMounted(showReport: boolean): boolean {
+  return showReport !== true;
+}
+
 export function bayChecksPaneIsParked(props: ReturnType<typeof bayChecksPaneProps>): boolean {
   return (
     props.hidden === true &&
