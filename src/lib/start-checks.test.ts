@@ -235,6 +235,29 @@ test("Club Car DS V-Glide 1994 starts checks and names the year", () => {
   }
 });
 
+test("gas header with last name, HCP, and who-checked starts without a battery type", () => {
+  const started = attemptStartChecks({
+    pack: yamahaYdra,
+    symptomId: "starts-dies",
+    header: {
+      lastName: "GasPR14",
+      hcpJobNumber: "881602",
+      technician: "Hayden",
+      cartYear: "",
+      serialNumber: "",
+      batteryType: "",
+      complaintNote: "",
+      fuelNote: "",
+    },
+  });
+  assert.equal(started.ok, true);
+  if (started.ok) {
+    assert.equal(started.startStepId, "g-dies");
+    assert.equal(started.jobInput.batteryType, undefined);
+    assert.equal(started.jobInput.technician, "Hayden");
+  }
+});
+
 test("a missing first factory check is named, never a silent no-op", () => {
   const broken = {
     ...ezgoTxt,

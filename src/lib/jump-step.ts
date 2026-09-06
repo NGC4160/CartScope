@@ -5,7 +5,9 @@ export function applyJumpToStep(job: JobRecord, stepId: string, reason: string, 
   return {
     ...job,
     currentStepId: stepId,
-    casePhase: job.casePhase === "report" ? "steps" : job.casePhase,
+    // Pack / codes / report are other bay phases. A factory-check jump must
+    // leave them or the Pack gate stays on screen while currentStepId changes.
+    casePhase: "steps",
     pending: undefined,
     technician: job.technician,
     meterDraft: job.meterDraft,

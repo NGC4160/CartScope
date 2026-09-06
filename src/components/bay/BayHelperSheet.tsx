@@ -38,7 +38,7 @@ export function BayHelperSheet({
       </header>
       <div className="min-h-0 flex-1 overflow-auto">
         <div className="px-3 py-3">
-          <InFlowGuidance job={job} pack={pack} phaseLabel={phaseLabel} />
+          <InFlowGuidance job={job} pack={pack} phaseLabel={phaseLabel} onJumped={onClose} />
         </div>
         <AssistantDock modelId={pack.id} job={job} compact />
       </div>

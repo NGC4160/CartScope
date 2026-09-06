@@ -40,3 +40,23 @@ test("jump out of a report peek returns to steps without wiping the tech name", 
   assert.equal(next.casePhase, "steps");
   assert.equal(next.technician, "Ryan");
 });
+
+test("jump from Pack check enters the factory step instead of staying on pack", () => {
+  const next = applyJumpToStep(
+    job({ casePhase: "pack", currentStepId: "pno-setup" }),
+    "pno-fr",
+    "direction switch from pack",
+    "2026-01-02T00:00:00.000Z",
+  );
+  assert.equal(next.casePhase, "steps");
+  assert.equal(next.currentStepId, "pno-fr");
+  assert.equal(next.technician, "Ryan");
+  assert.equal(next.packDraft?.cells[0]?.volts, "8.4");
+  assert.deepEqual(next.meterDraft, { stepId: "pno-setup", raw: "", selected: "yes" });
+});
+
+test("jump from handheld codes enters the factory step", () => {
+  const next = applyJumpToStep(job({ casePhase: "codes" }), "pno-fr", "solenoid path", "2026-01-02T00:00:00.000Z");
+  assert.equal(next.casePhase, "steps");
+  assert.equal(next.currentStepId, "pno-fr");
+});

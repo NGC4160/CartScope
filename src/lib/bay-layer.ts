@@ -1,5 +1,10 @@
 /** Checks workspace vs Report pane. Never apply `flex` and `hidden` together. */
 
+/** Factory check log belongs on the print sheet only — never the bay Report pane. */
+export function reportShowsFactoryCheckLog(printMode: boolean, peek = false): boolean {
+  return printMode === true && peek !== true;
+}
+
 export function bayChecksPaneProps(showReport: boolean): {
   hidden: boolean;
   inert: true | undefined;

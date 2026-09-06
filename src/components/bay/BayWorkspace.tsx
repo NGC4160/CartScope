@@ -89,6 +89,8 @@ export function BayWorkspace({ job, pack }: { job: JobRecord; pack: ModelPack })
 
       <div className="relative flex min-h-0 flex-1 flex-col">
         <div {...bayChecksPaneProps(showReport)}>
+          {showReport ? null : (
+            <>
           {showSplitDiagram ? (
             <div className="relative min-h-0 min-w-0 flex-[1.25] border-r border-line">
               <DiagramPane pack={pack} highlight={highlight} />
@@ -125,10 +127,12 @@ export function BayWorkspace({ job, pack }: { job: JobRecord; pack: ModelPack })
             ) : null}
             <BayActionBar chrome={checkChrome} formId={BAY_CHECK_FORM_ID} fire={() => checkSubmit.fire()} />
           </div>
+            </>
+          )}
         </div>
 
         {showReport ? (
-          <div className="flex min-h-0 flex-1 flex-col">
+          <div className="flex min-h-0 flex-1 flex-col" data-testid="bay-report-pane" data-bay-report-pane="">
             <p className="no-print border-b border-line bg-paper-sunken px-4 py-2 text-sm text-ink">
               {job.status === "diagnosed" || job.reportConfirmed
                 ? "Report draft — confirm when the case is ready."

@@ -8,6 +8,7 @@ import { Field, inputClass } from "@/components/case/fields";
 import type { JobRecord, ModelPack } from "@/data/types";
 import { bayProgressChip, bayReportActionLabel } from "@/lib/bay-chrome";
 import { BAY_REPORT_FORM_ID } from "@/lib/bay-chrome-action";
+import { reportShowsFactoryCheckLog } from "@/lib/bay-layer";
 import { submitBrainCopy } from "@/lib/brain-submit";
 import { helperNoteSpeaker, helperNotesForReport, plainCaseSummary, reportWhoCheckedIt } from "@/lib/case-summary";
 import { formatReading } from "@/lib/diagnostics";
@@ -284,8 +285,8 @@ export function CaseReport({
           </section>
         ) : null}
 
-        {printMode ? (
-        <>
+        {reportShowsFactoryCheckLog(printMode, peek) ? (
+        <div className="report-factory-checks">
         <h2 className="mt-6 font-display text-lg font-semibold">Checks</h2>
         <table className="mt-2 w-full border-collapse text-left text-sm" data-testid="report-check-log">
           <thead>
@@ -315,7 +316,7 @@ export function CaseReport({
           </tbody>
         </table>
         {job.log.length === 0 ? <p className="mt-2 text-sm text-ink-muted">No factory checks saved yet.</p> : null}
-        </>
+        </div>
         ) : null}
 
         <section className="mt-6 border border-line p-4">

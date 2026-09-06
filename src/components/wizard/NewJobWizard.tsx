@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState, type FormEvent } from "react";
+import { useMemo, useRef, useState, type FormEvent, type PointerEvent } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Field, HeaderNoteInput, inputClass } from "@/components/case/fields";
 import { Button } from "@/components/ui/button";
@@ -42,6 +42,7 @@ export function NewJobWizard({
   const [fuelNote, setFuelNote] = useState("");
   const [startErrors, setStartErrors] = useState<string[]>([]);
   const [starting, setStarting] = useState(false);
+  const startLock = useRef(0);
 
   const models = useMemo(() => (mfg ? packsFor(mfg) : []), [mfg]);
   const electric = models.filter((p) => p.powertrain === "electric");
@@ -131,9 +132,32 @@ export function NewJobWizard({
     }
   }
 
+  function requestStart(form?: HTMLFormElement | null) {
+    const now = Date.now();
+    if (starting || now - startLock.current < 400) return;
+    startLock.current = now;
+    void startFromForm(form);
+  }
+
   function onStartSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    void startFromForm(e.currentTarget);
+    requestStart(e.currentTarget);
+  }
+
+  function onStartPointerDown(event: PointerEvent<HTMLButtonElement>) {
+    if (starting) return;
+    event.currentTarget.setPointerCapture(event.pointerId);
+  }
+
+  function onStartPointerUp(event: PointerEvent<HTMLButtonElement>) {
+    if (starting) return;
+    if (event.pointerType === "mouse" && event.button !== 0) return;
+    requestStart(event.currentTarget.form ?? event.currentTarget.closest("form"));
+  }
+
+  function onStartClick(event: { preventDefault: () => void; currentTarget: HTMLButtonElement }) {
+    event.preventDefault();
+    requestStart(event.currentTarget.form ?? event.currentTarget.closest("form"));
   }
 
   return (
@@ -374,6 +398,8 @@ export function NewJobWizard({
                 ) : null}
               </div>
             ) : (
+              <>
+              <input type="hidden" name="batteryType" value="" />
               <Field label="Fuel note (optional)" className="sm:col-span-2">
                 <HeaderNoteInput
                   name="fuelNote"
@@ -383,6 +409,7 @@ export function NewJobWizard({
                   aria-label="Fuel note"
                 />
               </Field>
+              </>
             )}
             <Field label="Short complaint note (optional)" className="sm:col-span-2">
               <HeaderNoteInput
@@ -414,7 +441,7 @@ export function NewJobWizard({
                 ))}
             </ul>
           ) : null}
-          <div className="relative z-10 mt-5 flex flex-wrap gap-2 pb-16">
+          <div className="sticky bottom-0 z-30 isolate mt-5 flex flex-wrap gap-2 border-t border-navy-deep bg-paper px-1 pt-2 pb-[max(2.75rem,calc(env(safe-area-inset-bottom)+2.25rem))]">
             <Button type="button" variant="ghost" onClick={() => setStep(3)}>
               <ChevronLeft className="size-4" />
               What’s wrong
@@ -425,14 +452,23 @@ export function NewJobWizard({
               </Button>
             ) : null}
             <Button
-              type="submit"
-              className={"ml-auto min-w-44" + (headerReady && !yearMessage ? "" : " opacity-40")}
+              type="button"
+              data-testid="start-checks"
+              data-bay-primary=""
+              className={
+                "ml-auto min-w-44 touch-manipulation" + (headerReady && !yearMessage ? "" : " opacity-40")
+              }
               aria-disabled={!headerReady || Boolean(yearMessage) || starting}
               aria-busy={starting}
               disabled={starting}
+              onPointerDown={onStartPointerDown}
+              onPointerUp={onStartPointerUp}
+              onClick={onStartClick}
             >
-              {starting ? "Starting checks…" : "Start checks"}
-              {starting ? null : <ChevronRight className="size-4" />}
+              <span className="pointer-events-none truncate">
+                {starting ? "Starting checks…" : "Start checks"}
+              </span>
+              {starting ? null : <ChevronRight className="pointer-events-none size-4" />}
             </Button>
           </div>
         </form>
