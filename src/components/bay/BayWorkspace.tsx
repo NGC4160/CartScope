@@ -160,7 +160,7 @@ export function BayWorkspace({ job, pack }: { job: JobRecord; pack: ModelPack })
 
         {showOverlayDiagram ? (
           <div
-            className="absolute inset-0 z-30 flex flex-col bg-paper"
+            className="absolute inset-0 z-50 flex flex-col bg-paper"
             role="dialog"
             aria-label="Wire picture"
             data-testid="bay-diagram-overlay"

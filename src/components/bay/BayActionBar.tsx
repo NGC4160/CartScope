@@ -130,7 +130,7 @@ export function BayActionBar({
   return (
     <div
       data-testid="bay-action-bar"
-      className="no-print relative z-40 isolate shrink-0 border-t border-navy-deep bg-surface px-3 pt-2 pb-[max(2.75rem,calc(env(safe-area-inset-bottom)+2.25rem))]"
+      className="no-print relative z-10 isolate shrink-0 border-t border-navy-deep bg-surface px-3 pt-2 pb-[max(2.75rem,calc(env(safe-area-inset-bottom)+2.25rem))]"
     >
       <div className="flex items-center gap-2">
         <p className="shrink-0 rounded-md bg-paper-sunken px-2.5 py-1 font-mono text-xs font-semibold tabular-nums text-navy">

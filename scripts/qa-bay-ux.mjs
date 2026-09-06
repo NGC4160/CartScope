@@ -53,7 +53,7 @@ function check(name, ok, extra = "") {
 
 /** Real mouse click on the sticky Save — not keyboard Enter, not a JS click. */
 async function mouseClickPrimary(page) {
-  const btn = page.getByTestId("bay-primary-action");
+  const btn = page.getByTestId("bay-primary-action").filter({ visible: true });
   await btn.waitFor({ state: "visible" });
   const box = await btn.boundingBox();
   if (!box) throw new Error("sticky Save has no box");
