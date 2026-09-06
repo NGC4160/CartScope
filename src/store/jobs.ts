@@ -24,6 +24,7 @@ import {
   resultFromAttempt,
 } from "@/lib/diagnostics";
 import { commitMeterReading, meterFieldLabel } from "@/lib/meter-input";
+import { applyJumpToStep } from "@/lib/jump-step";
 import { uid } from "@/lib/utils";
 
 export interface CreateJobInput {
@@ -358,25 +359,9 @@ export const useJobStore = create<JobState>()(
         if (!job) return;
         const pack = getPack(job.modelId);
         if (!pack?.steps[stepId]) return;
+        const at = new Date().toISOString();
         set({
-          jobs: get().jobs.map((j) =>
-            j.id === jobId
-                ? touch(j, {
-                  currentStepId: stepId,
-                  casePhase: j.casePhase === "report" ? "steps" : j.casePhase,
-                  pending: undefined,
-                  pathRedirects: [
-                    ...(j.pathRedirects ?? []),
-                    {
-                      at: new Date().toISOString(),
-                      fromStepId: j.currentStepId,
-                      toStepId: stepId,
-                      reason,
-                    },
-                  ],
-                })
-              : j,
-          ),
+          jobs: get().jobs.map((j) => (j.id === jobId ? applyJumpToStep(j, stepId, reason, at) : j)),
         });
       },
     }),

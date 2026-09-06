@@ -65,6 +65,13 @@
     cursor: pointer;
   }
 
+  /* Sticky Save is full-width. A press-scale moves the hit box so glove/mouse
+     taps near the edge never fire click. Keyboard activation still worked. */
+  [data-bay-primary] {
+    transform: none !important;
+    touch-action: manipulation;
+  }
+
   h1,
   h2,
   h3 {

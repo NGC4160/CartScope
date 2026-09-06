@@ -4,21 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Field, inputClass } from "@/components/case/fields";
 import type { DiagnosticStep, JobRecord, ModelPack } from "@/data/types";
 import { getHelperStatus, type HelperStatus } from "@/lib/assistant";
-import { manualsOnFile, matchObservationToSteps } from "@/lib/manuals";
+import { HELPER_AI_TIMEOUT_MS, mergeHelperJumps, settleHelperAsk } from "@/lib/helper-redirect";
+import { manualsOnFile } from "@/lib/manuals";
 import { sheetsForPack } from "@/data/wiring";
 import { evaluateProof } from "@/lib/proof";
 import { runJobAssistant } from "@/lib/run-assistant";
 import { useJobStore } from "@/store/jobs";
 import { useManualStore } from "@/store/manuals";
-
-function uniqueSteps(steps: DiagnosticStep[]): DiagnosticStep[] {
-  const seen = new Set<string>();
-  return steps.filter((step) => {
-    if (seen.has(step.id)) return false;
-    seen.add(step.id);
-    return true;
-  });
-}
 
 export function InFlowGuidance({
   job,
@@ -45,6 +37,7 @@ export function InFlowGuidance({
   const patchJob = useJobStore((s) => s.patchJob);
   const observation = job.techObservation ?? "";
   const [busy, setBusy] = useState(false);
+  const [asked, setAsked] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [reply, setReply] = useState<string | null>(null);
   const [suggested, setSuggested] = useState<DiagnosticStep[]>([]);
@@ -81,34 +74,52 @@ export function InFlowGuidance({
     const question = observation.trim();
     if (!question || busy) return;
     persistObservation(question);
+    setAsked(true);
     setBusy(true);
     setError(null);
     setReply(null);
-    const localHits = uniqueSteps(matchObservationToSteps(pack, question, job.currentStepId));
+    const localHits = mergeHelperJumps({
+      pack,
+      observation: question,
+      currentStepId: job.currentStepId,
+    });
     setSuggested(localHits);
-    try {
-      const res = await runJobAssistant(
+    const settled = await settleHelperAsk(
+      runJobAssistant(
         job,
         "TECH OBSERVATION — use manuals, procedures, wire pictures, and checklists on file first. " +
           "Only then a legitimate OEM or reputable factory source. Not forums. " +
           "If this observation should change the diagnostic path, pick the next factory check. " +
           question,
-      );
+      ),
+      HELPER_AI_TIMEOUT_MS,
+    );
+    try {
+      if (!settled.ok) {
+        setError(settled.error);
+        if (!settled.timedOut) setHelperStatus({ available: false, reason: settled.error });
+        setSuggested(localHits);
+        return;
+      }
+      const res = settled.value;
       if (!res.ok) {
         setError(res.error);
         setHelperStatus({ available: false, reason: res.error });
-      } else {
-        setHelperStatus({ available: true });
-        appendAiTurn(job.id, { role: "assistant", text: res.text });
-        setReply(res.text);
-        if (res.suggestedStepId && pack.steps[res.suggestedStepId]) {
-          setSuggested(
-            uniqueSteps([pack.steps[res.suggestedStepId]!, ...localHits.filter((s) => s.id !== res.suggestedStepId)]),
-          );
-        }
+        setSuggested(localHits);
+        return;
       }
-    } catch {
-      setError("Could not reach the helper. Factory checks and manuals still work.");
+      setHelperStatus({ available: true });
+      appendAiTurn(job.id, { role: "assistant", text: res.text });
+      setReply(res.text);
+      setSuggested(
+        mergeHelperJumps({
+          pack,
+          observation: question,
+          currentStepId: job.currentStepId,
+          suggestedStepId: res.suggestedStepId,
+          replyText: res.text,
+        }),
+      );
     } finally {
       setBusy(false);
     }
@@ -241,7 +252,12 @@ export function InFlowGuidance({
         </p>
       ) : null}
       <div className="mt-2 flex flex-wrap items-center gap-2">
-        <Button size="sm" onClick={() => void sendObservation()} disabled={busy || !observation.trim()}>
+        <Button
+          size="sm"
+          data-testid="helper-use-observation"
+          onClick={() => void sendObservation()}
+          disabled={busy || !observation.trim()}
+        >
           <Send className="size-4" />
           Use this to pick the next check
         </Button>
@@ -255,19 +271,24 @@ export function InFlowGuidance({
           Put helper notes on the report
         </label>
       </div>
-      {busy ? <p className="mt-2 font-mono text-xs text-ink-subtle">Looking in the factory book first…</p> : null}
+      {busy ? (
+        <p className="mt-2 font-mono text-xs text-ink-subtle" data-testid="helper-looking">
+          Looking in the factory book first…
+        </p>
+      ) : null}
       {error && error !== helperStatus?.reason ? (
         <p className="mt-2 text-sm text-danger">{error}</p>
       ) : null}
       {reply ? <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-ink">{reply}</p> : null}
       {suggested.length > 0 ? (
-        <div className="mt-3">
+        <div className="mt-3" data-testid="helper-redirect-list">
           <p className="text-xs font-medium uppercase tracking-wide text-ink-subtle">Go to a different factory check</p>
           <div className="mt-1 grid gap-2">
             {suggested.map((step) => (
               <Button
                 key={step.id}
                 variant="secondary"
+                data-testid={`helper-jump-${step.id}`}
                 className="h-auto min-h-11 justify-start whitespace-normal py-2 text-left"
                 onClick={() => jumpToStep(job.id, step.id, observation.trim() || reply || step.title)}
               >
@@ -280,6 +301,10 @@ export function InFlowGuidance({
             ))}
           </div>
         </div>
+      ) : asked && !busy ? (
+        <p className="mt-3 text-sm text-ink-muted" data-testid="helper-no-jump">
+          No other factory check matched. Stay on this check, or pick one from Checks.
+        </p>
       ) : null}
     </section>
   );
