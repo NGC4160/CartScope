@@ -1,4 +1,4 @@
-import type { InputHTMLAttributes, ReactNode } from "react";
+import { forwardRef, type InputHTMLAttributes, type ReactNode } from "react";
 import type { MeasurementKind } from "@/data/types";
 import { commitMeterReading, sanitizeMeterInput } from "@/lib/meter-input";
 import { sanitizeVoltageInput } from "@/lib/voltage-input";
@@ -51,23 +51,21 @@ export function VoltageInput({
   );
 }
 
-export function MeterNumberInput({
-  value,
-  onChange,
-  kind,
-  className = "",
-  onFocus,
-  onBlur,
-  onKeyDown,
-  ...rest
-}: Omit<InputHTMLAttributes<HTMLInputElement>, "value" | "onChange" | "type"> & {
-  value: string;
-  onChange: (next: string) => void;
-  kind: MeasurementKind;
-}) {
+export const MeterNumberInput = forwardRef<
+  HTMLInputElement,
+  Omit<InputHTMLAttributes<HTMLInputElement>, "value" | "onChange" | "type"> & {
+    value: string;
+    onChange: (next: string) => void;
+    kind: MeasurementKind;
+  }
+>(function MeterNumberInput(
+  { value, onChange, kind, className = "", onFocus, onBlur, onKeyDown, ...rest },
+  ref,
+) {
   return (
     <input
       {...rest}
+      ref={ref}
       type="text"
       inputMode="decimal"
       autoComplete="off"
@@ -88,7 +86,7 @@ export function MeterNumberInput({
       className={className}
     />
   );
-}
+});
 
 export function YesNo({
   value,
