@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { FileText, Plus } from "lucide-react";
 import { useState } from "react";
 import { AppShell } from "@/components/layout/AppShell";
@@ -8,13 +8,12 @@ import { getPack, getSymptom, MODEL_PACKS } from "@/data/index";
 import { WIRING_SHEETS } from "@/data/wiring";
 import { caseTitle, statusLabel } from "@/lib/case-flow";
 import { formatTime } from "@/lib/utils";
-import { benchUrl } from "@/lib/wizard-nav";
 import { useJobStore, type CreateJobInput } from "@/store/jobs";
 
 export const Route = createFileRoute("/")({ component: Home });
 
 function Home() {
-  const router = useRouter();
+  const navigate = useNavigate();
   const jobs = useJobStore((s) => s.jobs);
   const createJob = useJobStore((s) => s.createJob);
   const [fresh, setFresh] = useState(false);
@@ -23,7 +22,7 @@ function Home() {
   function startJob(input: CreateJobInput) {
     setFresh(true);
     const job = createJob(input);
-    router.history.push(benchUrl(job.id));
+    void navigate({ to: "/bench/$jobId", params: { jobId: job.id } });
   }
 
   return (
