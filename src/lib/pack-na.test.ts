@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { PACK_NA_TITLE, packIsApplicable, packNaCopy, packNaReportLines } from "./pack-na.ts";
+import { PACK_NA_BADGE, PACK_NA_TITLE, packIsApplicable, packNaBadge, packNaCopy, packNaReportLines } from "./pack-na.ts";
 
 test("gas carts are pack N/A with no battery-field copy", () => {
   const gas = { powertrain: "gasoline" as const };
@@ -8,6 +8,7 @@ test("gas carts are pack N/A with no battery-field copy", () => {
   const copy = packNaCopy(gas);
   assert.ok(copy);
   assert.equal(copy?.title, PACK_NA_TITLE);
+  assert.equal(packNaBadge(gas), PACK_NA_BADGE);
   assert.match(copy?.summary ?? "", /gasoline/i);
   assert.doesNotMatch(copy?.summary ?? "", /resting volts|internal resistance/i);
   const lines = packNaReportLines(gas);
@@ -18,5 +19,6 @@ test("electric carts still use the pack check", () => {
   const electric = { powertrain: "electric" as const };
   assert.equal(packIsApplicable(electric), true);
   assert.equal(packNaCopy(electric), null);
+  assert.equal(packNaBadge(electric), null);
   assert.equal(packNaReportLines(electric), null);
 });

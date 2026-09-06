@@ -5,6 +5,7 @@ import { WiringCanvas } from "@/components/wiring/WiringCanvas";
 import { sheetsForPack } from "@/data/wiring";
 import type { ModelPack } from "@/data/types";
 import { BAY_TAP_MIN_PX } from "@/lib/bay-chrome";
+import { diagramViewKey } from "@/lib/diagram-view";
 import { ZoomPan } from "@/components/bay/ZoomPan";
 
 const SHEET_KIND: Record<string, string> = {
@@ -20,9 +21,11 @@ const SHEET_KIND: Record<string, string> = {
 export function DiagramPane({
   pack,
   highlight,
+  jobId,
 }: {
   pack: ModelPack;
   highlight: string[];
+  jobId?: string;
 }) {
   const sheets = useMemo(() => sheetsForPack(pack.id), [pack.id]);
   const [tab, setTab] = useState<"schematic" | string>("schematic");
@@ -58,7 +61,10 @@ export function DiagramPane({
 
       <div className="relative min-h-0 flex-1">
         {tab === "schematic" ? (
-          <ZoomPan label={pack.diagramTitle}>
+          <ZoomPan
+            label={pack.diagramTitle}
+            viewKey={jobId ? diagramViewKey(jobId, "schematic") : undefined}
+          >
             <SystemDiagram
               pack={pack}
               highlight={highlight}

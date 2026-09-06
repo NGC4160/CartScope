@@ -103,9 +103,15 @@ export function yearCompatibility(input: {
     status: "unsupported",
     range,
     message:
-      `${input.packName} is not supported for ${year}. The factory book on file covers ${span}. ` +
-      `Enter a year in that range, or pick a different cart pack.`,
+      `Year ${year} is not on file for ${input.packName}. This cart pack covers ${span}. ` +
+      `Type a year in that range, or pick a different model.`,
   };
+}
+
+export function supportedYearsHint(packYears: string): string | null {
+  const ranges = parsePackYearRanges(packYears);
+  if (ranges.length === 0) return null;
+  return `Supported years on this pack: ${formatPackYears(ranges)}.`;
 }
 
 export function yearStatusNote(check: YearCompatibility): string | null {

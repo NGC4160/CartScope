@@ -66,6 +66,13 @@ export function reverseOrOneWaySymptom(pack: ModelPack) {
   });
 }
 
+export type StartBlockerKind = "model" | "complaint" | "first-step" | "year" | "header";
+
+export type StartBlocker = {
+  kind: StartBlockerKind;
+  message: string;
+};
+
 export type StartChecksAttempt =
   | {
       ok: true;
@@ -80,6 +87,7 @@ export type StartChecksAttempt =
       ok: false;
       gaps: JobHeaderGap[];
       messages: string[];
+      blockers: StartBlocker[];
       yearMessage: string | null;
       yearNote: string | null;
       routeLabel: string;
@@ -104,6 +112,66 @@ function symptomOf(pack: ModelPack | null | undefined, symptomId: string | null)
   return pack.symptoms.find((s) => s.id === symptomId);
 }
 
+export function complaintHasFirstStep(
+  pack: ModelPack | null | undefined,
+  symptomId: string | null,
+): boolean {
+  const symptom = symptomOf(pack, symptomId);
+  return Boolean(symptom?.startStepId && pack?.steps[symptom.startStepId]);
+}
+
+export function startBlockers(input: {
+  pack: ModelPack | null | undefined;
+  symptomId: string | null;
+  header: HeaderSnapshot;
+}): StartBlocker[] {
+  const pack = input.pack ?? null;
+  const header = input.header;
+  const blockers: StartBlocker[] = [];
+  const gaps = jobHeaderGaps({
+    lastName: header.lastName,
+    hcpJobNumber: header.hcpJobNumber,
+    powertrain: pack?.powertrain,
+    batteryType: header.batteryType,
+    technician: header.technician,
+  });
+  for (const gap of gaps) {
+    blockers.push({ kind: "header", message: JOB_HEADER_MESSAGES[gap] });
+  }
+
+  if (pack) {
+    const year = yearCompatibility({
+      cartYear: header.cartYear,
+      packYears: pack.years,
+      packName: pack.fullName,
+    });
+    if (year.status === "unsupported") {
+      blockers.push({ kind: "year", message: year.message });
+    }
+  }
+
+  if (!pack) {
+    blockers.push({ kind: "model", message: "Pick a cart before starting checks." });
+  } else if (!input.symptomId || !symptomOf(pack, input.symptomId)) {
+    blockers.push({
+      kind: "complaint",
+      message: "Pick what is wrong with the cart before starting checks.",
+    });
+  } else if (!complaintHasFirstStep(pack, input.symptomId)) {
+    const label = symptomOf(pack, input.symptomId)?.label ?? "This complaint";
+    blockers.push({
+      kind: "first-step",
+      message: `${label} does not have a first factory check on file. Pick another problem, or pick a different cart.`,
+    });
+  }
+
+  return blockers;
+}
+
+export function startIsReady(blockers: readonly StartBlocker[]): boolean {
+  return blockers.length === 0;
+}
+
 export function attemptStartChecks(input: {
   pack: ModelPack | null | undefined;
   symptomId: string | null;
@@ -119,7 +187,8 @@ export function attemptStartChecks(input: {
     technician: header.technician,
   });
 
-  const messages: string[] = gaps.map((g) => JOB_HEADER_MESSAGES[g]);
+  const blockers = startBlockers({ pack, symptomId: input.symptomId, header });
+  const messages = blockers.map((b) => b.message);
   const year = pack
     ? yearCompatibility({
         cartYear: header.cartYear,
@@ -129,11 +198,10 @@ export function attemptStartChecks(input: {
     : { status: "ok" as const };
   const yearNote = yearStatusNote(year);
   const yearMessage = year.status === "unsupported" ? year.message : null;
-  if (yearMessage) messages.push(yearMessage);
   const routeLabel = startRouteLabel({ pack, symptomId: input.symptomId, header });
 
   const symptom = symptomOf(pack, input.symptomId);
-  const hasFirstStep = Boolean(symptom?.startStepId && pack?.steps[symptom.startStepId]);
+  const hasFirstStep = complaintHasFirstStep(pack, input.symptomId);
   const resolved = resolveStartJob({
     hasModel: Boolean(pack),
     symptomId: input.symptomId,
@@ -141,27 +209,22 @@ export function attemptStartChecks(input: {
     gaps,
     hasFirstStep,
   });
-  if (!pack) {
-    messages.push("Pick a cart before starting checks.");
-  } else if (!input.symptomId || !symptom) {
-    messages.push("Pick what is wrong with the cart before starting checks.");
-  } else if (!hasFirstStep) {
-    messages.push(
-      "This complaint does not have a first factory check on file. Pick another problem, or pick a different cart.",
-    );
-  }
 
-  if (!resolved.ok || !pack || yearMessage || !symptom || !hasFirstStep) {
+  if (!resolved.ok || !pack || yearMessage || !symptom || !hasFirstStep || !canStartChecks(gaps)) {
     if (messages.length === 0) {
       messages.push(`Could not start checks for ${routeLabel}.`);
     }
     messages.push(`Start route: ${routeLabel}`);
-    return { ok: false, gaps, messages: uniqueMessages(messages), yearMessage, yearNote, routeLabel, header };
-  }
-
-  if (!canStartChecks(gaps)) {
-    messages.push(`Start route: ${routeLabel}`);
-    return { ok: false, gaps, messages: uniqueMessages(messages), yearMessage, yearNote, routeLabel, header };
+    return {
+      ok: false,
+      gaps,
+      blockers,
+      messages: uniqueMessages(messages),
+      yearMessage,
+      yearNote,
+      routeLabel,
+      header,
+    };
   }
 
   const electric = pack.powertrain === "electric";

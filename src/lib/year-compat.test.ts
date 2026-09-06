@@ -3,6 +3,7 @@ import test from "node:test";
 import {
   parseCartYear,
   parsePackYearRanges,
+  supportedYearsHint,
   yearCompatibility,
   yearInRanges,
 } from "./year-compat.ts";
@@ -87,6 +88,30 @@ test("V-Glide 1994–2000 and short 1995–96 both accept 1994", () => {
     assert.match(check.message ?? "", /1994/);
     assert.match(check.message ?? "", /1994–2000/);
   }
+});
+
+test("Marathon 1991–1996 rejects 2010 and names the supported years", () => {
+  const years =
+    "1991–1996 4-cycle gasoline (manual 27206-G01): GX-444, GX-444F Freedom, GX-444F HP, 1992–1994 GXT/1-804, TUFF1, 1992–1995 PC4GX / PC4GXI, 1992–1994 BC-360";
+  const hint = supportedYearsHint(years);
+  assert.match(hint ?? "", /1991–1996/);
+  const bad = yearCompatibility({
+    cartYear: "2010",
+    packYears: years,
+    packName: "EZ-GO Marathon 4-cycle / GX-444 / Freedom / GXT / TUFF1 / PC4GX / BC-360",
+  });
+  assert.equal(bad.status, "unsupported");
+  if (bad.status === "unsupported") {
+    assert.match(bad.message, /2010/);
+    assert.match(bad.message, /1991–1996/);
+    assert.match(bad.message, /different model/i);
+  }
+  const ok = yearCompatibility({
+    cartYear: "1996",
+    packYears: years,
+    packName: "EZ-GO Marathon 4-cycle / GX-444 / Freedom / GXT / TUFF1 / PC4GX / BC-360",
+  });
+  assert.equal(ok.status, "ok");
 });
 
 test("starting-model-year and open-ended plus ranges parse from real pack copy", () => {

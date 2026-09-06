@@ -1,42 +1,62 @@
-import { useCallback, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { Maximize2, Minus, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { BAY_TAP_MIN_PX } from "@/lib/bay-chrome";
+import {
+  BAY_DIAGRAM_DEFAULT_SCALE,
+  clampDiagramScale,
+  defaultDiagramScale,
+  readDiagramView,
+  writeDiagramView,
+} from "@/lib/diagram-view";
 
 export function ZoomPan({
   children,
   className = "",
   label = "Picture",
+  viewKey,
 }: {
   children: ReactNode;
   className?: string;
   label?: string;
+  viewKey?: string;
 }) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
-  const [scale, setScale] = useState(1);
-  const [pos, setPos] = useState({ x: 0, y: 0 });
+  const cached = viewKey ? readDiagramView(viewKey) : null;
+  const [scale, setScale] = useState(cached?.scale ?? BAY_DIAGRAM_DEFAULT_SCALE);
+  const [pos, setPos] = useState(cached ? { x: cached.x, y: cached.y } : { x: 0, y: 0 });
   const drag = useRef<{ x: number; y: number; px: number; py: number } | null>(null);
   const pinch = useRef<{ dist: number; scale: number } | null>(null);
   const pointers = useRef(new Map<number, { x: number; y: number }>());
+  const inited = useRef(Boolean(cached));
 
-  const clampScale = (s: number) => Math.min(8, Math.max(0.2, s));
-
-  const computeFit = useCallback(() => {
+  const measureDefault = useCallback(() => {
     const wrap = wrapRef.current;
     const content = contentRef.current;
-    if (!wrap || !content) return 1;
-    const pad = 16;
-    const availW = Math.max(120, wrap.clientWidth - pad);
-    const availH = Math.max(120, wrap.clientHeight - pad);
-    const w = content.scrollWidth || content.getBoundingClientRect().width;
-    const h = content.scrollHeight || content.getBoundingClientRect().height;
-    if (!w || !h) return 1;
-    return clampScale(Math.min(availW / w, availH / h, 1));
+    if (!wrap || !content) return BAY_DIAGRAM_DEFAULT_SCALE;
+    return defaultDiagramScale(
+      wrap.clientWidth,
+      wrap.clientHeight,
+      content.scrollWidth || content.getBoundingClientRect().width,
+      content.scrollHeight || content.getBoundingClientRect().height,
+    );
   }, []);
 
+  useLayoutEffect(() => {
+    if (inited.current) return;
+    const next = measureDefault();
+    setScale(next);
+    inited.current = true;
+  }, [measureDefault]);
+
+  useEffect(() => {
+    if (!viewKey) return;
+    writeDiagramView(viewKey, { scale, x: pos.x, y: pos.y });
+  }, [viewKey, scale, pos]);
+
   const zoomAt = useCallback((next: number) => {
-    setScale(clampScale(next));
+    setScale(clampDiagramScale(next));
   }, []);
 
   function onWheel(e: React.WheelEvent) {
@@ -84,11 +104,11 @@ export function ZoomPan({
 
   function fit() {
     setPos({ x: 0, y: 0 });
-    setScale(computeFit());
+    setScale(measureDefault());
   }
 
   return (
-    <div className={"flex h-full min-h-0 flex-col " + className}>
+    <div className={"flex h-full min-h-0 flex-col " + className} data-diagram-scale={scale.toFixed(2)}>
       <div className="no-print flex flex-wrap items-center gap-2 border-b border-line bg-surface-2 px-3 py-2">
         <Button
           size="sm"
@@ -114,13 +134,13 @@ export function ZoomPan({
           <Maximize2 className="size-4" />
           Fit
         </Button>
-        <p className="ml-auto font-mono text-xs tabular-nums text-ink-subtle">
+        <p className="ml-auto font-mono text-xs tabular-nums text-ink-subtle" data-testid="diagram-zoom">
           {label} · {Math.round(scale * 100)}%
         </p>
       </div>
       <div
         ref={wrapRef}
-        className="relative min-h-0 flex-1 cursor-grab overflow-hidden bg-paper-sunken active:cursor-grabbing"
+        className="relative min-h-0 flex-1 cursor-grab overflow-auto bg-paper-sunken active:cursor-grabbing"
         style={{ touchAction: "none" }}
         onWheel={onWheel}
         onPointerDown={onPointerDown}
@@ -129,13 +149,13 @@ export function ZoomPan({
         onPointerCancel={onPointerUp}
       >
         <div
-          className="flex h-full w-full items-center justify-center"
+          className="flex min-h-full min-w-full items-center justify-center"
           style={{
             transform: `translate(${pos.x}px, ${pos.y}px) scale(${scale})`,
             transformOrigin: "center center",
           }}
         >
-          <div ref={contentRef} className="flex h-full w-full items-center justify-center">
+          <div ref={contentRef} className="flex items-center justify-center">
             {children}
           </div>
         </div>

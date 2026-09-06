@@ -98,7 +98,7 @@ export function BayWorkspace({ job, pack }: { job: JobRecord; pack: ModelPack })
           <div {...bayChecksPaneProps(false)}>
             {showSplitDiagram ? (
               <div className="relative min-h-0 min-w-0 flex-[1.25] border-r border-line">
-                <DiagramPane pack={pack} highlight={highlight} />
+                <DiagramPane pack={pack} highlight={highlight} jobId={job.id} />
               </div>
             ) : null}
 
@@ -131,6 +131,8 @@ export function BayWorkspace({ job, pack }: { job: JobRecord; pack: ModelPack })
                   pack={pack}
                   phaseLabel={helperLabel}
                   onClose={() => setPane("checks")}
+                  onGoPane={goPane}
+                  hasDiagram={hasDiagram}
                 />
               ) : null}
             </div>
@@ -176,7 +178,7 @@ export function BayWorkspace({ job, pack }: { job: JobRecord; pack: ModelPack })
             data-testid="bay-diagram-overlay"
           >
             <div className="min-h-0 flex-1">
-              <DiagramPane pack={pack} highlight={highlight} />
+              <DiagramPane pack={pack} highlight={highlight} jobId={job.id} />
             </div>
             <div className="no-print shrink-0 border-t border-navy-deep bg-surface px-3 pt-2 pb-[max(0.6rem,env(safe-area-inset-bottom))]">
               <Button

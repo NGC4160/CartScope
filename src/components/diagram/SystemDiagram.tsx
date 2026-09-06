@@ -95,8 +95,14 @@ export function SystemDiagram({
     <svg
       viewBox={`0 0 ${DIAGRAM_W} ${DIAGRAM_H}`}
       preserveAspectRatio="xMidYMid meet"
-      className={printMode ? "h-auto w-full" : "h-full w-full"}
-      style={printMode ? { aspectRatio: `${DIAGRAM_W} / ${DIAGRAM_H}` } : undefined}
+      className={printMode ? "h-auto w-full" : undefined}
+      width={printMode ? undefined : DIAGRAM_W}
+      height={printMode ? undefined : DIAGRAM_H}
+      style={
+        printMode
+          ? { aspectRatio: `${DIAGRAM_W} / ${DIAGRAM_H}` }
+          : { width: DIAGRAM_W, height: DIAGRAM_H, minWidth: DIAGRAM_W, minHeight: DIAGRAM_H }
+      }
       role="img"
       aria-label={pack.diagramTitle}
     >
