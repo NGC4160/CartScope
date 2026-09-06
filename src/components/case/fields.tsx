@@ -1,4 +1,6 @@
 import type { InputHTMLAttributes, ReactNode } from "react";
+import type { MeasurementKind } from "@/data/types";
+import { commitMeterReading, sanitizeMeterInput } from "@/lib/meter-input";
 import { sanitizeVoltageInput } from "@/lib/voltage-input";
 
 export const inputClass =
@@ -44,6 +46,45 @@ export function VoltageInput({
       value={value}
       onFocus={(e) => e.currentTarget.select()}
       onChange={(e) => onChange(sanitizeVoltageInput(e.target.value))}
+      className={className}
+    />
+  );
+}
+
+export function MeterNumberInput({
+  value,
+  onChange,
+  kind,
+  className = "",
+  onFocus,
+  onBlur,
+  onKeyDown,
+  ...rest
+}: Omit<InputHTMLAttributes<HTMLInputElement>, "value" | "onChange" | "type"> & {
+  value: string;
+  onChange: (next: string) => void;
+  kind: MeasurementKind;
+}) {
+  return (
+    <input
+      {...rest}
+      type="text"
+      inputMode="decimal"
+      autoComplete="off"
+      autoCorrect="off"
+      spellCheck={false}
+      value={value}
+      onFocus={(e) => {
+        e.currentTarget.select();
+        onFocus?.(e);
+      }}
+      onChange={(e) => onChange(sanitizeMeterInput(e.target.value, kind))}
+      onBlur={(e) => {
+        const commit = commitMeterReading(e.currentTarget.value, { kind });
+        if (commit.ok) onChange(commit.raw);
+        onBlur?.(e);
+      }}
+      onKeyDown={onKeyDown}
       className={className}
     />
   );
