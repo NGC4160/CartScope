@@ -141,11 +141,13 @@ async function runAt(width, height, tag) {
   check(`${tag} report peek`, await page.getByText(/Bayux/).first().isVisible());
   check(`${tag} who checked it is Ryan`, await page.getByText(/^Ryan$/).first().isVisible());
   check(`${tag} helper text not in who-checked`, (await page.getByText(/Who checked it:\s*Speed sensor fault/i).count()) === 0);
-  const sawOnReport = page.getByRole("heading", { name: /What the tech saw/i });
-  if (await sawOnReport.count()) await sawOnReport.scrollIntoViewIfNeeded();
-  const fault = page.getByText("Speed sensor fault");
-  await fault.first().scrollIntoViewIfNeeded();
-  check(`${tag} what the tech saw`, await fault.first().isVisible());
+  const sawOnReport = page.getByRole("heading", { name: "What the tech saw" });
+  await sawOnReport.scrollIntoViewIfNeeded();
+  check(`${tag} what the tech saw`, await sawOnReport.isVisible());
+  check(
+    `${tag} observation on report`,
+    await page.getByRole("heading", { name: "What the tech saw" }).locator("..").getByText("Speed sensor fault").isVisible(),
+  );
   await page.screenshot({ path: `${out}/bay-${tag}-report.png` });
   await page.getByRole("button", { name: /Back to checks/i }).first().click();
   await page.getByRole("heading", { name: /Check the pack before you blame other parts/i }).waitFor();

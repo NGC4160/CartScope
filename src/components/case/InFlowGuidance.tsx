@@ -98,6 +98,7 @@ export function InFlowGuidance({
         setError(res.error);
         setHelperStatus({ available: false, reason: res.error });
       } else {
+        setHelperStatus({ available: true });
         appendAiTurn(job.id, { role: "assistant", text: res.text });
         setReply(res.text);
         if (res.suggestedStepId && pack.steps[res.suggestedStepId]) {
@@ -255,7 +256,9 @@ export function InFlowGuidance({
         </label>
       </div>
       {busy ? <p className="mt-2 font-mono text-xs text-ink-subtle">Looking in the factory book first…</p> : null}
-      {error ? <p className="mt-2 text-sm text-danger">{error}</p> : null}
+      {error && error !== helperStatus?.reason ? (
+        <p className="mt-2 text-sm text-danger">{error}</p>
+      ) : null}
       {reply ? <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-ink">{reply}</p> : null}
       {suggested.length > 0 ? (
         <div className="mt-3">
