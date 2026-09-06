@@ -89,16 +89,35 @@ export function createBaySubmitSlot(): BaySubmitSlot {
   };
 }
 
-/** True when pointer-up already saved — click must not also native-submit. */
-export function bayPrimaryClickBlocksNativeSubmit(
-  lastFireAt: number,
-  now = Date.now(),
-  windowMs = 400,
-): boolean {
-  return lastFireAt > 0 && now - lastFireAt < windowMs;
+/**
+ * Deduplicate pointer-up requestSubmit + native click submit.
+ * The actual save lives on the form's onSubmit — never on a button
+ * preventDefault that can kill #bay-check-form.
+ */
+export function createBaySubmitGate(windowMs = 400): {
+  run: (fn: () => void, key?: string) => boolean;
+} {
+  const lastByKey = new Map<string, number>();
+  return {
+    run(fn, key = "default") {
+      const now = Date.now();
+      const last = lastByKey.get(key) ?? 0;
+      if (last > 0 && now - last < windowMs) return false;
+      lastByKey.set(key, now);
+      fn();
+      return true;
+    },
+  };
 }
 
-function submitBayForm(doc: Document | undefined, formId: string | undefined): boolean {
+/**
+ * Shared across Pack / codes / factory / report so a leftover click after
+ * unmount cannot submit the next form. Not used by Job header Start.
+ */
+export const bayFormSubmitGate = createBaySubmitGate(400);
+
+/** Associated-form submit. Used as a missed-click backup — not a second save path. */
+export function requestBayFormSubmit(doc: Document | undefined, formId: string | undefined): boolean {
   if (!doc || !formId) return false;
   const form = doc.getElementById(formId);
   if (!form) return false;
@@ -120,11 +139,8 @@ export function fireBaySave(opts: {
   formId?: string;
   document?: Document;
 }): boolean {
+  if (requestBayFormSubmit(opts.document, opts.formId)) return true;
   if (opts.fire?.()) return true;
-  // Form before chrome fallback. A no-op onAction (empty snap) must not
-  // swallow the associated #bay-check-form submit — that is the #14 backup
-  // #15's Start path blocked by always preventDefault on click.
-  if (submitBayForm(opts.document, opts.formId)) return true;
   if (typeof opts.fallback === "function") {
     opts.fallback();
     return true;

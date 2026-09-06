@@ -1,22 +1,29 @@
-import { BAY_PANES, BAY_TAP_MIN_PX, type BayPane } from "@/lib/bay-chrome";
+import { BAY_TAP_MIN_PX, bayDockPanes, type BayPane } from "@/lib/bay-chrome";
 
 export function BayDock({
   value,
   onChange,
   diagramDisabled,
+  hideChecks,
 }: {
   value: BayPane;
   onChange: (pane: BayPane) => void;
   diagramDisabled?: boolean;
+  hideChecks?: boolean;
 }) {
+  const panes = bayDockPanes({ hideChecks });
   return (
     <div
       role="tablist"
       aria-label="Bay views"
       data-testid="bay-dock"
-      className="no-print grid grid-cols-4 gap-1 border-b border-line bg-surface px-2 py-1.5"
+      data-bay-report-open={hideChecks ? "" : undefined}
+      className={
+        "no-print grid gap-1 border-b border-line bg-surface px-2 py-1.5 " +
+        (panes.length === 3 ? "grid-cols-3" : "grid-cols-4")
+      }
     >
-      {BAY_PANES.map((pane) => {
+      {panes.map((pane) => {
         const active = value === pane.id;
         const disabled = pane.id === "diagram" && diagramDisabled;
         return (
@@ -25,6 +32,7 @@ export function BayDock({
             type="button"
             role="tab"
             aria-selected={active}
+            data-bay-dock-checks={pane.id === "checks" ? "" : undefined}
             disabled={disabled}
             onClick={() => onChange(pane.id)}
             className={

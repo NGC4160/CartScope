@@ -310,8 +310,7 @@ export function InFlowGuidance({
                   if (event.pointerType === "mouse" && event.button !== 0) return;
                   goToSuggested(step);
                 }}
-                onClick={(event) => {
-                  event.preventDefault();
+                onClick={() => {
                   goToSuggested(step);
                 }}
               >

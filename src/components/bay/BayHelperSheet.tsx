@@ -19,7 +19,7 @@ export function BayHelperSheet({
   return (
     <div
       data-testid="bay-helper-sheet"
-      className="absolute inset-x-0 bottom-0 top-2 z-20 flex max-h-[min(72vh,36rem)] flex-col overflow-hidden rounded-t-xl bg-surface shadow-[var(--shadow-border)]"
+      className="absolute inset-x-0 bottom-0 top-2 z-40 flex max-h-full flex-col overflow-hidden rounded-t-xl bg-surface shadow-[var(--shadow-border)]"
     >
       <header className="flex shrink-0 items-center gap-2 border-b border-line px-3 py-2">
         <div className="min-w-0 flex-1">

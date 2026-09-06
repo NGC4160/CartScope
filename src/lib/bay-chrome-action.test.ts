@@ -4,10 +4,12 @@ import {
   bayChromeClear,
   bayChromeDispatch,
   bayChromePublish,
-  bayPrimaryClickBlocksNativeSubmit,
+  bayFormSubmitGate,
+  createBaySubmitGate,
   createBaySubmitSlot,
   emptyBayChrome,
   fireBaySave,
+  requestBayFormSubmit,
 } from "./bay-chrome-action.ts";
 
 test("sticky Save fires the latest published handler, not a stale one", () => {
@@ -73,16 +75,45 @@ test("submit slot always fires the latest bind, even after a fake effect clear",
   assert.equal(slot.hasHandler(), true);
   assert.equal(slot.fire(), true);
   assert.deepEqual(calls, ["codes"]);
-  assert.equal(fireBaySave({ fire: () => slot.fire() }), true);
 });
 
-test("click only blocks native submit after a successful pointer-up save", () => {
-  assert.equal(bayPrimaryClickBlocksNativeSubmit(0, 1_000), false);
-  assert.equal(bayPrimaryClickBlocksNativeSubmit(800, 1_000), true);
-  assert.equal(bayPrimaryClickBlocksNativeSubmit(100, 1_000), false);
+test("submit gate lets the first save through and blocks the duplicate click", () => {
+  const gate = createBaySubmitGate(400);
+  const calls: string[] = [];
+  assert.equal(
+    gate.run(() => calls.push("one")),
+    true,
+  );
+  assert.equal(
+    gate.run(() => calls.push("two")),
+    false,
+  );
+  assert.deepEqual(calls, ["one"]);
 });
 
-test("fireBaySave uses the live form when the slot is empty, even if fallback is a no-op", () => {
+test("submit gate keys leftover clicks by form so Report confirm is not blocked", () => {
+  const gate = createBaySubmitGate(400);
+  const calls: string[] = [];
+  assert.equal(
+    gate.run(() => calls.push("pack"), "bay-check-form"),
+    true,
+  );
+  assert.equal(
+    gate.run(() => calls.push("codes"), "bay-check-form"),
+    false,
+  );
+  assert.equal(
+    gate.run(() => calls.push("report"), "bay-report-form"),
+    true,
+  );
+  assert.deepEqual(calls, ["pack", "report"]);
+});
+
+test("shared Save gate is not the Start hook", () => {
+  assert.equal(typeof bayFormSubmitGate.run, "function");
+});
+
+test("requestBayFormSubmit uses the live form and ignores a no-op chrome fallback", () => {
   const submitted: string[] = [];
   const form = {
     requestSubmit() {
@@ -94,14 +125,21 @@ test("fireBaySave uses the live form when the slot is empty, even if fallback is
       return id === "bay-check-form" ? form : null;
     },
   } as unknown as Document;
-  const ok = fireBaySave({
-    fire: () => false,
-    fallback: () => submitted.push("fallback"),
-    formId: "bay-check-form",
-    document: doc,
-  });
-  assert.equal(ok, true);
+  assert.equal(requestBayFormSubmit(doc, "bay-check-form"), true);
   assert.deepEqual(submitted, ["form"]);
+  assert.equal(
+    fireBaySave({
+      fire: () => {
+        submitted.push("slot");
+        return true;
+      },
+      fallback: () => submitted.push("fallback"),
+      formId: "bay-check-form",
+      document: doc,
+    }),
+    true,
+  );
+  assert.deepEqual(submitted, ["form", "form"]);
 });
 
 test("submit slot logs and returns false when Save is tapped with no handler", () => {

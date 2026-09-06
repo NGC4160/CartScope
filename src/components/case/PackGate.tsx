@@ -6,7 +6,7 @@ import { Field, inputClass, IrUnitPicker, VoltageInput } from "@/components/case
 import type { JobRecord, ModelPack, PackCheckRecord, PackCellReading, PackDraft } from "@/data/types";
 import { IR_UNIT_HELP, resolveIrUnit } from "@/lib/ir-unit";
 import { bayPackActionLabel, bayProgressChip } from "@/lib/bay-chrome";
-import { BAY_CHECK_FORM_ID } from "@/lib/bay-chrome-action";
+import { BAY_CHECK_FORM_ID, bayFormSubmitGate } from "@/lib/bay-chrome-action";
 import { packLayout, scaledLeadAcidLimits } from "@/lib/pack-layout";
 import {
   applyBulkAgeUnreadable,
@@ -58,6 +58,7 @@ export function PackGate({
 }) {
   const save = useJobStore((s) => s.savePackCheck);
   const patchJob = useJobStore((s) => s.patchJob);
+  const submitGate = bayFormSubmitGate;
   const layout = packLayout(pack);
   const lim = scaledLeadAcidLimits(layout.nominalV);
   const lithium = job.batteryType === "lithium";
@@ -259,7 +260,7 @@ export function PackGate({
       className="flex h-full min-h-0 flex-col bg-surface"
       onSubmit={(e) => {
         e.preventDefault();
-        submit();
+        submitGate.run(submit, BAY_CHECK_FORM_ID);
       }}
     >
       <div className="min-h-0 flex-1 overflow-auto p-4">

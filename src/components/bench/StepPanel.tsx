@@ -14,7 +14,7 @@ import { MeterNumberInput } from "@/components/case/fields";
 import { Button } from "@/components/ui/button";
 import { isMotorIsolationStep } from "@/lib/case-flow";
 import { bayProgressChip, bayStepActionLabel, readMeterDraft } from "@/lib/bay-chrome";
-import { BAY_CHECK_FORM_ID } from "@/lib/bay-chrome-action";
+import { BAY_CHECK_FORM_ID, bayFormSubmitGate } from "@/lib/bay-chrome-action";
 import { formatClock } from "@/lib/utils";
 import { formatReading, rangeLabel, unusualVerifyBanner } from "@/lib/diagnostics";
 import {
@@ -49,6 +49,7 @@ export function StepPanel({
   onOpenReport?: () => void;
 }) {
   const submit = useJobStore((s) => s.submitReading);
+  const submitGate = bayFormSubmitGate;
   const resetPending = useJobStore((s) => s.resetPending);
   const skipToReport = useJobStore((s) => s.skipToReport);
   const skipCheck = useJobStore((s) => s.skipCheck);
@@ -197,7 +198,7 @@ export function StepPanel({
         className="flex h-full min-h-0 flex-col"
         onSubmit={(e) => {
           e.preventDefault();
-          primarySubmit();
+          submitGate.run(primarySubmit, BAY_CHECK_FORM_ID);
         }}
       >
         <Header symptom={symptom?.label} progress={100} done />
@@ -249,7 +250,7 @@ export function StepPanel({
       className="flex h-full min-h-0 flex-col"
       onSubmit={(e) => {
         e.preventDefault();
-        primarySubmit();
+        submitGate.run(primarySubmit, BAY_CHECK_FORM_ID);
       }}
     >
       <Header symptom={symptom?.label} progress={progress} />

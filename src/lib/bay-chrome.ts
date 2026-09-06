@@ -9,6 +9,12 @@ export const BAY_PANES: { id: BayPane; label: string }[] = [
   { id: "report", label: "Report" },
 ];
 
+/** Report pane must not show a Checks tab. Back-to-checks is the action bar. */
+export function bayDockPanes(opts?: { hideChecks?: boolean }): { id: BayPane; label: string }[] {
+  if (!opts?.hideChecks) return BAY_PANES;
+  return BAY_PANES.filter((pane) => pane.id !== "checks");
+}
+
 /** Landscape tablet and up — diagram stays beside the check. */
 export const BAY_SPLIT_MIN_PX = 900;
 
