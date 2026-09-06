@@ -1,10 +1,11 @@
-import { useCallback, useLayoutEffect, useRef, useState } from "react";
+import { useCallback, useLayoutEffect, useRef, useState, type MouseEvent } from "react";
 import { ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   bayChromeClear,
   bayChromePublish,
   emptyBayChrome,
+  fireBaySave,
   type BayActionChrome,
   type BayChromeSnapshot,
 } from "@/lib/bay-chrome-action";
@@ -18,9 +19,6 @@ export function useBayChrome() {
 
   const setChrome = useCallback((next: BayActionChrome | null) => {
     if (!next) {
-      // Pack/check unmount used to call onChrome(null) from useEffect. That
-      // cleanup runs after the next panel already published, wiping onAction
-      // so sticky Save looked live but did nothing. Ignore token-less clears.
       const nextSnap = bayChromeClear(snapRef.current);
       snapRef.current = nextSnap;
       return;
@@ -55,7 +53,7 @@ export function useBayChrome() {
   return [chrome, setChrome] as const;
 }
 
-/** Push sticky-bar chrome without a useEffect(null) cleanup that can race. */
+/** Labels only. The click path must not depend on this effect. */
 export function usePublishBayChrome(
   onChrome: ((chrome: BayActionChrome | null) => void) | undefined,
   spec: {
@@ -87,8 +85,28 @@ export function usePublishBayChrome(
   }, [onChrome, spec.chip, spec.label, spec.disabled, spec.busy, spec.secondaryLabel]);
 }
 
-export function BayActionBar({ chrome }: { chrome: BayActionChrome | null }) {
+export function BayActionBar({
+  chrome,
+  formId,
+  fire,
+}: {
+  chrome: BayActionChrome | null;
+  formId?: string;
+  fire?: () => boolean;
+}) {
   if (!chrome) return null;
+  const live = chrome;
+
+  function onPrimaryClick(event: MouseEvent<HTMLButtonElement>) {
+    event.preventDefault();
+    fireBaySave({
+      fire,
+      fallback: live.onAction,
+      formId,
+      document: typeof document !== "undefined" ? document : undefined,
+    });
+  }
+
   return (
     <div
       data-testid="bay-action-bar"
@@ -96,28 +114,29 @@ export function BayActionBar({ chrome }: { chrome: BayActionChrome | null }) {
     >
       <div className="flex items-center gap-2">
         <p className="shrink-0 rounded-md bg-paper-sunken px-2.5 py-1 font-mono text-xs font-semibold tabular-nums text-navy">
-          {chrome.chip}
+          {live.chip}
         </p>
-        {chrome.secondaryLabel && chrome.onSecondary ? (
+        {live.secondaryLabel && live.onSecondary ? (
           <Button
             type="button"
             variant="ghost"
             className="min-h-11 shrink-0"
             style={{ minHeight: BAY_TAP_MIN_PX }}
-            onClick={chrome.onSecondary}
+            onClick={live.onSecondary}
           >
-            {chrome.secondaryLabel}
+            {live.secondaryLabel}
           </Button>
         ) : null}
         <Button
-          type="button"
+          type="submit"
+          form={formId}
           data-testid="bay-primary-action"
           className="min-h-12 min-w-0 flex-1"
           style={{ minHeight: Math.max(BAY_TAP_MIN_PX, 48) }}
-          onClick={chrome.onAction}
-          disabled={chrome.disabled || chrome.busy}
+          onClick={onPrimaryClick}
+          disabled={live.disabled || live.busy}
         >
-          <span className="truncate">{chrome.label}</span>
+          <span className="truncate">{live.label}</span>
           <ChevronRight className="size-4 shrink-0" />
         </Button>
       </div>

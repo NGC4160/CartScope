@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { BayActionBar, useBayChrome } from "@/components/bay/BayActionBar";
+import { BAY_CHECK_FORM_ID, BAY_REPORT_FORM_ID, createBaySubmitSlot } from "@/lib/bay-chrome-action";
 import { BayDock } from "@/components/bay/BayDock";
 import { BayHelperSheet } from "@/components/bay/BayHelperSheet";
 import { DiagramPane } from "@/components/bay/DiagramPane";
@@ -26,6 +27,8 @@ export function BayWorkspace({ job, pack }: { job: JobRecord; pack: ModelPack })
   const [pane, setPane] = useState<BayPane>(() => defaultBayPane(job));
   const [checkChrome, setCheckChrome] = useBayChrome();
   const [reportChrome, setReportChrome] = useBayChrome();
+  const checkSubmit = useRef(createBaySubmitSlot()).current;
+  const reportSubmit = useRef(createBaySubmitSlot()).current;
   const split = useMediaQuery(`(min-width: ${BAY_SPLIT_MIN_PX}px)`);
   const phase = job.casePhase ?? "steps";
   const step = pack.steps[job.currentStepId];
@@ -57,14 +60,15 @@ export function BayWorkspace({ job, pack }: { job: JobRecord; pack: ModelPack })
 
   const checkPanel =
     phase === "pack" ? (
-      <PackGate job={job} pack={pack} onChrome={setCheckChrome} />
+      <PackGate job={job} pack={pack} onChrome={setCheckChrome} bindSubmit={(fn) => checkSubmit.bind(fn)} />
     ) : phase === "codes" ? (
-      <CodeGate job={job} pack={pack} onChrome={setCheckChrome} />
+      <CodeGate job={job} pack={pack} onChrome={setCheckChrome} bindSubmit={(fn) => checkSubmit.bind(fn)} />
     ) : (
       <StepPanel
         job={job}
         pack={pack}
         onChrome={setCheckChrome}
+        bindSubmit={(fn) => checkSubmit.bind(fn)}
         onOpenDiagram={() => goPane("diagram")}
         onOpenReport={() => {
           setPhase(job.id, "report");
@@ -118,7 +122,7 @@ export function BayWorkspace({ job, pack }: { job: JobRecord; pack: ModelPack })
                 {job.techObservation.trim()}
               </button>
             ) : null}
-            <BayActionBar chrome={checkChrome} />
+            <BayActionBar chrome={checkChrome} formId={BAY_CHECK_FORM_ID} fire={() => checkSubmit.fire()} />
           </div>
         </div>
 
@@ -136,6 +140,7 @@ export function BayWorkspace({ job, pack }: { job: JobRecord; pack: ModelPack })
                 peek
                 onBackToChecks={backToChecks}
                 onChrome={setReportChrome}
+                bindSubmit={(fn) => reportSubmit.bind(fn)}
               />
             </div>
             <BayActionBar
@@ -146,6 +151,8 @@ export function BayWorkspace({ job, pack }: { job: JobRecord; pack: ModelPack })
                   onAction: backToChecks,
                 }
               }
+              formId={BAY_REPORT_FORM_ID}
+              fire={() => reportSubmit.fire()}
             />
           </div>
         ) : null}

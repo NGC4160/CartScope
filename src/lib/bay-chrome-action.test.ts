@@ -4,7 +4,9 @@ import {
   bayChromeClear,
   bayChromeDispatch,
   bayChromePublish,
+  createBaySubmitSlot,
   emptyBayChrome,
+  fireBaySave,
 } from "./bay-chrome-action.ts";
 
 test("sticky Save fires the latest published handler, not a stale one", () => {
@@ -60,4 +62,32 @@ test("a bare clear with no token is ignored so effect cleanups cannot wipe the b
 
 test("dispatch is a no-op when no save handler is published", () => {
   assert.equal(bayChromeDispatch(emptyBayChrome()), false);
+});
+
+test("submit slot always fires the latest bind, even after a fake effect clear", () => {
+  const slot = createBaySubmitSlot();
+  const calls: string[] = [];
+  slot.bind(() => calls.push("pack"));
+  slot.bind(() => calls.push("codes"));
+  assert.equal(slot.hasHandler(), true);
+  assert.equal(slot.fire(), true);
+  assert.deepEqual(calls, ["codes"]);
+  assert.equal(fireBaySave({ fire: () => slot.fire() }), true);
+});
+
+test("submit slot logs and returns false when Save is tapped with no handler", () => {
+  const slot = createBaySubmitSlot();
+  const warns: string[] = [];
+  const orig = console.warn;
+  console.warn = (msg) => {
+    warns.push(String(msg));
+  };
+  try {
+    assert.equal(slot.hasHandler(), false);
+    assert.equal(slot.fire(), false);
+    assert.equal(fireBaySave({}), false);
+  } finally {
+    console.warn = orig;
+  }
+  assert.ok(warns.some((w) => /sticky Save tapped with no handler/.test(w)));
 });

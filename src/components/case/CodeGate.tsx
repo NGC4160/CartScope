@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Field, inputClass } from "@/components/case/fields";
 import type { JobRecord, ModelPack } from "@/data/types";
 import { bayCodesActionLabel, bayProgressChip } from "@/lib/bay-chrome";
+import { BAY_CHECK_FORM_ID } from "@/lib/bay-chrome-action";
 import { handheldSaveBlockers } from "@/lib/handheld-form";
 import { suggestedHandheldName } from "@/lib/handheld";
 import { useJobStore } from "@/store/jobs";
@@ -14,10 +15,12 @@ export function CodeGate({
   job,
   pack,
   onChrome,
+  bindSubmit,
 }: {
   job: JobRecord;
   pack: ModelPack;
   onChrome?: (chrome: BayActionChrome | null) => void;
+  bindSubmit?: (fn: () => void) => void;
 }) {
   const save = useJobStore((s) => s.saveCodeSave);
   const prior = job.codeSave;
@@ -89,6 +92,8 @@ export function CodeGate({
     });
   }
 
+  bindSubmit?.(go);
+
   usePublishBayChrome(onChrome, {
     chip: bayProgressChip(job, pack),
     label: bayCodesActionLabel(),
@@ -96,7 +101,14 @@ export function CodeGate({
   });
 
   return (
-    <div className="flex h-full min-h-0 flex-col bg-surface">
+    <form
+      id={BAY_CHECK_FORM_ID}
+      className="flex h-full min-h-0 flex-col bg-surface"
+      onSubmit={(e) => {
+        e.preventDefault();
+        go();
+      }}
+    >
       <div className="min-h-0 flex-1 overflow-auto p-4">
         <p className="font-mono text-xs font-semibold tracking-wide text-navy">HANDHELD</p>
         <h2 className="mt-1 font-display text-2xl font-semibold leading-tight text-ink">
@@ -314,6 +326,6 @@ export function CodeGate({
           </ul>
         ) : null}
       </div>
-    </div>
+    </form>
   );
 }

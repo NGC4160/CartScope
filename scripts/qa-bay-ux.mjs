@@ -1,7 +1,7 @@
 import { chromium } from "playwright";
 import { mkdirSync } from "node:fs";
 
-const BASE = "http://127.0.0.1:8080";
+const BASE = process.env.BAY_QA_BASE || "http://127.0.0.1:8080";
 const out = "/workspace/screenshots";
 mkdirSync(out, { recursive: true });
 
@@ -199,6 +199,20 @@ async function runFactoryCheck() {
   await page.close();
 }
 
+async function readStoredJob(page) {
+  return page.evaluate(() => {
+    const raw = localStorage.getItem("cartscope-jobs-v1");
+    if (!raw) return null;
+    try {
+      const parsed = JSON.parse(raw);
+      const jobs = parsed?.state?.jobs ?? parsed?.jobs ?? [];
+      return jobs[0] ?? null;
+    } catch {
+      return null;
+    }
+  });
+}
+
 async function fillLeadAcidPack(page, { count, volts, ir, age }) {
   for (let i = 1; i <= count; i++) {
     await page.getByRole("textbox", { name: new RegExp(`^Battery ${i} resting volts`, "i") }).fill(String(volts));
@@ -222,10 +236,16 @@ async function runStickySaveAdvance() {
   check("advance pack in shop range", await page.getByText(/in the shop range/i).isVisible());
   const packSave = page.getByTestId("bay-primary-action");
   check("advance pack save enabled", await packSave.isEnabled());
+  check("advance pack form wired", (await page.locator("#bay-check-form").count()) === 1);
+  check("advance pack button submits form", (await packSave.getAttribute("form")) === "bay-check-form");
   await packSave.click();
   await page.getByRole("heading", { name: /Save a program file before you clear/i }).waitFor({ timeout: 10000 });
   check("advance pack sticky Save left pack", await page.getByRole("heading", { name: /Save a program file before you clear/i }).isVisible());
   check("advance pack heading gone", (await page.getByRole("heading", { name: /Check the pack before you blame other parts/i }).count()) === 0);
+  const storedPack = await readStoredJob(page);
+  check("advance packCheck saved on job", Boolean(storedPack?.packCheck), JSON.stringify(storedPack?.packCheck ?? null));
+  check("advance pack phase left pack", storedPack?.casePhase === "codes" || storedPack?.casePhase === "steps", String(storedPack?.casePhase));
+  check("advance pack IR unit on record", storedPack?.packCheck?.cells?.some((c) => c.ir && (c.irUnit === "mohm" || /mΩ/.test(c.ir))), JSON.stringify(storedPack?.packCheck?.cells?.[0] ?? null));
 
   await page.getByTestId("bay-dock").getByRole("tab", { name: "Report" }).click();
   await page.getByText(/Report peek|Report draft/i).first().waitFor();
@@ -234,7 +254,16 @@ async function runStickySaveAdvance() {
   const reportText = await page.locator("body").innerText();
   check("advance report shows IR with unit", /12\.1\s*mΩ|IR 12\.1 mΩ|3\.4\s*mΩ|IR 3\.4 mΩ/.test(reportText), reportText.slice(0, 200));
   check("advance who checked it still Ryan", /Who checked it[\s\S]{0,40}Ryan/.test(reportText) || (await page.getByText(/^Ryan$/).count()) > 0);
-  await page.getByRole("button", { name: /Back to checks/i }).first().click();
+  const review = page.getByTestId("bay-primary-action");
+  check("advance report form wired", (await page.locator("#bay-report-form").count()) === 1);
+  await review.click();
+  await page.waitForTimeout(800);
+  const storedAfterConfirm = await readStoredJob(page);
+  check(
+    "advance review and confirm saved",
+    Boolean(storedAfterConfirm?.reportConfirmed) || (await page.getByText(/This case is marked complete/i).count()) > 0,
+    String(storedAfterConfirm?.reportConfirmed),
+  );
   await page.close();
 
   const gas = await browser.newPage({ viewport: { width: 1024, height: 768 } });
@@ -260,9 +289,13 @@ async function runStickySaveAdvance() {
   await gas.getByRole("button", { name: /Setup is right — keep going/i }).click();
   const checkSave = gas.getByTestId("bay-primary-action");
   check("advance factory save enabled", await checkSave.isEnabled());
+  const stepBefore = await readStoredJob(gas);
   await checkSave.click();
   await gas.getByText(/CHECK 2/i).first().waitFor({ timeout: 8000 });
   check("advance factory sticky Save left check 1", await gas.getByText(/CHECK 2/i).first().isVisible());
+  const storedCheck = await readStoredJob(gas);
+  check("advance factory currentStepId moved", storedCheck?.currentStepId && storedCheck.currentStepId !== (stepBefore?.currentStepId ?? "g-setup"), `${stepBefore?.currentStepId} -> ${storedCheck?.currentStepId}`);
+  check("advance factory log saved", (storedCheck?.log?.length ?? 0) >= 1, String(storedCheck?.log?.length));
   await gas.close();
 }
 
