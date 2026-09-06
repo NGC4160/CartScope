@@ -186,6 +186,8 @@ export interface PackCellReading {
   index: number;
   volts: string;
   ir?: string;
+  /** Shop scale used when the tech typed `ir`. Default milliohms. */
+  irUnit?: "mohm" | "megohm";
   irCouldNot?: boolean;
   irSkipReason?: string;
   ageMonthYear?: string;
@@ -306,6 +308,7 @@ export interface JobRecord {
 export interface PackDraftCell {
   volts: string;
   ir: string;
+  irUnit?: "mohm" | "megohm";
   age: string;
   ageSkip: boolean;
 }

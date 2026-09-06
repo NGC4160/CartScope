@@ -1,6 +1,5 @@
 import { X } from "lucide-react";
 import { AssistantDock } from "@/components/assistant/AssistantDock";
-import { CaseHelper } from "@/components/case/CaseHelper";
 import { InFlowGuidance } from "@/components/case/InFlowGuidance";
 import { Button } from "@/components/ui/button";
 import type { JobRecord, ModelPack } from "@/data/types";
@@ -38,11 +37,10 @@ export function BayHelperSheet({
         </Button>
       </header>
       <div className="min-h-0 flex-1 overflow-auto">
-        <CaseHelper job={job} pack={pack} />
-        <div className="px-3 pb-3">
+        <div className="px-3 py-3">
           <InFlowGuidance job={job} pack={pack} phaseLabel={phaseLabel} />
         </div>
-        <AssistantDock modelId={pack.id} job={job} />
+        <AssistantDock modelId={pack.id} job={job} compact />
       </div>
     </div>
   );

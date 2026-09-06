@@ -94,11 +94,25 @@ async function runAt(width, height, tag) {
   await page.getByTestId("bay-helper-sheet").waitFor({ state: "visible" });
   check(`${tag} helper sheet`, await page.getByTestId("bay-helper-sheet").isVisible());
   check(`${tag} save still visible with helper`, await save.isVisible());
+  const helperHeaders = page.getByTestId("bay-helper-sheet").getByText(/^HELPER$/);
+  check(`${tag} single helper chrome`, (await helperHeaders.count()) === 1, String(await helperHeaders.count()));
+  const sawBox = page.getByPlaceholder(/Customer slang is fine/i);
+  if (await sawBox.count()) {
+    await sawBox.fill("Speed sensor fault");
+  }
   await page.getByTestId("bay-helper-sheet").getByRole("button", { name: /^Close$/i }).click();
+
+  const irUnit = page.getByRole("button", { name: /milliohms/i }).first();
+  check(`${tag} IR milliohms picker`, await irUnit.isVisible());
+  check(`${tag} IR milliohms selected`, (await irUnit.getAttribute("aria-pressed")) === "true");
 
   await dock.getByRole("tab", { name: "Report" }).click();
   await page.getByText(/Report peek|Report draft/i).first().waitFor();
   check(`${tag} report peek`, await page.getByText(/Bayux/).first().isVisible());
+  const who = page.getByText(/Who checked it/i);
+  check(`${tag} who checked it is Ryan`, await page.getByText(/^Ryan$/).first().isVisible());
+  check(`${tag} helper text not in who-checked`, (await page.getByText(/Who checked it:\s*Speed sensor fault/i).count()) === 0);
+  check(`${tag} what the tech saw`, await page.getByText(/Speed sensor fault/).first().isVisible());
   await page.screenshot({ path: `${out}/bay-${tag}-report.png` });
   await page.getByRole("button", { name: /Back to checks/i }).first().click();
   await page.getByRole("heading", { name: /Check the pack before you blame other parts/i }).waitFor();

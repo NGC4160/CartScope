@@ -8,7 +8,7 @@ import { Field, inputClass } from "@/components/case/fields";
 import type { JobRecord, ModelPack } from "@/data/types";
 import { bayProgressChip, bayReportActionLabel } from "@/lib/bay-chrome";
 import { submitBrainCopy } from "@/lib/brain-submit";
-import { plainCaseSummary } from "@/lib/case-summary";
+import { helperNoteSpeaker, helperNotesForReport, plainCaseSummary, reportWhoCheckedIt } from "@/lib/case-summary";
 import { formatReading } from "@/lib/diagnostics";
 import { formatHandheldRecord } from "@/lib/handheld";
 import { PackNaBanner } from "@/components/case/PackNaBanner";
@@ -53,6 +53,7 @@ export function CaseReport({
   const [filing, setFiling] = useState(false);
 
   const summary = plainCaseSummary({ ...job, retestNote: retest }, pack, proof);
+  const helperNotes = helperNotesForReport(job);
 
   async function copy() {
     try {
@@ -130,6 +131,7 @@ export function CaseReport({
         <dl className="mt-4 grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
           <Row label="Customer last name" value={job.lastName || "—"} />
           <Row label="Housecall Pro job number" value={job.hcpJobNumber || "—"} />
+          <Row label="Who checked it" value={reportWhoCheckedIt(job)} />
           <Row label="Year" value={job.cartYear || "—"} />
           <Row label="Make" value={job.cartMake || pack.manufacturerLabel} />
           <Row label="Model" value={job.cartModel || pack.name} />
@@ -352,12 +354,12 @@ export function CaseReport({
           </section>
         ) : null}
 
-        {job.includeAiInReport !== false && job.aiLog && job.aiLog.length > 0 ? (
+        {helperNotes.length > 0 ? (
           <section className="mt-6">
             <h2 className="font-display text-lg font-semibold">Helper notes</h2>
-            {job.aiLog.map((t, i) => (
-              <p key={`${t.at}-${i}`} className="mt-2 whitespace-pre-wrap text-sm leading-relaxed">
-                <span className="font-medium">{t.role === "user" ? "Who checked it: " : "Helper: "}</span>
+            {helperNotes.map((t, i) => (
+              <p key={`${t.role}-${i}-${t.text.slice(0, 24)}`} className="mt-2 whitespace-pre-wrap text-sm leading-relaxed">
+                <span className="font-medium">{helperNoteSpeaker(t.role)}: </span>
                 {t.text}
               </p>
             ))}

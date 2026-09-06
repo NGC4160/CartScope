@@ -119,6 +119,16 @@ test("paste accepts one battery per line with volts, IR, and age", () => {
   );
 });
 
+test("paste reads an IR unit suffix and keeps the typed number", () => {
+  const result = parseBulkPackPaste("8.50\t12.1 mΩ\t09/2024", emptyPackCells(1), 1);
+  assert.equal(result.applied, 1);
+  assert.equal(result.cells[0]?.ir, "12.1");
+  assert.equal(result.cells[0]?.irUnit, "mohm");
+  const mega = parseBulkPackPaste("8.50\t0.5 MΩ\t09/2024", emptyPackCells(1), 1);
+  assert.equal(mega.cells[0]?.ir, "0.5");
+  assert.equal(mega.cells[0]?.irUnit, "megohm");
+});
+
 test("paste of eight values onto a six-battery pack keeps the first six", () => {
   const result = parseBulkPackPaste("8.1 8.2 8.3 8.4 8.5 8.6 8.7 8.8", emptyPackCells(6), 6);
   assert.equal(result.applied, 6);

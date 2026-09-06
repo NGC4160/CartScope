@@ -1,5 +1,6 @@
 import { forwardRef, type InputHTMLAttributes, type ReactNode } from "react";
 import type { MeasurementKind } from "@/data/types";
+import { irUnitName, irUnitSymbol, type IrUnit } from "@/lib/ir-unit";
 import { commitMeterReading, sanitizeMeterInput } from "@/lib/meter-input";
 import { sanitizeVoltageInput } from "@/lib/voltage-input";
 
@@ -119,6 +120,40 @@ export const MeterNumberInput = forwardRef<
     />
   );
 });
+
+export function IrUnitPicker({
+  value,
+  onChange,
+  disabled,
+}: {
+  value: IrUnit;
+  onChange: (unit: IrUnit) => void;
+  disabled?: boolean;
+}) {
+  return (
+    <div className="grid shrink-0 grid-cols-2 gap-1" role="group" aria-label="Internal resistance unit">
+      {(["mohm", "megohm"] as const).map((unit) => {
+        const on = value === unit;
+        return (
+          <button
+            key={unit}
+            type="button"
+            disabled={disabled}
+            aria-pressed={on}
+            aria-label={`${irUnitName(unit)} (${irUnitSymbol(unit)})`}
+            onClick={() => onChange(unit)}
+            className={
+              "min-h-12 min-w-12 rounded-md px-2 text-sm font-medium shadow-[var(--shadow-border)] " +
+              (on ? "bg-navy text-navy-fg" : "bg-surface text-ink")
+            }
+          >
+            {irUnitSymbol(unit)}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
 
 export function YesNo({
   value,

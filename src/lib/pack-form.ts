@@ -1,8 +1,10 @@
+import { DEFAULT_IR_UNIT, parseIrReading, parseIrUnitToken, type IrUnit } from "./ir-unit.ts";
 import { parseAgeMonthYear, parseVolts } from "./pack-rules.ts";
 
 export type PackCellDraft = {
   volts: string;
   ir: string;
+  irUnit?: IrUnit;
   age: string;
   ageSkip: boolean;
 };
@@ -80,7 +82,13 @@ export function applyBulkAgeUnreadable(cells: PackCellDraft[], unread: boolean):
 }
 
 export function emptyPackCells(count: number): PackCellDraft[] {
-  return Array.from({ length: count }, () => ({ volts: "", ir: "", age: "", ageSkip: false }));
+  return Array.from({ length: count }, () => ({
+    volts: "",
+    ir: "",
+    irUnit: DEFAULT_IR_UNIT,
+    age: "",
+    ageSkip: false,
+  }));
 }
 
 export function packPasteTemplate(count: number): string {
@@ -107,6 +115,9 @@ function looksLikeHeader(line: string): boolean {
 }
 
 function looksLikeVoltage(token: string): boolean {
+  if (parseIrUnitToken(token)) return false;
+  if (/[a-zA-ZΩ]/.test(token)) return false;
+  if (/^\d{1,2}[/-]\d{2,4}$/.test(token.trim())) return false;
   return typedVoltage(token) != null;
 }
 
@@ -138,7 +149,7 @@ export function parseBulkPackPaste(raw: string, existing: PackCellDraft[], count
       parsed = voltageTokens.map((volts) => ({ volts }));
     } else if (tokens.length >= 3 && tokens.length % 3 === 0) {
       for (let i = 0; i < tokens.length; i += 3) {
-        parsed.push({ volts: tokens[i], ir: tokens[i + 1], age: tokens[i + 2] });
+        parsed.push({ volts: tokens[i], ...irFromToken(tokens[i + 1]!), age: tokens[i + 2] });
       }
     } else {
       parsed = [rowFromTokens(tokens)];
@@ -155,6 +166,7 @@ export function parseBulkPackPaste(raw: string, existing: PackCellDraft[], count
     cells[i] = {
       volts: next.volts ?? cells[i]!.volts,
       ir: next.ir ?? cells[i]!.ir,
+      irUnit: next.irUnit ?? cells[i]!.irUnit ?? DEFAULT_IR_UNIT,
       age: next.age ?? cells[i]!.age,
       ageSkip: next.ageSkip ?? cells[i]!.ageSkip,
     };
@@ -177,9 +189,17 @@ function rowFromTokens(tokens: string[]): Partial<PackCellDraft> {
   if (useful.length === 1) return { volts: useful[0] };
   if (useful.length === 2) {
     if (parseAgeMonthYear(useful[1]!)) return { volts: useful[0], age: useful[1] };
-    return { volts: useful[0], ir: useful[1] };
+    return { volts: useful[0], ...irFromToken(useful[1]!) };
   }
-  return { volts: useful[0], ir: useful[1], age: useful[2] };
+  return { volts: useful[0], ...irFromToken(useful[1]!), age: useful[2] };
+}
+
+function irFromToken(token: string): Pick<PackCellDraft, "ir" | "irUnit"> {
+  const parsed = parseIrReading(token);
+  return {
+    ir: parsed.value || token,
+    irUnit: parsed.unit ?? DEFAULT_IR_UNIT,
+  };
 }
 
 export function groupPackBlockers(blockers: PackBlocker[]): { heading: string; items: PackBlocker[] }[] {

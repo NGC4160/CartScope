@@ -72,7 +72,33 @@ test("typed tech observation stays on the report copy after helper notes", () =>
     gasPack,
     proof,
   );
+  assert.match(text, /Who checked it: Hayden/);
   assert.match(text, /What the tech saw/);
   assert.match(text, /Solenoid clicks, no spark at the plug/);
   assert.match(text, /Helper notes/);
+  assert.match(text, /Helper: Go to spark at the plug/);
+  assert.doesNotMatch(text, /Who checked it: Solenoid/);
+});
+
+test("helper observation never fills Who checked it, even when it is the only chat line", () => {
+  const text = plainCaseSummary(
+    gasJob({
+      technician: "Ryan",
+      techObservation: "Speed sensor fault",
+      includeAiInReport: true,
+      aiLog: [
+        { at: "2026-09-06T00:00:00.000Z", role: "user", text: "Speed sensor fault" },
+        { at: "2026-09-06T00:00:00.000Z", role: "user", text: "Speed sensor fault" },
+        { at: "2026-09-06T00:00:01.000Z", role: "assistant", text: "Go to the speed sensor check." },
+      ],
+    }),
+    gasPack,
+    proof,
+  );
+  assert.match(text, /Who checked it: Ryan/);
+  assert.equal([...text.matchAll(/Who checked it:/g)].length, 1);
+  assert.doesNotMatch(text, /Who checked it: Speed sensor fault/);
+  assert.match(text, /What the tech saw\nSpeed sensor fault/);
+  assert.match(text, /Helper: Go to the speed sensor check/);
+  assert.doesNotMatch(text, /Tech note: Speed sensor fault/);
 });

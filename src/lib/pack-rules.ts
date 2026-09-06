@@ -1,4 +1,5 @@
 import type { PackCheckRecord } from "@/data/types";
+import { DEFAULT_IR_UNIT, formatIrReading, irToMilliohms, type IrUnit } from "./ir-unit.ts";
 import { scaledLeadAcidLimits } from "./pack-layout.ts";
 
 export function parseVolts(raw: string): number | undefined {
@@ -99,14 +100,21 @@ export function evaluateLeadAcid(
   return { pass: issues.length === 0, issues };
 }
 
-/** Flag only. Does not fail the pack and does not recommend parts. */
-export function irSpreadNote(readings: string[]): string | null {
-  const nums = readings.map(parseIrNumber).filter((n): n is number => n != null && n > 0);
+export type IrSpreadReading = { ir: string; unit?: IrUnit } | string;
+
+/** Flag only. Does not fail the pack and does not recommend parts. Compares in milliohms. */
+export function irSpreadNote(readings: IrSpreadReading[]): string | null {
+  const nums = readings
+    .map((r) => {
+      if (typeof r === "string") return parseIrNumber(r);
+      return irToMilliohms(r.ir, r.unit ?? DEFAULT_IR_UNIT);
+    })
+    .filter((n): n is number => n != null && n > 0);
   if (nums.length < 2) return null;
   const min = Math.min(...nums);
   const max = Math.max(...nums);
   if (max >= min * 2) {
-    return `Internal resistance is uneven across the pack (about ${min} to ${max} as the IR meter showed). That is a pack-health concern. Do not replace batteries from resistance alone. Keep the rest of the checks.`;
+    return `Internal resistance is uneven across the pack (about ${min} to ${max} mΩ after converting each reading to milliohms). That is a pack-health concern. Do not replace batteries from resistance alone. Keep the rest of the checks.`;
   }
   return null;
 }
@@ -120,11 +128,12 @@ export function formatPackCellLine(c: {
   index: number;
   volts: string;
   ir?: string;
+  irUnit?: IrUnit;
   irCouldNot?: boolean;
   ageMonthYear?: string;
   ageNotReadable?: boolean;
 }): string {
-  const ir = c.irCouldNot ? "IR not measured" : c.ir?.trim() ? `IR ${c.ir.trim()}` : "IR —";
+  const ir = formatIrReading(c.ir, c.irUnit, c.irCouldNot);
   const age = c.ageNotReadable ? "age not readable" : c.ageMonthYear?.trim() ? `age ${c.ageMonthYear.trim()}` : "age —";
   return `Battery ${c.index + 1}: ${c.volts || "—"} V · ${ir} · ${age}`;
 }

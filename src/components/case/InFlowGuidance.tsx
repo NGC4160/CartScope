@@ -1,14 +1,24 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { BookOpen, ChevronRight, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Field, inputClass } from "@/components/case/fields";
 import type { DiagnosticStep, JobRecord, ModelPack } from "@/data/types";
+import { getHelperStatus, type HelperStatus } from "@/lib/assistant";
 import { manualsOnFile, matchObservationToSteps } from "@/lib/manuals";
 import { sheetsForPack } from "@/data/wiring";
 import { evaluateProof } from "@/lib/proof";
 import { runJobAssistant } from "@/lib/run-assistant";
 import { useJobStore } from "@/store/jobs";
 import { useManualStore } from "@/store/manuals";
+
+function uniqueSteps(steps: DiagnosticStep[]): DiagnosticStep[] {
+  const seen = new Set<string>();
+  return steps.filter((step) => {
+    if (seen.has(step.id)) return false;
+    seen.add(step.id);
+    return true;
+  });
+}
 
 export function InFlowGuidance({
   job,
@@ -42,6 +52,26 @@ export function InFlowGuidance({
   const [candTitle, setCandTitle] = useState("");
   const [candNote, setCandNote] = useState("");
   const [candUrl, setCandUrl] = useState("");
+  const [helperStatus, setHelperStatus] = useState<HelperStatus | null>(null);
+
+  useEffect(() => {
+    let alive = true;
+    void getHelperStatus()
+      .then((status) => {
+        if (alive) setHelperStatus(status);
+      })
+      .catch(() => {
+        if (alive) {
+          setHelperStatus({
+            available: false,
+            reason: "Could not reach the helper. Factory checks and manuals still work.",
+          });
+        }
+      });
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   function persistObservation(next: string) {
     patchJob(job.id, { techObservation: next });
@@ -53,9 +83,9 @@ export function InFlowGuidance({
     persistObservation(question);
     setBusy(true);
     setError(null);
-    const localHits = matchObservationToSteps(pack, question, job.currentStepId);
+    setReply(null);
+    const localHits = uniqueSteps(matchObservationToSteps(pack, question, job.currentStepId));
     setSuggested(localHits);
-    appendAiTurn(job.id, { role: "user", text: question });
     try {
       const res = await runJobAssistant(
         job,
@@ -66,22 +96,18 @@ export function InFlowGuidance({
       );
       if (!res.ok) {
         setError(res.error);
-        const fallback = coverage.onFile
-          ? "Helper is offline. Use the factory check on this screen and the wire pictures on file."
-          : `${coverage.summary} Stay on the meter-evidence path. Do not invent or auto-add a manual.`;
-        if (localHits.length === 0) {
-          setReply(fallback);
-          appendAiTurn(job.id, { role: "assistant", text: fallback });
-        }
+        setHelperStatus({ available: false, reason: res.error });
       } else {
         appendAiTurn(job.id, { role: "assistant", text: res.text });
         setReply(res.text);
         if (res.suggestedStepId && pack.steps[res.suggestedStepId]) {
-          setSuggested([pack.steps[res.suggestedStepId]!, ...localHits.filter((s) => s.id !== res.suggestedStepId)]);
+          setSuggested(
+            uniqueSteps([pack.steps[res.suggestedStepId]!, ...localHits.filter((s) => s.id !== res.suggestedStepId)]),
+          );
         }
       }
     } catch {
-      setError("Could not reach the helper. The factory check on this screen still stands.");
+      setError("Could not reach the helper. Factory checks and manuals still work.");
     } finally {
       setBusy(false);
     }
@@ -109,6 +135,11 @@ export function InFlowGuidance({
     <section className="mt-5 rounded-md border border-navy/20 bg-surface-2 p-3">
       <p className="font-mono text-[11px] font-semibold tracking-[0.16em] text-navy">ON THIS CHECK</p>
       <p className="mt-1 text-sm font-medium text-ink">{phaseLabel}</p>
+      {helperStatus && !helperStatus.available ? (
+        <p className="mt-2 rounded-md bg-warn-bg px-3 py-2 text-sm text-ink" data-testid="helper-offline-reason">
+          {helperStatus.reason}
+        </p>
+      ) : null}
       <p className="mt-1 text-sm leading-relaxed text-ink">{proof.nextHint}</p>
       {proof.conflicts.map((c) => (
         <p key={c} className="mt-2 text-sm text-warn">
@@ -203,7 +234,9 @@ export function InFlowGuidance({
         />
       </label>
       {observation.trim() ? (
-        <p className="mt-1 text-xs text-ink-muted">Saved on this case. It stays after helper lookup and on the report.</p>
+        <p className="mt-1 text-xs text-ink-muted">
+          Saved under What the tech saw. It does not fill Who checked it.
+        </p>
       ) : null}
       <div className="mt-2 flex flex-wrap items-center gap-2">
         <Button size="sm" onClick={() => void sendObservation()} disabled={busy || !observation.trim()}>

@@ -1,7 +1,7 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ChevronDown, ChevronUp, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { askBenchAssistant } from "@/lib/assistant";
+import { askBenchAssistant, getHelperStatus, type HelperStatus } from "@/lib/assistant";
 import { runJobAssistant } from "@/lib/run-assistant";
 import type { JobRecord } from "@/data/types";
 import { useJobStore } from "@/store/jobs";
@@ -16,9 +16,12 @@ const EXAMPLES = [
 export function AssistantDock({
   modelId,
   job,
+  compact = false,
 }: {
   modelId: string;
   job?: JobRecord;
+  /** Bay Helper sheet: no second always-on input under the in-flow helper. */
+  compact?: boolean;
 }) {
   const appendAiTurn = useJobStore((s) => s.appendAiTurn);
   const setInclude = useJobStore((s) => s.setIncludeAiInReport);
@@ -27,7 +30,27 @@ export function AssistantDock({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [local, setLocal] = useState<{ role: "user" | "assistant"; text: string }[]>([]);
+  const [helperStatus, setHelperStatus] = useState<HelperStatus | null>(null);
   const scroller = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    let alive = true;
+    void getHelperStatus()
+      .then((status) => {
+        if (alive) setHelperStatus(status);
+      })
+      .catch(() => {
+        if (alive) {
+          setHelperStatus({
+            available: false,
+            reason: "Could not reach the helper. Factory checks and manuals still work.",
+          });
+        }
+      });
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   const thread = useMemo(() => {
     if (job) return job.aiLog ?? [];
@@ -61,13 +84,14 @@ export function AssistantDock({
           });
       if (!res.ok) {
         setError(res.error);
+        setHelperStatus({ available: false, reason: res.error });
       } else if (job) {
         appendAiTurn(job.id, { role: "assistant", text: res.text });
       } else {
         setLocal((t) => [...t, { role: "assistant", text: res.text }]);
       }
     } catch {
-      setError("Could not reach the helper. Try again.");
+      setError("Could not reach the helper. Factory checks and manuals still work.");
     } finally {
       setBusy(false);
       requestAnimationFrame(() => {
@@ -92,8 +116,13 @@ export function AssistantDock({
 
       {open ? (
         <div className="border-t border-navy-fg/15 bg-navy-deep px-3 pb-3 pt-2">
+          {helperStatus && !helperStatus.available ? (
+            <p className="mb-2 rounded-md bg-warn-bg px-3 py-2 text-sm text-ink" data-testid="helper-offline-reason">
+              {helperStatus.reason}
+            </p>
+          ) : null}
           <div ref={scroller} className="mb-2 max-h-56 space-y-2 overflow-y-auto sm:max-h-72">
-            {thread.length === 0 ? (
+            {thread.length === 0 && helperStatus?.available !== false ? (
               <div className="flex flex-wrap gap-2 py-1">
                 {EXAMPLES.map((ex) => (
                   <button
@@ -154,7 +183,7 @@ export function AssistantDock({
             </Button>
           </form>
         </div>
-      ) : (
+      ) : compact ? null : (
         <form
           className="flex gap-2 px-3 pb-3"
           onSubmit={(e) => {
