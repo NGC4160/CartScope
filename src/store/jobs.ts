@@ -18,6 +18,7 @@ import { initialPhase, phaseAfterPack } from "@/lib/case-flow";
 import {
   buildAttempt,
   isNumericKind,
+  needsUnusualVerify,
   nextAttempt,
   outcomeFor,
   resultFromAttempt,
@@ -185,7 +186,7 @@ export const useJobStore = create<JobState>()(
         const attempt = buildAttempt(step.measurement, raw, nextAttempt(prior.length), optionId);
         const attempts = [...prior, attempt];
 
-        const unusualGate = attempt.unusual && attempts.length < 3;
+        const unusualGate = needsUnusualVerify(step.measurement, attempt, attempts.length);
         if (unusualGate) {
           const next: JobRecord = touch(job, {
             pending: {

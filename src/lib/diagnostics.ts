@@ -81,13 +81,13 @@ export function buildAttempt(
   if (spec.kind === "continuity" || spec.kind === "observation") {
     const opt = optionId ? evaluateChoice(spec, optionId) : undefined;
     const inRange = opt?.result === "pass";
-    const unusual = Boolean(opt?.unusual) || (spec.kind === "continuity" && opt?.result === "fail");
+    // A tapped fail/branch option is a real finding, not a bad meter number.
     return {
       attempt,
       raw: opt?.label ?? raw,
       optionId,
       inRange,
-      unusual,
+      unusual: Boolean(opt?.unusual),
       at,
     };
   }
@@ -123,4 +123,63 @@ export function rangeLabel(spec: MeasurementSpec): string {
     return `${spec.expectedMin}–${spec.expectedMax}${spec.unit ? ` ${spec.unit}` : ""}`;
   }
   return "See the step";
+}
+
+/**
+ * Extra "measure it again" checks are for meter numbers outside the book range.
+ * Choice results (spark, continuity, yes/no) save as pass or fail on the first tap.
+ */
+export function needsUnusualVerify(
+  spec: MeasurementSpec,
+  attempt: Pick<ReadingAttempt, "unusual">,
+  attemptCount: number,
+): boolean {
+  if (!isNumericKind(spec.kind)) return false;
+  return Boolean(attempt.unusual) && attemptCount < 3;
+}
+
+export function selectedResultLabel(
+  spec: MeasurementSpec,
+  latest?: Pick<ReadingAttempt, "raw" | "optionId">,
+): string {
+  if (!latest) return "what you entered";
+  const fromOption = latest.optionId
+    ? spec.options?.find((o) => o.id === latest.optionId)?.label
+    : undefined;
+  const raw = fromOption ?? latest.raw;
+  return isNumericKind(spec.kind) ? formatReading(raw, spec.unit) : raw;
+}
+
+/** Tech-facing copy when a result conflicts with what this check looks for. */
+export function unusualVerifyBanner(
+  spec: MeasurementSpec,
+  latest: Pick<ReadingAttempt, "raw" | "optionId"> | undefined,
+  verifyPhase: number,
+): { title: string; body: string } {
+  const expected = rangeLabel(spec);
+  const got = selectedResultLabel(spec, latest);
+
+  if (!isNumericKind(spec.kind)) {
+    return {
+      title:
+        verifyPhase === 1
+          ? `That result does not match this check (look for ${expected}).`
+          : "Check what you saw one more time.",
+      body:
+        verifyPhase === 1
+          ? `This check looks for ${expected}. You chose “${got}.” That conflicts with a pass. If “${got}” is what you actually saw, it is a fail finding — keep it. Only pick the pass result if you really saw ${expected}.`
+          : `Look for ${expected} again. We save all three answers on the report before we go on.`,
+    };
+  }
+
+  return {
+    title:
+      verifyPhase === 1
+        ? `That number is not in the factory book range (${expected}).`
+        : "Check it one more time.",
+    body:
+      verifyPhase === 1
+        ? `This check looks for ${expected}. You entered ${got}. Measure the same place again.`
+        : "Type a third number. We save all three on the report before we go on.",
+  };
 }

@@ -7,10 +7,11 @@ import type {
   PartRec,
 } from "@/data/types";
 
+/** Fail is a real finding. Do not mark it unusual (that flag is for bad meter numbers). */
 export function yesNo(
   passLabel: string,
   failLabel: string,
-  unusualFail = true,
+  unusualFail = false,
 ): ChoiceOption[] {
   return [
     { id: "yes", label: passLabel, result: "pass" },
@@ -24,7 +25,7 @@ export function closedOpen(
 ): ChoiceOption[] {
   return [
     { id: "closed", label: closed, result: "pass" },
-    { id: "open", label: open, result: "fail", unusual: true },
+    { id: "open", label: open, result: "fail" },
   ];
 }
 
