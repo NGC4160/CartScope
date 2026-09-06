@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import type { DiagnosticStep, ModelPack } from "../data/types.ts";
-import { localHelperJumps, mergeHelperJumps, settleHelperAsk } from "./helper-redirect.ts";
+import { fallbackHelperJumps, localHelperJumps, mergeHelperJumps, resolveHelperJumps, settleHelperAsk } from "./helper-redirect.ts";
 
 function step(id: string, title: string, instruction: string): DiagnosticStep {
   return {
@@ -66,6 +66,48 @@ test("AI title in the notes still produces a jump when [[STEP]] is missing", () 
   assert.ok(
     hits.some((s) => s.id === "pno-fr"),
     hits.map((s) => s.id).join(","),
+  );
+});
+
+test("charge slang still offers a charger check when already on Not fully charged", () => {
+  const charged = {
+    id: "fake-pd48",
+    symptoms: [
+      { id: "not-charging", startStepId: "dchg" },
+      { id: "no-operation", startStepId: "dno-setup" },
+    ],
+    steps: {
+      dchg: step("dchg", "Not fully charged", "Book symptom 6. Check the charger output."),
+      "dno-setup": step("dno-setup", "Set the switches", "Unplug the charger."),
+      dwarn: step("dwarn", "Battery warning light on", "Below 25 % charge. Check the charger DC cord."),
+    },
+  } as unknown as ModelPack;
+  const hits = localHelperJumps(charged, "won't charge — pack not fully charged", "dchg");
+  assert.ok(
+    hits.some((s) => s.id === "dwarn" || s.id === "dno-setup"),
+    hits.map((s) => s.id).join(","),
+  );
+});
+
+test("empty keyword match still offers other factory checks after a timeout", () => {
+  const hits = resolveHelperJumps({
+    pack: {
+      ...gas,
+      symptoms: [
+        { startStepId: "g-setup" },
+        { startStepId: "g-click" },
+      ],
+    } as unknown as ModelPack,
+    observation: "n/a",
+    currentStepId: "g-setup",
+  });
+  assert.ok(
+    hits.some((s) => s.id === "g-click"),
+    hits.map((s) => s.id).join(","),
+  );
+  assert.equal(
+    fallbackHelperJumps(gas, "g-setup").some((s) => s.id === "g-click"),
+    true,
   );
 });
 

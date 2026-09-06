@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Field, inputClass } from "@/components/case/fields";
 import type { DiagnosticStep, JobRecord, ModelPack } from "@/data/types";
 import { getHelperStatus, type HelperStatus } from "@/lib/assistant";
-import { HELPER_AI_TIMEOUT_MS, mergeHelperJumps, settleHelperAsk } from "@/lib/helper-redirect";
+import { HELPER_AI_TIMEOUT_MS, resolveHelperJumps, settleHelperAsk } from "@/lib/helper-redirect";
 import { manualsOnFile } from "@/lib/manuals";
 import { sheetsForPack } from "@/data/wiring";
 import { evaluateProof } from "@/lib/proof";
@@ -49,6 +49,12 @@ export function InFlowGuidance({
   const [candUrl, setCandUrl] = useState("");
   const [helperStatus, setHelperStatus] = useState<HelperStatus | null>(null);
   const lastJump = useRef(0);
+  const jumpListRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (suggested.length === 0) return;
+    jumpListRef.current?.scrollIntoView({ block: "center", inline: "nearest" });
+  }, [suggested]);
 
   useEffect(() => {
     let alive = true;
@@ -78,7 +84,9 @@ export function InFlowGuidance({
     if (now - lastJump.current < 400) return;
     lastJump.current = now;
     jumpToStep(job.id, step.id, observation.trim() || reply || step.title);
-    onJumped?.();
+    // Do not unmount Helper on pointerup. A leftover click then retargets
+    // to sticky Save and Check 1 "Not fully charged" never moves.
+    window.setTimeout(() => onJumped?.(), 450);
   }
 
   async function sendObservation() {
@@ -89,23 +97,23 @@ export function InFlowGuidance({
     setBusy(true);
     setError(null);
     setReply(null);
-    const localHits = mergeHelperJumps({
+    const localHits = resolveHelperJumps({
       pack,
       observation: question,
       currentStepId: job.currentStepId,
     });
     setSuggested(localHits);
-    const settled = await settleHelperAsk(
-      runJobAssistant(
-        job,
-        "TECH OBSERVATION — use manuals, procedures, wire pictures, and checklists on file first. " +
-          "Only then a legitimate OEM or reputable factory source. Not forums. " +
-          "If this observation should change the diagnostic path, pick the next factory check. " +
-          question,
-      ),
-      HELPER_AI_TIMEOUT_MS,
-    );
     try {
+      const settled = await settleHelperAsk(
+        runJobAssistant(
+          job,
+          "TECH OBSERVATION — use manuals, procedures, wire pictures, and checklists on file first. " +
+            "Only then a legitimate OEM or reputable factory source. Not forums. " +
+            "If this observation should change the diagnostic path, pick the next factory check. " +
+            question,
+        ),
+        HELPER_AI_TIMEOUT_MS,
+      );
       if (!settled.ok) {
         setError(settled.error);
         if (!settled.timedOut) setHelperStatus({ available: false, reason: settled.error });
@@ -123,7 +131,7 @@ export function InFlowGuidance({
       appendAiTurn(job.id, { role: "assistant", text: res.text });
       setReply(res.text);
       setSuggested(
-        mergeHelperJumps({
+        resolveHelperJumps({
           pack,
           observation: question,
           currentStepId: job.currentStepId,
@@ -131,6 +139,9 @@ export function InFlowGuidance({
           replyText: res.text,
         }),
       );
+    } catch {
+      setError("Could not reach the helper. Factory checks and manuals still work.");
+      setSuggested(localHits);
     } finally {
       setBusy(false);
     }
@@ -292,7 +303,7 @@ export function InFlowGuidance({
       ) : null}
       {reply ? <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-ink">{reply}</p> : null}
       {suggested.length > 0 ? (
-        <div className="mt-3" data-testid="helper-redirect-list">
+        <div ref={jumpListRef} className="mt-3" data-testid="helper-redirect-list">
           <p className="text-xs font-medium uppercase tracking-wide text-ink-subtle">Go to a different factory check</p>
           <div className="mt-1 grid gap-2">
             {suggested.map((step) => (
@@ -302,15 +313,19 @@ export function InFlowGuidance({
                 variant="secondary"
                 data-testid={`helper-jump-${step.id}`}
                 data-helper-jump=""
-                className="h-auto min-h-11 justify-start whitespace-normal py-2 text-left touch-manipulation"
+                className="relative z-10 h-auto min-h-11 justify-start whitespace-normal py-2 text-left touch-manipulation"
                 onPointerDown={(event: PointerEvent<HTMLButtonElement>) => {
+                  event.stopPropagation();
                   event.currentTarget.setPointerCapture(event.pointerId);
                 }}
                 onPointerUp={(event: PointerEvent<HTMLButtonElement>) => {
+                  event.stopPropagation();
                   if (event.pointerType === "mouse" && event.button !== 0) return;
                   goToSuggested(step);
                 }}
-                onClick={() => {
+                onClick={(event) => {
+                  event.preventDefault();
+                  event.stopPropagation();
                   goToSuggested(step);
                 }}
               >

@@ -74,6 +74,14 @@
     touch-action: manipulation;
   }
 
+  /* Live testers tap the lower-right of a Helper jump, next to the Grok
+     chat pill. The pill is position:fixed at max z-index — stacking
+     Helper above Save cannot win. Keep the jump hit box out of that zone. */
+  [data-testid="helper-redirect-list"] {
+    padding-right: 11.5rem;
+    padding-bottom: 5rem;
+  }
+
   /* Report: no Checks tab, table, or workspace — even if markup leaks. */
   [data-bay-report-open] [data-bay-dock-checks],
   [data-bay-report-pane] [data-testid="report-check-log"],

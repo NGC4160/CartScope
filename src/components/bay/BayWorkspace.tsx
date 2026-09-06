@@ -110,14 +110,6 @@ export function BayWorkspace({ job, pack }: { job: JobRecord; pack: ModelPack })
             >
               <div className="relative min-h-0 flex-1 overflow-hidden">
                 <div className="absolute inset-0">{checkPanel}</div>
-                {showHelper ? (
-                  <BayHelperSheet
-                    job={job}
-                    pack={pack}
-                    phaseLabel={helperLabel}
-                    onClose={() => setPane("checks")}
-                  />
-                ) : null}
               </div>
               {job.techObservation?.trim() && !showHelper ? (
                 <button
@@ -130,7 +122,17 @@ export function BayWorkspace({ job, pack }: { job: JobRecord; pack: ModelPack })
                   {job.techObservation.trim()}
                 </button>
               ) : null}
-              <BayActionBar chrome={checkChrome} formId={BAY_CHECK_FORM_ID} />
+              <div className={showHelper ? "pointer-events-none" : undefined} aria-hidden={showHelper || undefined}>
+                <BayActionBar chrome={checkChrome} formId={BAY_CHECK_FORM_ID} />
+              </div>
+              {showHelper ? (
+                <BayHelperSheet
+                  job={job}
+                  pack={pack}
+                  phaseLabel={helperLabel}
+                  onClose={() => setPane("checks")}
+                />
+              ) : null}
             </div>
           </div>
         ) : (

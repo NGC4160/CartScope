@@ -19,7 +19,7 @@ export function BayHelperSheet({
   return (
     <div
       data-testid="bay-helper-sheet"
-      className="absolute inset-x-0 bottom-0 top-2 z-40 flex max-h-full flex-col overflow-hidden rounded-t-xl bg-surface shadow-[var(--shadow-border)]"
+      className="absolute inset-0 z-40 flex max-h-full flex-col overflow-hidden bg-surface shadow-[var(--shadow-border)]"
     >
       <header className="flex shrink-0 items-center gap-2 border-b border-line px-3 py-2">
         <div className="min-w-0 flex-1">
@@ -37,7 +37,7 @@ export function BayHelperSheet({
         </Button>
       </header>
       <div className="min-h-0 flex-1 overflow-auto">
-        <div className="px-3 py-3">
+        <div className="px-3 py-3 pb-[max(5.5rem,calc(env(safe-area-inset-bottom)+4.5rem))]">
           <InFlowGuidance job={job} pack={pack} phaseLabel={phaseLabel} onJumped={onClose} />
         </div>
         <AssistantDock modelId={pack.id} job={job} compact />

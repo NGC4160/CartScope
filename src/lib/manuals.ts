@@ -84,6 +84,9 @@ const STRONG = new Set([
   "throttle",
   "mcor",
   "charger",
+  "charge",
+  "charged",
+  "charging",
   "fuse",
   "encoder",
 ]);
@@ -104,6 +107,10 @@ const ALIASES: Record<string, string[]> = {
   cranking: ["starter", "crank", "cranking"],
   throttle: ["throttle", "mcor"],
   mcor: ["throttle", "mcor"],
+  charge: ["charge", "charger", "charged", "charging"],
+  charged: ["charge", "charger", "charged", "charging"],
+  charging: ["charge", "charger", "charged", "charging"],
+  charger: ["charge", "charger", "charged", "charging"],
 };
 
 export function normalizeObservation(text: string): string {
