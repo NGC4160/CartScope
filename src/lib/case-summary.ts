@@ -7,6 +7,36 @@ import { formatPackCellLine } from "./pack-rules.ts";
 import type { Proof } from "./proof.ts";
 import { manualsReportLines, partialReportGaps } from "./report-continuity.ts";
 
+/** Header technician only. Helper chat / observation text must never use this label. */
+export function reportWhoCheckedIt(job: Pick<JobRecord, "technician">): string {
+  return (job.technician || "").trim() || "—";
+}
+
+export function helperNoteSpeaker(role: "user" | "assistant"): "Tech note" | "Helper" {
+  return role === "user" ? "Tech note" : "Helper";
+}
+
+/** Helper chat for the report. Drops user lines that already live under What the tech saw. */
+export function helperNotesForReport(job: Pick<JobRecord, "aiLog" | "includeAiInReport" | "techObservation">): {
+  role: "user" | "assistant";
+  text: string;
+}[] {
+  if (job.includeAiInReport === false) return [];
+  const observation = job.techObservation?.trim() ?? "";
+  const seen = new Set<string>();
+  const notes: { role: "user" | "assistant"; text: string }[] = [];
+  for (const turn of job.aiLog ?? []) {
+    const text = turn.text.trim();
+    if (!text) continue;
+    if (turn.role === "user" && observation && text === observation) continue;
+    const key = `${turn.role}:${text}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    notes.push({ role: turn.role, text });
+  }
+  return notes;
+}
+
 export function plainCaseSummary(job: JobRecord, pack: ModelPack, proof: Proof): string {
   const symptom = pack.symptoms.find((s) => s.id === job.symptomId);
   const lines: string[] = [
@@ -19,6 +49,7 @@ export function plainCaseSummary(job: JobRecord, pack: ModelPack, proof: Proof):
     pack.powertrain === "electric"
       ? `Battery type: ${job.batteryType ?? "—"}`
       : `Fuel note: ${job.fuelNote || "—"}`,
+    `Who checked it: ${reportWhoCheckedIt(job)}`,
     `Complaint: ${symptom?.label ?? job.symptomId}`,
     job.complaintNote ? `Complaint note: ${job.complaintNote}` : "",
     "",
@@ -111,11 +142,12 @@ export function plainCaseSummary(job: JobRecord, pack: ModelPack, proof: Proof):
     lines.push("What the tech saw");
     lines.push(job.techObservation.trim());
   }
-  if (job.includeAiInReport !== false && job.aiLog?.length) {
+  const helperNotes = helperNotesForReport(job);
+  if (helperNotes.length) {
     lines.push("");
     lines.push("Helper notes");
-    job.aiLog.forEach((t) => {
-      lines.push(`${t.role === "user" ? "Who checked it" : "Helper"}: ${t.text}`);
+    helperNotes.forEach((t) => {
+      lines.push(`${helperNoteSpeaker(t.role)}: ${t.text}`);
     });
   }
   if (proof.conflicts.length) {

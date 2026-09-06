@@ -2,8 +2,9 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { AlertTriangle } from "lucide-react";
 import type { BayActionChrome } from "@/components/bay/BayActionBar";
 import { Button } from "@/components/ui/button";
-import { Field, inputClass, VoltageInput } from "@/components/case/fields";
+import { Field, inputClass, IrUnitPicker, VoltageInput } from "@/components/case/fields";
 import type { JobRecord, ModelPack, PackCheckRecord, PackCellReading, PackDraft } from "@/data/types";
+import { IR_UNIT_HELP, resolveIrUnit } from "@/lib/ir-unit";
 import { bayPackActionEnabled, bayPackActionLabel, bayProgressChip } from "@/lib/bay-chrome";
 import { packLayout, scaledLeadAcidLimits } from "@/lib/pack-layout";
 import {
@@ -36,6 +37,7 @@ function draftsFrom(
     return {
       volts: d?.volts ?? c?.volts ?? "",
       ir: d?.ir ?? c?.ir ?? "",
+      irUnit: resolveIrUnit(d?.irUnit ?? c?.irUnit),
       age: d?.age ?? c?.ageMonthYear ?? "",
       ageSkip: d?.ageSkip ?? Boolean(c?.ageNotReadable),
     };
@@ -119,7 +121,7 @@ export function PackGate({
     [lithium, numericCells, layout.nominalV, loadPct, agesMonths],
   );
   const irNote = useMemo(
-    () => (lithium || irSkip ? null : irSpreadNote(cells.map((c) => c.ir))),
+    () => (lithium || irSkip ? null : irSpreadNote(cells.map((c) => ({ ir: c.ir, unit: resolveIrUnit(c.irUnit) })))),
     [lithium, irSkip, cells],
   );
 
@@ -159,6 +161,7 @@ export function PackGate({
       index,
       volts: c.volts,
       ir: irSkip || lithium ? undefined : c.ir.trim() || undefined,
+      irUnit: irSkip || lithium ? undefined : resolveIrUnit(c.irUnit),
       irCouldNot: !lithium && irSkip ? true : undefined,
       irSkipReason: !lithium && irSkip ? irSkipReason.trim() : undefined,
       ageMonthYear: lithium || c.ageSkip ? undefined : c.age.trim() || undefined,
@@ -259,8 +262,8 @@ export function PackGate({
           <ol className="mt-3 list-decimal space-y-2 pl-5 text-sm leading-relaxed text-ink">
             <li>Measure resting voltage on each battery.</li>
             <li>
-              Measure internal resistance on each battery with the internal resistance meter. Write the reading for each
-              battery, with the unit the meter shows.
+              Measure internal resistance on each battery with the internal resistance meter. Write the reading and pick
+              milliohms (mΩ) or megaohms (MΩ). Golf-cart lead-acid pack IR is almost always milliohms.
             </li>
             <li>
               Read the date on each battery and enter month and year. If the date cannot be read, mark age not readable.
@@ -397,7 +400,7 @@ export function PackGate({
               {cells.map((c, i) => (
                 <div key={`battery-${i}`} className="rounded-md border border-line p-3">
                   <p className="mb-2 font-medium text-ink">Battery {i + 1}</p>
-                  <div className="grid gap-2 sm:grid-cols-3">
+                  <div className="grid gap-3">
                     <Field
                       label={`Battery ${i + 1} resting volts`}
                       hint={`Type the meter number. Example: ${lim.chargeTarget} V`}
@@ -413,17 +416,27 @@ export function PackGate({
                     </Field>
                     <Field
                       label={`Battery ${i + 1} internal resistance`}
-                      hint="From the IR meter, as shown."
+                      hint={IR_UNIT_HELP}
                     >
-                      <input
-                        value={c.ir}
-                        onChange={(e) => patchCell(i, { ir: e.target.value })}
-                        onBlur={() => persistDraft()}
-                        className={inputClass + " font-mono"}
-                        placeholder="mΩ as shown"
-                        disabled={irSkip}
-                        aria-label={`Battery ${i + 1} internal resistance`}
-                      />
+                      <div className="flex min-w-0 items-stretch gap-2">
+                        <input
+                          value={c.ir}
+                          onChange={(e) => patchCell(i, { ir: e.target.value })}
+                          onBlur={() => persistDraft()}
+                          className={inputClass + " min-w-0 flex-1 font-mono"}
+                          placeholder={resolveIrUnit(c.irUnit) === "megohm" ? "MΩ as shown" : "mΩ as shown"}
+                          disabled={irSkip}
+                          aria-label={`Battery ${i + 1} internal resistance`}
+                        />
+                        <IrUnitPicker
+                          value={resolveIrUnit(c.irUnit)}
+                          disabled={irSkip}
+                          onChange={(unit) => {
+                            patchCell(i, { irUnit: unit });
+                            persistDraft();
+                          }}
+                        />
+                      </div>
                     </Field>
                     <Field label={`Battery ${i + 1} age`} hint="Month and year only. Example: 09/2024">
                       <input

@@ -35,6 +35,16 @@ export type AssistantResult =
   | { ok: true; text: string; suggestedStepId?: string; suggestedStepTitle?: string }
   | { ok: false; error: string };
 
+export type HelperStatus = { available: boolean; reason?: string };
+
+export const HELPER_OFFLINE_NO_KEY =
+  "The shop helper is offline. No AI key is set on the server. Factory checks and manuals still work. Type what you see — it stays under What the tech saw, not Who checked it.";
+
+function helperApiKey(): string | undefined {
+  const key = process.env.XAI_API_KEY?.trim();
+  return key || undefined;
+}
+
 function brief(data: AssistantInput): string {
   const pack = getPack(data.modelId);
   if (!pack) return `Unknown model id: ${data.modelId}`;
@@ -123,9 +133,9 @@ export const askBenchAssistant = createServerFn({ method: "POST" })
     if (!question) return { ok: false, error: "Tell me what you see, or type a fault code." };
     if (!data.modelId) return { ok: false, error: "Pick a cart first." };
 
-    const apiKey = process.env.XAI_API_KEY;
+    const apiKey = helperApiKey();
     if (!apiKey) {
-      return { ok: false, error: "The helper is not available right now." };
+      return { ok: false, error: HELPER_OFFLINE_NO_KEY };
     }
 
     const factory = brief(data).slice(0, 14000);
@@ -193,7 +203,13 @@ export const askBenchAssistant = createServerFn({ method: "POST" })
     });
 
     if (!res.ok) {
-      return { ok: false, error: `The helper could not answer (${res.status}). Try again.` };
+      if (res.status === 401 || res.status === 403) {
+        return {
+          ok: false,
+          error: "The shop helper could not sign in to the AI service. Factory checks and manuals still work.",
+        };
+      }
+      return { ok: false, error: `The helper could not answer (${res.status}). Try again. Factory checks still work.` };
     }
     const body = (await res.json()) as {
       choices?: { message?: { content?: string } }[];
@@ -211,3 +227,10 @@ export const askBenchAssistant = createServerFn({ method: "POST" })
       suggestedStepTitle: suggestedStepId ? pack?.steps[suggestedStepId]?.title : undefined,
     };
   });
+
+export const getHelperStatus = createServerFn({ method: "GET" }).handler(async (): Promise<HelperStatus> => {
+  if (!helperApiKey()) {
+    return { available: false, reason: HELPER_OFFLINE_NO_KEY };
+  }
+  return { available: true };
+});
