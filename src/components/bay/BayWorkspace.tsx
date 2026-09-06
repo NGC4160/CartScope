@@ -118,7 +118,7 @@ export function BayWorkspace({ job, pack }: { job: JobRecord; pack: ModelPack })
                 {job.techObservation.trim()}
               </button>
             ) : null}
-            <BayActionBar chrome={actionChrome} />
+            <BayActionBar chrome={checkChrome} />
           </div>
         </div>
 
