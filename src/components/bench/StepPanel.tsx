@@ -11,6 +11,7 @@ import {
 import type { JobRecord, ModelPack } from "@/data/types";
 import { termHints, unitHelp } from "@/data/plain-terms";
 import { InFlowGuidance } from "@/components/case/InFlowGuidance";
+import { PackNaBanner } from "@/components/case/PackNaBanner";
 import { MeterNumberInput } from "@/components/case/fields";
 import { Button } from "@/components/ui/button";
 import { isMotorIsolationStep } from "@/lib/case-flow";
@@ -145,6 +146,11 @@ export function StepPanel({ job, pack }: { job: JobRecord; pack: ModelPack }) {
         <Header symptom={symptom?.label} progress={100} done />
         <div className="min-h-0 flex-1 overflow-auto p-4">
           <p className="font-mono text-xs font-semibold tracking-wide text-navy">CHECKS FINISHED</p>
+          {pack.powertrain === "gasoline" ? (
+            <div className="mt-3">
+              <PackNaBanner pack={pack} />
+            </div>
+          ) : null}
           <h2 className="mt-1 font-display text-2xl font-semibold leading-tight text-ink">{diagnosis.title}</h2>
           <p className="mt-3 text-sm leading-relaxed text-ink-muted">{diagnosis.summary}</p>
           <Block title="Most likely why" body={diagnosis.likelyCause} />
@@ -191,6 +197,11 @@ export function StepPanel({ job, pack }: { job: JobRecord; pack: ModelPack }) {
         <p className="font-mono text-xs font-semibold tracking-wide text-navy">
           CHECK {job.log.length + 1}
         </p>
+        {pack.powertrain === "gasoline" ? (
+          <div className="mt-3">
+            <PackNaBanner pack={pack} />
+          </div>
+        ) : null}
         <h2 className="mt-1 font-display text-2xl font-semibold leading-tight text-ink">{step.title}</h2>
         <p className="mt-1 text-xs text-ink-subtle">{step.manualRef}</p>
         <p className="mt-3 text-sm leading-relaxed text-ink">{step.instruction}</p>

@@ -56,6 +56,7 @@ export function HeaderNoteInput({
 export function VoltageInput({
   value,
   onChange,
+  onBlur,
   className = "",
   ...rest
 }: Omit<InputHTMLAttributes<HTMLInputElement>, "value" | "onChange" | "type"> & {
@@ -73,6 +74,10 @@ export function VoltageInput({
       value={value}
       onFocus={(e) => e.currentTarget.select()}
       onChange={(e) => onChange(sanitizeVoltageInput(e.target.value))}
+      onBlur={(e) => {
+        onChange(sanitizeVoltageInput(e.currentTarget.value));
+        onBlur?.(e);
+      }}
       className={className}
     />
   );

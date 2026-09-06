@@ -295,4 +295,28 @@ export interface JobRecord {
     onFile: boolean;
     summary: string;
   };
+  /** Typed tech observation — kept even when helper results refresh. */
+  techObservation?: string;
+  /** In-progress pack fields, persisted on blur before Save. */
+  packDraft?: PackDraft;
+}
+
+export interface PackDraftCell {
+  volts: string;
+  ir: string;
+  age: string;
+  ageSkip: boolean;
+}
+
+export interface PackDraft {
+  cells: PackDraftCell[];
+  loadDrop?: string;
+  monitorV?: string;
+  minCell?: string;
+  faults?: string;
+  noMonitor?: boolean;
+  irSkip?: boolean;
+  irSkipReason?: string;
+  agePhoto?: string;
+  testNote?: string;
 }

@@ -78,3 +78,118 @@ export function applyBulkAgeUnreadable(cells: PackCellDraft[], unread: boolean):
     age: unread ? "" : c.age,
   }));
 }
+
+export function emptyPackCells(count: number): PackCellDraft[] {
+  return Array.from({ length: count }, () => ({ volts: "", ir: "", age: "", ageSkip: false }));
+}
+
+export function packPasteTemplate(count: number): string {
+  const rows = Array.from({ length: count }, (_, i) => `Battery ${i + 1}\t\t\t`);
+  return ["Battery\tvolts\tIR\tage", ...rows].join("\n");
+}
+
+function tokenizeLine(line: string): string[] {
+  const tight = line
+    .trim()
+    .split(/[\t,;]| {2,}/)
+    .map((t) => t.trim())
+    .filter(Boolean);
+  if (tight.length >= 2) return tight;
+  return line
+    .trim()
+    .split(/\s+/)
+    .map((t) => t.trim())
+    .filter(Boolean);
+}
+
+function looksLikeHeader(line: string): boolean {
+  return /volt|battery|age|\bir\b|internal/i.test(line) && !/\d/.test(line);
+}
+
+function looksLikeVoltage(token: string): boolean {
+  return typedVoltage(token) != null;
+}
+
+export type BulkPasteResult = {
+  cells: PackCellDraft[];
+  applied: number;
+  extraIgnored: number;
+  message: string;
+};
+
+/** Fill 6–8 (or the cart's count) battery rows from a pasted template or meter list. */
+export function parseBulkPackPaste(raw: string, existing: PackCellDraft[], count: number): BulkPasteResult {
+  const cells = existing.length === count ? existing.map((c) => ({ ...c })) : emptyPackCells(count);
+  const lines = raw
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .filter((l) => l && !looksLikeHeader(l));
+
+  if (lines.length === 0) {
+    return { cells, applied: 0, extraIgnored: 0, message: "Nothing to paste. Add one battery per line, or a list of voltages." };
+  }
+
+  let parsed: Array<Partial<PackCellDraft>> = [];
+
+  if (lines.length === 1) {
+    const tokens = tokenizeLine(lines[0]!);
+    const voltageTokens = tokens.filter(looksLikeVoltage);
+    if (voltageTokens.length >= 2 && voltageTokens.length === tokens.length) {
+      parsed = voltageTokens.map((volts) => ({ volts }));
+    } else if (tokens.length >= 3 && tokens.length % 3 === 0) {
+      for (let i = 0; i < tokens.length; i += 3) {
+        parsed.push({ volts: tokens[i], ir: tokens[i + 1], age: tokens[i + 2] });
+      }
+    } else {
+      parsed = [rowFromTokens(tokens)];
+    }
+  } else {
+    parsed = lines.map((line) => rowFromTokens(tokenizeLine(line)));
+  }
+
+  const extraIgnored = Math.max(0, parsed.length - count);
+  let applied = 0;
+  for (let i = 0; i < count && i < parsed.length; i += 1) {
+    const next = parsed[i]!;
+    if (!next.volts && !next.ir && !next.age) continue;
+    cells[i] = {
+      volts: next.volts ?? cells[i]!.volts,
+      ir: next.ir ?? cells[i]!.ir,
+      age: next.age ?? cells[i]!.age,
+      ageSkip: next.ageSkip ?? cells[i]!.ageSkip,
+    };
+    applied += 1;
+  }
+
+  const message =
+    applied === 0
+      ? "Could not read battery numbers from that paste."
+      : extraIgnored
+        ? `Filled ${applied} of ${count} batteries. Extra rows were ignored.`
+        : `Filled ${applied} of ${count} batteries.`;
+
+  return { cells, applied, extraIgnored, message };
+}
+
+function rowFromTokens(tokens: string[]): Partial<PackCellDraft> {
+  const useful = tokens.filter((t) => !/^battery\s*\d+$/i.test(t));
+  if (useful.length === 0) return {};
+  if (useful.length === 1) return { volts: useful[0] };
+  if (useful.length === 2) {
+    if (parseAgeMonthYear(useful[1]!)) return { volts: useful[0], age: useful[1] };
+    return { volts: useful[0], ir: useful[1] };
+  }
+  return { volts: useful[0], ir: useful[1], age: useful[2] };
+}
+
+export function groupPackBlockers(blockers: PackBlocker[]): { heading: string; items: PackBlocker[] }[] {
+  const groups = new Map<string, PackBlocker[]>();
+  for (const blocker of blockers) {
+    const match = blocker.field.match(/^Battery (\d+)/);
+    const heading = match ? `Battery ${match[1]}` : "Pack";
+    const list = groups.get(heading) ?? [];
+    list.push(blocker);
+    groups.set(heading, list);
+  }
+  return [...groups.entries()].map(([heading, items]) => ({ heading, items }));
+}

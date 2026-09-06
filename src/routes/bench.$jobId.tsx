@@ -95,7 +95,12 @@ function Bench() {
           <span className="text-ink-muted">{pack.name}</span>
           <span className="text-ink-subtle">·</span>
           <span className="text-ink-muted">{symptom?.label}</span>
-          {job.batteryType ? (
+          {pack.powertrain === "gasoline" ? (
+            <>
+              <span className="text-ink-subtle">·</span>
+              <span className="text-ink-muted">Battery pack not applicable</span>
+            </>
+          ) : job.batteryType ? (
             <>
               <span className="text-ink-subtle">·</span>
               <span className="text-ink-muted">{job.batteryType === "lead-acid" ? "Lead-acid" : "Lithium"}</span>

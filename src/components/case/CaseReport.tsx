@@ -9,7 +9,9 @@ import { submitBrainCopy } from "@/lib/brain-submit";
 import { plainCaseSummary } from "@/lib/case-summary";
 import { formatReading } from "@/lib/diagnostics";
 import { formatHandheldRecord } from "@/lib/handheld";
+import { PackNaBanner } from "@/components/case/PackNaBanner";
 import { formatPackCellLine } from "@/lib/pack-rules";
+import { packNaCopy } from "@/lib/pack-na";
 import { evaluateProof } from "@/lib/proof";
 import { manualsOnFile } from "@/lib/manuals";
 import { manualsReportLines, partialReportGaps } from "@/lib/report-continuity";
@@ -146,7 +148,11 @@ export function CaseReport({
           </ul>
         </section>
 
-        {job.packCheck ? (
+        {packNaCopy(pack) ? (
+          <div className="mt-6">
+            <PackNaBanner pack={pack} />
+          </div>
+        ) : job.packCheck ? (
           <section className="mt-6 border border-line p-4">
             <h2 className="font-display text-lg font-semibold">Battery pack</h2>
             <p className="mt-1 text-sm text-ink-muted">
@@ -307,6 +313,13 @@ export function CaseReport({
             <span className="font-medium">Re-test after repair: </span>
             {job.retestNote}
           </p>
+        ) : null}
+
+        {job.techObservation?.trim() ? (
+          <section className="mt-6 border border-line p-4">
+            <h2 className="font-display text-lg font-semibold">What the tech saw</h2>
+            <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed">{job.techObservation.trim()}</p>
+          </section>
         ) : null}
 
         {job.includeAiInReport !== false && job.aiLog && job.aiLog.length > 0 ? (

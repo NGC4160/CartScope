@@ -101,7 +101,7 @@ function nextHintFor(
   }
   if (job.casePhase === "pack") {
     if (pack.powertrain !== "electric") {
-      return "This is a gas cart. Skip the pack screen and follow the factory checks.";
+      return "Battery pack not applicable on a gasoline cart. Follow the factory checks. The 12 V starting battery is a factory check, not a multi-battery pack.";
     }
     const coverage = job.manualStatus ?? manualsOnFile(pack, sheetsForPack(pack.id));
     const missingBook = coverage.onFile === false;
