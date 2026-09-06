@@ -3,10 +3,58 @@ import test from "node:test";
 import type { ModelPack } from "../data/types.ts";
 import {
   attemptStartChecks,
+  complaintHasFirstStep,
   readHeaderSnapshot,
   reverseOrOneWaySymptom,
+  startBlockers,
+  startIsReady,
   type HeaderSnapshot,
 } from "./start-checks.ts";
+
+/** Real Club Car DS IQ motor-braking path from `club-car-iq`. */
+const clubCarDsIq = {
+  id: "club-car-ds-iq",
+  manufacturerLabel: "Club Car",
+  name: "DS IQ / Villager IQ",
+  fullName: "Club Car DS IQ, Villager 4/6/8, Transporter 4/6 IQ System (48 V)",
+  powertrain: "electric",
+  years: "2001–2011 DS IQ; 2008–2011 Villager 4/6/8 and Transporter 4/6 IQ System",
+  symptoms: [
+    {
+      id: "runs-slowly",
+      label: "Cart runs slowly",
+      summary: "Moves but will not reach speed.",
+      startStepId: "psl-speed",
+    },
+    {
+      id: "no-braking",
+      label: "Motor braking does not work",
+      summary: "Cart runs but motor braking does not.",
+      startStepId: "pbr-speed",
+    },
+  ],
+  steps: { "psl-speed": { id: "psl-speed" }, "pbr-speed": { id: "pbr-speed" } },
+} as unknown as ModelPack;
+
+/** Real EZ-GO Marathon 4-cycle year copy from `ezgo-marathon-gas`. */
+const ezgoMarathonGas = {
+  id: "ezgo-marathon-gas",
+  manufacturerLabel: "EZ-GO",
+  name: "Marathon / GX-444 4-cycle",
+  fullName: "EZ-GO Marathon 4-cycle / GX-444 / Freedom / GXT / TUFF1 / PC4GX / BC-360",
+  powertrain: "gasoline",
+  years:
+    "1991–1996 4-cycle gasoline (manual 27206-G01): GX-444, GX-444F Freedom, GX-444F HP, 1992–1994 GXT/1-804, TUFF1, 1992–1995 PC4GX / PC4GXI, 1992–1994 BC-360",
+  symptoms: [
+    {
+      id: "no-crank",
+      label: "Engine will not crank",
+      summary: "Key START does nothing.",
+      startStepId: "g-setup",
+    },
+  ],
+  steps: { "g-setup": { id: "g-setup" } },
+} as unknown as ModelPack;
 
 /** Real EZ-GO TXT 48 V TCT ids, year copy, and no-reverse path from `ezgo-dc`. */
 const ezgoTxt = {
@@ -255,6 +303,75 @@ test("gas header with last name, HCP, and who-checked starts without a battery t
     assert.equal(started.startStepId, "g-dies");
     assert.equal(started.jobInput.batteryType, undefined);
     assert.equal(started.jobInput.technician, "Hayden");
+  }
+});
+
+test("Club Car IQ Motor braking starts when the header is filled", () => {
+  const symptom = clubCarDsIq.symptoms.find((s) => s.id === "no-braking");
+  assert.ok(symptom);
+  assert.equal(symptom?.label, "Motor braking does not work");
+  assert.equal(complaintHasFirstStep(clubCarDsIq, "no-braking"), true);
+  const started = attemptStartChecks({
+    pack: clubCarDsIq,
+    symptomId: "no-braking",
+    header: {
+      lastName: "Brake",
+      hcpJobNumber: "880701",
+      technician: "Hayden",
+      cartYear: "2006",
+      serialNumber: "",
+      batteryType: "lead-acid",
+      complaintNote: "Motor braking does not work",
+      fuelNote: "",
+    },
+  });
+  assert.equal(started.ok, true);
+  if (started.ok) {
+    assert.equal(started.startStepId, "pbr-speed");
+    assert.equal(started.jobInput.symptomId, "no-braking");
+  }
+});
+
+test("Marathon year 2010 blocks Start with a readable year error; 1996 starts", () => {
+  const header2010: HeaderSnapshot = {
+    lastName: "Yearbug",
+    hcpJobNumber: "880702",
+    technician: "Hayden",
+    cartYear: "2010",
+    serialNumber: "",
+    batteryType: "",
+    complaintNote: "",
+    fuelNote: "",
+  };
+  const blocked = startBlockers({
+    pack: ezgoMarathonGas,
+    symptomId: "no-crank",
+    header: header2010,
+  });
+  assert.equal(startIsReady(blocked), false);
+  assert.ok(blocked.some((b) => b.kind === "year"));
+  assert.ok(blocked.some((b) => /2010/.test(b.message) && /1991/.test(b.message) && /1996/.test(b.message)));
+
+  const startedBad = attemptStartChecks({
+    pack: ezgoMarathonGas,
+    symptomId: "no-crank",
+    header: header2010,
+  });
+  assert.equal(startedBad.ok, false);
+  if (!startedBad.ok) {
+    assert.ok(startedBad.yearMessage);
+    assert.match(startedBad.yearMessage ?? "", /2010/);
+    assert.match(startedBad.yearMessage ?? "", /1991–1996|1991-1996/);
+  }
+
+  const startedOk = attemptStartChecks({
+    pack: ezgoMarathonGas,
+    symptomId: "no-crank",
+    header: { ...header2010, cartYear: "1996" },
+  });
+  assert.equal(startedOk.ok, true);
+  if (startedOk.ok) {
+    assert.equal(startedOk.startStepId, "g-setup");
   }
 });
 

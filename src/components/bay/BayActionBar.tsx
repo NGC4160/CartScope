@@ -34,7 +34,8 @@ export function useBayChrome() {
         prev.label === incoming.label &&
         prev.disabled === incoming.disabled &&
         prev.busy === incoming.busy &&
-        prev.secondaryLabel === incoming.secondaryLabel
+        prev.secondaryLabel === incoming.secondaryLabel &&
+        prev.badge === incoming.badge
       ) {
         return prev;
       }
@@ -62,6 +63,7 @@ export function usePublishBayChrome(
     disabled?: boolean;
     busy?: boolean;
     secondaryLabel?: string;
+    badge?: string | null;
     onAction: () => void;
     onSecondary?: () => void;
   },
@@ -79,10 +81,11 @@ export function usePublishBayChrome(
       disabled: spec.disabled,
       busy: spec.busy,
       secondaryLabel: spec.secondaryLabel,
+      badge: spec.badge ?? null,
       onAction: () => actionRef.current(),
       onSecondary: spec.secondaryLabel ? () => secondaryRef.current?.() : undefined,
     });
-  }, [onChrome, spec.chip, spec.label, spec.disabled, spec.busy, spec.secondaryLabel]);
+  }, [onChrome, spec.chip, spec.label, spec.disabled, spec.busy, spec.secondaryLabel, spec.badge]);
 }
 
 export function BayActionBar({
@@ -117,6 +120,14 @@ export function BayActionBar({
         <p className="shrink-0 rounded-md bg-paper-sunken px-2.5 py-1 font-mono text-xs font-semibold tabular-nums text-navy">
           {live.chip}
         </p>
+        {live.badge ? (
+          <p
+            data-testid="pack-na-badge"
+            className="shrink-0 rounded-md bg-warn-bg px-2.5 py-1 font-mono text-xs font-semibold text-warn"
+          >
+            {live.badge}
+          </p>
+        ) : null}
         {live.secondaryLabel && live.onSecondary ? (
           <Button
             type="button"

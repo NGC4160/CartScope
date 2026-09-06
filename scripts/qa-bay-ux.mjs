@@ -319,6 +319,7 @@ async function runFactoryCheck() {
   await page.getByText(/CHECK 1/i).first().waitFor();
   check("gas mouse Start left Job header", (await page.getByTestId("start-checks").count()) === 0);
   check("gas mouse Start reached factory Check 1", await page.getByText(/CHECK 1/i).first().isVisible());
+  check("gas factory pack N/A badge", await page.getByTestId("pack-na-badge").first().isVisible());
   const chip = page.getByTestId("bay-action-bar").getByText(/Check 1 of /i);
   check("factory check chip", await chip.isVisible(), await chip.innerText().catch(() => ""));
   check(
@@ -540,6 +541,99 @@ async function runHelperJumpFromPack() {
   await page.close();
 }
 
+async function runRound7StartValidationAndBayImprovements() {
+  const page = await browser.newPage({ viewport: { width: 1024, height: 768 } });
+  page.on("pageerror", (e) => console.log("PAGEERROR", e.message));
+
+  await page.goto(BASE, { waitUntil: "networkidle" });
+  await installLiveChrome(page);
+  const neu = page.getByRole("button", { name: /New job/i });
+  if (await neu.count()) await neu.click();
+  await page.getByRole("button", { name: /Club Car/i }).click();
+  await page.getByRole("button", { name: /DS IQ/i }).first().click();
+  await page.getByRole("button", { name: /Motor braking does not work/i }).click();
+  const headerBtn = page.getByRole("button", { name: /Job header/i });
+  if (await headerBtn.count()) await headerBtn.click();
+  await fillHeader(page, {
+    last: "Braking",
+    job: "HCP-5701",
+    year: "2006",
+    battery: "Lead-acid",
+    who: "Hayden",
+    complaint: "Motor braking does not work",
+  });
+  const brakingStart = page.getByTestId("start-checks");
+  check("motor braking Start is ready", (await brakingStart.getAttribute("data-start-ready")) === "true");
+  check("motor braking Start not blocked", (await page.getByTestId("start-blocked-reason").count()) === 0);
+  await mouseClickStart(page);
+  await page.waitForURL("**/bench/**", { timeout: 15000 });
+  check(
+    "motor braking Start reached pack",
+    await page.getByRole("heading", { name: /Check the pack before you blame other parts/i }).isVisible(),
+  );
+  const zoom = page.getByTestId("diagram-zoom");
+  check("diagram zoom label visible", await zoom.isVisible());
+  const zoomText = await zoom.innerText();
+  const pct = Number((zoomText.match(/(\d+)\s*%/) || [])[1] || 0);
+  check("diagram default zoom is larger than 100%", pct >= 135, zoomText);
+  await page.getByTestId("bay-dock").getByRole("tab", { name: "Helper" }).click();
+  await page.getByTestId("helper-pane-nav").waitFor({ state: "visible" });
+  check("helper pane nav visible", await page.getByTestId("helper-pane-nav").isVisible());
+  check("helper pane nav has Checks", await page.getByTestId("helper-pane-nav").getByRole("button", { name: /Checks/i }).isVisible());
+  await page.getByTestId("helper-pane-nav").getByRole("button", { name: /Checks/i }).click();
+  check(
+    "helper Checks nav left Helper",
+    (await page.getByTestId("bay-helper-sheet").count()) === 0 || !(await page.getByTestId("bay-helper-sheet").isVisible()),
+  );
+  await page.close();
+
+  const gas = await browser.newPage({ viewport: { width: 1024, height: 768 } });
+  gas.on("pageerror", (e) => console.log("PAGEERROR", e.message));
+  await gas.goto(BASE, { waitUntil: "networkidle" });
+  await installLiveChrome(gas);
+  const neuGas = gas.getByRole("button", { name: /New job/i });
+  if (await neuGas.count()) await neuGas.click();
+  await gas.getByRole("button", { name: /EZ-GO/i }).click();
+  await gas.getByRole("button", { name: /Marathon/i }).click();
+  await gas.getByRole("button", { name: /Engine will not crank/i }).click();
+  const gasHeader = gas.getByRole("button", { name: /Job header/i });
+  if (await gasHeader.count()) await gasHeader.click();
+  await fillHeader(gas, {
+    last: "Yearbad",
+    job: "HCP-5702",
+    year: "2010",
+    who: "Hayden",
+    complaint: "No crank.",
+  });
+  const yearNote = gas.getByTestId("year-compat");
+  check("marathon 2010 year error visible", await yearNote.isVisible());
+  check("marathon 2010 year names range", /2010/.test(await yearNote.innerText()) && /1991/.test(await yearNote.innerText()));
+  const blocked = gas.getByTestId("start-blocked-reason");
+  check("marathon 2010 Start reason visible", await blocked.isVisible());
+  check("marathon 2010 Start reason names year", /2010/.test(await blocked.innerText()) && /1991/.test(await blocked.innerText()));
+  check("marathon 2010 Start not ready", (await gas.getByTestId("start-checks").getAttribute("data-start-ready")) === "false");
+  await mouseClickStart(gas);
+  await gas.waitForTimeout(600);
+  check("marathon 2010 Start stayed on header", (await gas.getByTestId("start-checks").count()) === 1);
+  check("marathon 2010 still explains after tap", await gas.getByTestId("start-blocked-reason").isVisible());
+
+  await gas.getByLabel(/^Year$/i).fill("1996");
+  check("marathon 1996 year accepted", /1996/.test(await gas.getByTestId("year-compat").innerText()));
+  check("marathon 1996 Start ready", (await gas.getByTestId("start-checks").getAttribute("data-start-ready")) === "true");
+  check("marathon 1996 Start unblocked", (await gas.getByTestId("start-blocked-reason").count()) === 0);
+  await mouseClickStart(gas);
+  await gas.waitForURL("**/bench/**", { timeout: 15000 });
+  check("marathon 1996 Start reached Check 1", await gas.getByText(/CHECK 1/i).first().isVisible());
+  check("gas pack N/A badge visible", await gas.getByTestId("pack-na-badge").first().isVisible());
+  check("gas pack N/A badge text", (await gas.getByTestId("pack-na-badge").first().innerText()).includes("Pack N/A"));
+  check(
+    "gas sticky Save still visible with N/A badge",
+    await gas.getByTestId("bay-action-bar").getByRole("button", { name: /Save and go on/i }).isVisible(),
+  );
+  await gas.screenshot({ path: `${out}/bay-round7-gas-na.png` });
+  await gas.close();
+}
+
 async function runHelperJumpFromNotFullyCharged() {
   const page = await browser.newPage({ viewport: { width: 1024, height: 768 } });
   page.on("pageerror", (e) => console.log("PAGEERROR", e.message));
@@ -616,6 +710,7 @@ await runStickySaveAdvance();
 await runHelperRedirect();
 await runHelperJumpFromPack();
 await runHelperJumpFromNotFullyCharged();
+await runRound7StartValidationAndBayImprovements();
 
 await browser.close();
 if (fails.length) {

@@ -5,14 +5,20 @@ import { Button } from "@/components/ui/button";
 import { MANUFACTURERS, packsFor } from "@/data/index";
 import type { BatteryType, ManufacturerId, ModelPack } from "@/data/types";
 import { JOB_HEADER_MESSAGES, jobHeaderGaps, jobHeaderSummary } from "@/lib/job-header";
-import { attemptStartChecks, readHeaderSnapshot, type HeaderSnapshot } from "@/lib/start-checks";
 import {
-  canStartChecks,
+  attemptStartChecks,
+  complaintHasFirstStep,
+  readHeaderSnapshot,
+  startBlockers,
+  startIsReady,
+  type HeaderSnapshot,
+} from "@/lib/start-checks";
+import {
   canVisitWizardStep,
   openJobHeader,
   stepAfterComplaintSelected,
 } from "@/lib/wizard-nav";
-import { yearCompatibility, yearStatusNote } from "@/lib/year-compat";
+import { supportedYearsHint, yearCompatibility, yearStatusNote } from "@/lib/year-compat";
 import type { CreateJobInput } from "@/store/jobs";
 
 export type StartJobResult =
@@ -43,6 +49,7 @@ export function NewJobWizard({
   const [startErrors, setStartErrors] = useState<string[]>([]);
   const [starting, setStarting] = useState(false);
   const startLock = useRef(0);
+  const startReasonRef = useRef<HTMLDivElement>(null);
 
   const models = useMemo(() => (mfg ? packsFor(mfg) : []), [mfg]);
   const electric = models.filter((p) => p.powertrain === "electric");
@@ -69,7 +76,6 @@ export function NewJobWizard({
     batteryType,
     technician,
   });
-  const headerReady = canStartChecks(gaps);
   const headerMessage = jobHeaderSummary(gaps);
   const yearCheck = model
     ? yearCompatibility({
@@ -80,6 +86,10 @@ export function NewJobWizard({
     : { status: "ok" as const };
   const yearNote = yearStatusNote(yearCheck);
   const yearMessage = yearCheck.status === "unsupported" ? yearCheck.message : null;
+  const yearsHint = model ? supportedYearsHint(model.years) : null;
+  const blockers = startBlockers({ pack: model, symptomId, header });
+  const startReady = startIsReady(blockers);
+  const complaintReady = complaintHasFirstStep(model, symptomId);
 
   function goToHeader() {
     const next = openJobHeader(symptomId);
@@ -113,6 +123,7 @@ export function NewJobWizard({
     if (!attempted.ok) {
       setStarting(false);
       setStartErrors(attempted.messages);
+      startReasonRef.current?.scrollIntoView({ block: "nearest", behavior: "smooth" });
       return;
     }
     setStartErrors([]);
@@ -260,20 +271,32 @@ export function NewJobWizard({
             These come from the factory book.
           </p>
           <div className="grid gap-2">
-            {model.symptoms.map((s) => (
-              <button
-                key={s.id}
-                type="button"
-                onClick={() => pickComplaint(s.id)}
-                className={
-                  "min-h-16 rounded-md px-4 py-3 text-left shadow-[var(--shadow-border)] transition-[background-color,box-shadow] duration-150 " +
-                  (symptomId === s.id ? "bg-navy text-navy-fg" : "bg-surface text-ink hover:shadow-[var(--shadow-border-hover)]")
-                }
-              >
-                <p className="font-medium">{s.label}</p>
-                <p className={"text-sm " + (symptomId === s.id ? "text-navy-fg/80" : "text-ink-muted")}>{s.summary}</p>
-              </button>
-            ))}
+            {model.symptoms.map((s) => {
+              const pathReady = complaintHasFirstStep(model, s.id);
+              return (
+                <button
+                  key={s.id}
+                  type="button"
+                  onClick={() => pickComplaint(s.id)}
+                  className={
+                    "min-h-16 rounded-md px-4 py-3 text-left shadow-[var(--shadow-border)] transition-[background-color,box-shadow] duration-150 " +
+                    (symptomId === s.id ? "bg-navy text-navy-fg" : "bg-surface text-ink hover:shadow-[var(--shadow-border-hover)]")
+                  }
+                >
+                  <p className="font-medium">{s.label}</p>
+                  <p className={"text-sm " + (symptomId === s.id ? "text-navy-fg/80" : "text-ink-muted")}>{s.summary}</p>
+                  {pathReady ? null : (
+                    <p
+                      className={
+                        "mt-1 text-sm font-medium " + (symptomId === s.id ? "text-navy-fg" : "text-danger")
+                      }
+                    >
+                      No first factory check on file — Start stays blocked.
+                    </p>
+                  )}
+                </button>
+              );
+            })}
           </div>
           <div className="relative z-10 mt-5 flex flex-wrap gap-2 pb-16">
             <Button variant="ghost" onClick={() => setStep(2)}>
@@ -285,6 +308,11 @@ export function NewJobWizard({
               <ChevronRight className="size-4" />
             </Button>
           </div>
+          {symptomId && !complaintReady ? (
+            <p className="mt-3 text-sm font-medium text-danger" role="status">
+              This complaint has no first factory check. Start will stay blocked until you pick another problem.
+            </p>
+          ) : null}
         </div>
       ) : null}
 
@@ -344,20 +372,19 @@ export function NewJobWizard({
                 inputMode="numeric"
                 aria-label="Year"
                 aria-invalid={Boolean(yearMessage)}
+                aria-describedby="year-compat-note"
               />
-              {yearNote ? (
-                <span
-                  className={
-                    "mt-1 block text-sm " + (yearMessage ? "text-danger" : "text-ink-muted")
-                  }
-                >
-                  {yearNote}
-                </span>
-              ) : (
-                <span className="mt-1 block text-xs text-ink-muted">
-                  Year is optional. If you enter one, we check it against the factory book on file.
-                </span>
-              )}
+              <span
+                id="year-compat-note"
+                data-testid="year-compat"
+                className={
+                  "mt-1 block text-sm " + (yearMessage ? "font-medium text-danger" : "text-ink-muted")
+                }
+              >
+                {yearNote ??
+                  yearsHint ??
+                  "Year is optional. If you enter one, we check it against the factory book on file."}
+              </span>
             </Field>
             <Field label="Serial (recommended)">
               <HeaderNoteInput
@@ -427,21 +454,36 @@ export function NewJobWizard({
               {headerMessage}
             </p>
           ) : null}
-          {yearMessage && !headerMessage ? (
-            <p className="mt-3 text-sm text-danger" role="alert">
-              {yearMessage}
-            </p>
-          ) : null}
-          {startErrors.length > 0 ? (
-            <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-danger" role="alert">
-              {startErrors
-                .filter((m) => m !== headerMessage && m !== yearMessage && m !== yearNote)
-                .map((m) => (
-                  <li key={m}>{m}</li>
+          <div className="sticky bottom-0 z-30 isolate mt-5 border-t border-navy-deep bg-paper px-1 pt-2 pb-[max(2.75rem,calc(env(safe-area-inset-bottom)+2.25rem))]">
+            {!startReady || startErrors.length > 0 ? (
+              <div
+                ref={startReasonRef}
+                data-testid="start-blocked-reason"
+                className="mb-2 rounded-md bg-danger-bg px-3 py-2 text-sm font-medium text-danger"
+                role="alert"
+              >
+                <p>Start is blocked. {blockers[0]?.message ?? startErrors[0]}</p>
+                {blockers.slice(1).map((b) => (
+                  <p key={b.kind + b.message} className="mt-1 font-normal">
+                    {b.message}
+                  </p>
                 ))}
-            </ul>
-          ) : null}
-          <div className="sticky bottom-0 z-30 isolate mt-5 flex flex-wrap gap-2 border-t border-navy-deep bg-paper px-1 pt-2 pb-[max(2.75rem,calc(env(safe-area-inset-bottom)+2.25rem))]">
+                {startErrors
+                  .filter(
+                    (m) =>
+                      m !== headerMessage &&
+                      m !== yearMessage &&
+                      m !== yearNote &&
+                      !blockers.some((b) => b.message === m),
+                  )
+                  .map((m) => (
+                    <p key={m} className="mt-1 font-normal">
+                      {m}
+                    </p>
+                  ))}
+              </div>
+            ) : null}
+            <div className="flex flex-wrap gap-2">
             <Button type="button" variant="ghost" onClick={() => setStep(3)}>
               <ChevronLeft className="size-4" />
               What’s wrong
@@ -455,10 +497,9 @@ export function NewJobWizard({
               type="button"
               data-testid="start-checks"
               data-start-checks=""
-              className={
-                "ml-auto min-w-44 touch-manipulation" + (headerReady && !yearMessage ? "" : " opacity-40")
-              }
-              aria-disabled={!headerReady || Boolean(yearMessage) || starting}
+              data-start-ready={startReady && !starting ? "true" : "false"}
+              className={"ml-auto min-w-44 touch-manipulation" + (startReady ? "" : " opacity-40")}
+              aria-disabled={!startReady || starting}
               aria-busy={starting}
               disabled={starting}
               onPointerDown={onStartPointerDown}
@@ -470,6 +511,7 @@ export function NewJobWizard({
               </span>
               {starting ? null : <ChevronRight className="pointer-events-none size-4" />}
             </Button>
+            </div>
           </div>
         </form>
       ) : null}

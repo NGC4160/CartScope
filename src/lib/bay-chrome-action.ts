@@ -4,6 +4,7 @@ export type BayChromeMeta = {
   disabled?: boolean;
   busy?: boolean;
   secondaryLabel?: string;
+  badge?: string | null;
 };
 
 export type BayActionChrome = BayChromeMeta & {
@@ -33,6 +34,7 @@ export function bayChromePublish(prev: BayChromeSnapshot, chrome: BayActionChrom
       disabled: chrome.disabled,
       busy: chrome.busy,
       secondaryLabel: chrome.secondaryLabel,
+      badge: chrome.badge ?? null,
     },
   };
 }

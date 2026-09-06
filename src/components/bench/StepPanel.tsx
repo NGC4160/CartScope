@@ -14,6 +14,7 @@ import { MeterNumberInput } from "@/components/case/fields";
 import { Button } from "@/components/ui/button";
 import { isMotorIsolationStep } from "@/lib/case-flow";
 import { bayProgressChip, bayStepActionLabel, readMeterDraft } from "@/lib/bay-chrome";
+import { packNaBadge } from "@/lib/pack-na";
 import { BAY_CHECK_FORM_ID, bayFormSubmitGate } from "@/lib/bay-chrome-action";
 import { formatClock } from "@/lib/utils";
 import { formatReading, rangeLabel, unusualVerifyBanner } from "@/lib/diagnostics";
@@ -189,6 +190,7 @@ export function StepPanel({
     label: bayStepActionLabel(verifyPhase, diagnosedView),
     onAction: primarySubmit,
     disabled: !diagnosedView && motorStep && !motorReady,
+    badge: packNaBadge(pack),
   });
 
   if (diagnosedView && diagnosis) {
@@ -255,9 +257,12 @@ export function StepPanel({
     >
       <Header symptom={symptom?.label} progress={progress} />
       <div className="min-h-0 flex-1 overflow-auto p-4">
-        <p className="font-mono text-xs font-semibold tracking-wide text-navy">
-          CHECK {job.log.length + 1}
-        </p>
+        <div className="flex flex-wrap items-center gap-2">
+          <p className="font-mono text-xs font-semibold tracking-wide text-navy">
+            CHECK {job.log.length + 1}
+          </p>
+          {pack.powertrain === "gasoline" ? <PackNaBanner pack={pack} compact /> : null}
+        </div>
         {pack.powertrain === "gasoline" ? (
           <div className="mt-3">
             <PackNaBanner pack={pack} />
