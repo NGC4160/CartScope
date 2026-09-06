@@ -1,9 +1,10 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { AlertTriangle } from "lucide-react";
+import type { BayActionChrome } from "@/components/bay/BayActionBar";
 import { Button } from "@/components/ui/button";
-import { InFlowGuidance } from "@/components/case/InFlowGuidance";
 import { Field, inputClass, VoltageInput } from "@/components/case/fields";
 import type { JobRecord, ModelPack, PackCheckRecord, PackCellReading, PackDraft } from "@/data/types";
+import { bayPackActionEnabled, bayPackActionLabel, bayProgressChip } from "@/lib/bay-chrome";
 import { packLayout, scaledLeadAcidLimits } from "@/lib/pack-layout";
 import {
   applyBulkAgeUnreadable,
@@ -41,7 +42,15 @@ function draftsFrom(
   });
 }
 
-export function PackGate({ job, pack }: { job: JobRecord; pack: ModelPack }) {
+export function PackGate({
+  job,
+  pack,
+  onChrome,
+}: {
+  job: JobRecord;
+  pack: ModelPack;
+  onChrome?: (chrome: BayActionChrome | null) => void;
+}) {
   const save = useJobStore((s) => s.savePackCheck);
   const patchJob = useJobStore((s) => s.patchJob);
   const layout = packLayout(pack);
@@ -217,6 +226,23 @@ export function PackGate({ job, pack }: { job: JobRecord; pack: ModelPack }) {
   }
 
   const canOfferFailPath = !lithium && !evalr.pass && numericCells.length >= layout.count;
+  const packAction = {
+    lithium,
+    packPass: evalr.pass,
+    testPath,
+    cellsReady: numericCells.length >= layout.count,
+  };
+
+  useLayoutEffect(() => {
+    if (!onChrome) return;
+    onChrome({
+      chip: bayProgressChip(job, pack),
+      label: bayPackActionLabel(packAction),
+      onAction: lithium || evalr.pass || numericCells.length < layout.count ? continuePass : continueTestBattery,
+      disabled: !bayPackActionEnabled(packAction),
+    });
+  });
+  useEffect(() => () => onChrome?.(null), [onChrome]);
 
   return (
     <div className="flex h-full min-h-0 flex-col bg-surface">
@@ -525,20 +551,6 @@ export function PackGate({ job, pack }: { job: JobRecord; pack: ModelPack }) {
             ))}
           </div>
         ) : null}
-
-        <InFlowGuidance job={job} pack={pack} phaseLabel="Pack check" />
-
-        <div className="mt-5 flex flex-wrap gap-2">
-          {lithium || evalr.pass || numericCells.length < layout.count ? (
-            <Button onClick={continuePass} className="min-w-44">
-              Save pack and go on
-            </Button>
-          ) : testPath ? (
-            <Button onClick={continueTestBattery} className="min-w-44">
-              Save test-battery note and go on
-            </Button>
-          ) : null}
-        </div>
       </div>
     </div>
   );

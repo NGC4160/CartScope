@@ -5,12 +5,21 @@ import type { ReactNode } from "react";
 export function AppShell({
   children,
   right,
+  lockViewport = false,
 }: {
   children: ReactNode;
   right?: ReactNode;
+  lockViewport?: boolean;
 }) {
   return (
-    <div className="flex min-h-dvh flex-col bg-paper text-ink">
+    <div
+      className={
+        "flex flex-col bg-paper text-ink " +
+        (lockViewport
+          ? "h-dvh overflow-hidden print:h-auto print:overflow-visible"
+          : "min-h-dvh")
+      }
+    >
       <header className="no-print sticky top-0 z-20 flex min-h-14 items-center gap-3 border-b border-navy-deep bg-navy px-4 text-navy-fg">
         <Link to="/" className="flex items-center gap-2.5">
           <Mark />

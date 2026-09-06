@@ -1,10 +1,12 @@
-import { useState } from "react";
+import { useLayoutEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { Check, Copy, Printer } from "lucide-react";
+import type { BayActionChrome } from "@/components/bay/BayActionBar";
 import { Button } from "@/components/ui/button";
 import { BrainStatus } from "@/components/case/BrainStatus";
 import { Field, inputClass } from "@/components/case/fields";
 import type { JobRecord, ModelPack } from "@/data/types";
+import { bayProgressChip, bayReportActionLabel } from "@/lib/bay-chrome";
 import { submitBrainCopy } from "@/lib/brain-submit";
 import { plainCaseSummary } from "@/lib/case-summary";
 import { formatReading } from "@/lib/diagnostics";
@@ -24,10 +26,16 @@ export function CaseReport({
   job,
   pack,
   printMode = false,
+  peek = false,
+  onBackToChecks,
+  onChrome,
 }: {
   job: JobRecord;
   pack: ModelPack;
   printMode?: boolean;
+  peek?: boolean;
+  onBackToChecks?: () => void;
+  onChrome?: (chrome: BayActionChrome | null) => void;
 }) {
   const proof = evaluateProof(job, pack);
   const confirm = useJobStore((s) => s.confirmReport);
@@ -74,6 +82,23 @@ export function CaseReport({
     await fileShopCopy({ ...next, reportConfirmed: true, status: "complete" });
   }
 
+  function back() {
+    if (onBackToChecks) onBackToChecks();
+    else setPhase(job.id, "steps");
+  }
+
+  useLayoutEffect(() => {
+    if (!onChrome || printMode) return;
+    onChrome({
+      chip: bayProgressChip(job, pack),
+      label: bayReportActionLabel(Boolean(job.reportConfirmed)),
+      onAction: job.reportConfirmed ? back : () => void onConfirm(),
+      disabled: filing,
+      secondaryLabel: job.reportConfirmed ? undefined : "Back to checks",
+      onSecondary: job.reportConfirmed ? undefined : back,
+    });
+  });
+
   return (
     <div className={"flex h-full min-h-0 flex-col " + (printMode ? "bg-white" : "bg-surface")}>
       <div className="min-h-0 flex-1 overflow-auto p-4 sm:p-6">
@@ -87,15 +112,20 @@ export function CaseReport({
               <Copy className="size-4" />
               {copied ? "Copied" : "Copy for Housecall Pro"}
             </Button>
-            <Button variant="ghost" onClick={() => setPhase(job.id, "steps")}>
-              Back to checks
-            </Button>
+            {onChrome ? null : (
+              <Button variant="ghost" onClick={back}>
+                Back to checks
+              </Button>
+            )}
           </div>
         ) : null}
 
         <p className="font-mono text-xs tracking-[0.18em] text-navy">WHAT WE FOUND</p>
         <h1 className="mt-1 font-display text-3xl font-semibold text-ink">{pack.fullName}</h1>
         <p className="text-sm text-ink-muted">{symptom?.label}</p>
+        {peek && !printMode && job.status === "in-progress" && job.casePhase !== "report" ? (
+          <p className="mt-2 text-sm text-ink-muted">Draft peek. Typed numbers stay on the Checks tab.</p>
+        ) : null}
 
         <dl className="mt-4 grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
           <Row label="Customer last name" value={job.lastName || "—"} />
@@ -343,7 +373,7 @@ export function CaseReport({
                 <Check className="size-4" />
                 This case is marked complete.
               </p>
-            ) : (
+            ) : onChrome ? null : (
               <Button onClick={() => void onConfirm()} className="min-w-52" disabled={filing}>
                 Review and confirm
               </Button>
