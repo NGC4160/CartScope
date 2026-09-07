@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { BayActionBar, useBayChrome } from "@/components/bay/BayActionBar";
-import { BAY_CHECK_FORM_ID, BAY_REPORT_FORM_ID } from "@/lib/bay-chrome-action";
+import { BAY_CHECK_FORM_ID, BAY_REPORT_FORM_ID, createBaySubmitSlot } from "@/lib/bay-chrome-action";
 import { BayDock } from "@/components/bay/BayDock";
 import { BayHelperSheet } from "@/components/bay/BayHelperSheet";
 import { DiagramPane } from "@/components/bay/DiagramPane";
@@ -28,6 +28,8 @@ export function BayWorkspace({ job, pack }: { job: JobRecord; pack: ModelPack })
   const [pane, setPane] = useState<BayPane>(() => defaultBayPane(job));
   const [checkChrome, setCheckChrome] = useBayChrome();
   const [reportChrome, setReportChrome] = useBayChrome();
+  const checkSlot = useRef(createBaySubmitSlot()).current;
+  const reportSlot = useRef(createBaySubmitSlot()).current;
   const split = useMediaQuery(`(min-width: ${BAY_SPLIT_MIN_PX}px)`);
   const phase = job.casePhase ?? "steps";
   const step = pack.steps[job.currentStepId];
@@ -65,14 +67,15 @@ export function BayWorkspace({ job, pack }: { job: JobRecord; pack: ModelPack })
 
   const checkPanel =
     phase === "pack" ? (
-      <PackGate job={job} pack={pack} onChrome={setCheckChrome} />
+      <PackGate job={job} pack={pack} onChrome={setCheckChrome} bindSubmit={checkSlot.bind} />
     ) : phase === "codes" ? (
-      <CodeGate job={job} pack={pack} onChrome={setCheckChrome} />
+      <CodeGate job={job} pack={pack} onChrome={setCheckChrome} bindSubmit={checkSlot.bind} />
     ) : (
       <StepPanel
         job={job}
         pack={pack}
         onChrome={setCheckChrome}
+        bindSubmit={checkSlot.bind}
         onOpenDiagram={() => goPane("diagram")}
         onOpenReport={() => {
           setPhase(job.id, "report");
@@ -123,7 +126,7 @@ export function BayWorkspace({ job, pack }: { job: JobRecord; pack: ModelPack })
                 </button>
               ) : null}
               <div className={showHelper ? "pointer-events-none" : undefined} aria-hidden={showHelper || undefined}>
-                <BayActionBar chrome={checkChrome} formId={BAY_CHECK_FORM_ID} />
+                <BayActionBar chrome={checkChrome} formId={BAY_CHECK_FORM_ID} fire={checkSlot.fire} />
               </div>
               {showHelper ? (
                 <BayHelperSheet
@@ -155,6 +158,7 @@ export function BayWorkspace({ job, pack }: { job: JobRecord; pack: ModelPack })
                 peek
                 onBackToChecks={backToChecks}
                 onChrome={setReportChrome}
+                bindSubmit={reportSlot.bind}
               />
             </div>
             <BayActionBar
@@ -166,6 +170,7 @@ export function BayWorkspace({ job, pack }: { job: JobRecord; pack: ModelPack })
                 }
               }
               formId={BAY_REPORT_FORM_ID}
+              fire={reportSlot.fire}
             />
           </div>
         ) : null}

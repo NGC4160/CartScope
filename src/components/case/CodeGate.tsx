@@ -1,5 +1,6 @@
 import { useMemo, useRef, useState } from "react";
 import { usePublishBayChrome, type BayActionChrome } from "@/components/bay/BayActionBar";
+import { BaySaveNotice } from "@/components/bay/BaySaveNotice";
 import { Button } from "@/components/ui/button";
 import { Field, inputClass } from "@/components/case/fields";
 import type { JobRecord, ModelPack } from "@/data/types";
@@ -104,6 +105,7 @@ export function CodeGate({
   return (
     <form
       id={BAY_CHECK_FORM_ID}
+      noValidate
       className="flex h-full min-h-0 flex-col bg-surface"
       onSubmit={(e) => {
         e.preventDefault();
@@ -316,16 +318,9 @@ export function CodeGate({
           </span>
         </label>
 
-        <div ref={errorAnchor} className="mt-3">
-          {error ? <p className="text-sm text-danger">{error}</p> : null}
-        </div>
-        {blockers.length > 0 ? (
-          <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-danger" role="alert">
-            {blockers.map((b) => (
-              <li key={b}>{b}</li>
-            ))}
-          </ul>
-        ) : null}
+      </div>
+      <div ref={errorAnchor}>
+        <BaySaveNotice title={error} details={blockers} />
       </div>
     </form>
   );

@@ -172,6 +172,15 @@ export function startIsReady(blockers: readonly StartBlocker[]): boolean {
   return blockers.length === 0;
 }
 
+/** Start is only enabled when the combo would actually open checks. */
+export function startControl(
+  blockers: readonly StartBlocker[],
+  starting = false,
+): { ready: boolean; disabled: boolean } {
+  const ready = startIsReady(blockers);
+  return { ready, disabled: !ready || starting };
+}
+
 export function attemptStartChecks(input: {
   pack: ModelPack | null | undefined;
   symptomId: string | null;

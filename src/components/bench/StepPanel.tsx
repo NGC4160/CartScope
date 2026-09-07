@@ -7,6 +7,7 @@ import {
   RotateCcw,
 } from "lucide-react";
 import { usePublishBayChrome, type BayActionChrome } from "@/components/bay/BayActionBar";
+import { BaySaveNotice } from "@/components/bay/BaySaveNotice";
 import type { JobRecord, MeasurementSpec, ModelPack, ReadingAttempt } from "@/data/types";
 import { termHints, unitHelp } from "@/data/plain-terms";
 import { PackNaBanner } from "@/components/case/PackNaBanner";
@@ -197,6 +198,7 @@ export function StepPanel({
     return (
       <form
         id={BAY_CHECK_FORM_ID}
+        noValidate
         className="flex h-full min-h-0 flex-col"
         onSubmit={(e) => {
           e.preventDefault();
@@ -238,6 +240,12 @@ export function StepPanel({
           ))}
           <LogList job={job} />
         </div>
+        <div ref={errorAnchor}>
+          <BaySaveNotice
+            title={error}
+            details={missing.length > 0 ? [`Still needed: ${missing.join(", ")}.`] : undefined}
+          />
+        </div>
       </form>
     );
   }
@@ -249,6 +257,7 @@ export function StepPanel({
   return (
     <form
       id={BAY_CHECK_FORM_ID}
+      noValidate
       className="flex h-full min-h-0 flex-col"
       onSubmit={(e) => {
         e.preventDefault();
@@ -425,16 +434,6 @@ export function StepPanel({
           )}
         </div>
 
-        {error ? (
-          <div ref={errorAnchor} className="mt-2 text-sm text-danger" role="alert">
-            <p>{error}</p>
-            {missing.length > 0 ? (
-              <p className="mt-1">
-                Still needed: {missing.join(", ")}.
-              </p>
-            ) : null}
-          </div>
-        ) : null}
         {savedNote && !error ? (
           <p className="mt-2 text-sm text-ok" role="status">
             {savedNote}
@@ -493,6 +492,12 @@ export function StepPanel({
         </div>
 
         <LogList job={job} />
+      </div>
+      <div ref={errorAnchor}>
+        <BaySaveNotice
+          title={error}
+          details={missing.length > 0 ? [`Still needed: ${missing.join(", ")}.`] : undefined}
+        />
       </div>
     </form>
   );

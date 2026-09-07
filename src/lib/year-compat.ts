@@ -67,8 +67,29 @@ export function yearInRanges(year: number, ranges: readonly YearRange[]): boolea
   return ranges.some((r) => year >= r.min && (r.openEnded || year <= r.max));
 }
 
+export function mergeYearRanges(ranges: readonly YearRange[]): YearRange[] {
+  if (ranges.length === 0) return [];
+  const sorted = [...ranges].sort((a, b) => a.min - b.min || a.max - b.max);
+  const out: YearRange[] = [];
+  for (const r of sorted) {
+    const last = out[out.length - 1];
+    if (!last) {
+      out.push({ ...r });
+      continue;
+    }
+    const lastEnd = last.openEnded ? Number.POSITIVE_INFINITY : last.max;
+    if (r.min <= lastEnd + 1) {
+      last.openEnded = last.openEnded || r.openEnded;
+      last.max = Math.max(last.max, r.max);
+    } else {
+      out.push({ ...r });
+    }
+  }
+  return out;
+}
+
 export function formatPackYears(ranges: readonly YearRange[]): string {
-  return ranges
+  return mergeYearRanges(ranges)
     .map((r) => (r.openEnded ? `${r.min}–${r.max}+` : `${r.min}–${r.max}`))
     .join(", ");
 }
