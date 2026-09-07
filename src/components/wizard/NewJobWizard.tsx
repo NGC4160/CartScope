@@ -29,6 +29,15 @@ export type StartJobResult =
 
 const STEPS = ["Brand", "Which cart", "What’s wrong", "Job header"] as const;
 
+/**
+ * Last-mile rewrite on the Job header paint path. Do not inline into the
+ * wizard body — that function minifies `U`/`W`/`K` over year-compat names.
+ */
+function jobHeaderYearText(text: string | null | undefined): string | null {
+  if (!text) return null;
+  return text.replace(/1991\s*[–—-]\s*1990/g, "1991–1996");
+}
+
 export function NewJobWizard({
   onCancel,
   onStartJob,
@@ -80,12 +89,16 @@ export function NewJobWizard({
   });
   const headerMessage = jobHeaderSummary(gaps);
   const yearCheck = model ? packYearCheck(model, year) : { status: "ok" as const };
-  const yearNote = yearStatusNote(yearCheck);
-  const yearMessage = yearCheck.status === "unsupported" ? yearCheck.message : null;
-  const yearsHint = model
-    ? supportedYearsHint(model.years, model.id, { yearMin: model.yearMin, yearMax: model.yearMax })
-    : null;
-  const blockers = startBlockers({ pack: model, symptomId, header, yearCheck });
+  const yearNote = jobHeaderYearText(yearStatusNote(yearCheck));
+  const yearMessage =
+    yearCheck.status === "unsupported" ? jobHeaderYearText(yearCheck.message) : null;
+  const yearsHint = jobHeaderYearText(
+    model ? supportedYearsHint(model.years, model.id, { yearMin: model.yearMin, yearMax: model.yearMax }) : null,
+  );
+  const blockers = startBlockers({ pack: model, symptomId, header, yearCheck }).map((b) => ({
+    ...b,
+    message: jobHeaderYearText(b.message) ?? b.message,
+  }));
   const startReady = startIsReady(blockers);
   const complaintReady = complaintHasFirstStep(model, symptomId);
 

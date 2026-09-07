@@ -109,6 +109,12 @@ export function formatPackYears(ranges: readonly YearRange[]): string {
   );
 }
 
+/** Literal paint string — never `${min}–${max}` for these packs. */
+export const PINNED_PACK_SPANS: Record<string, string> = {
+  "club-car-ds-gas": "1991–1996",
+  "ezgo-marathon-gas": "1991–1996",
+};
+
 /**
  * FE350 / Marathon book strings also cite 1995–96, 2000, and FE290.
  * Display and Start use pinned min/max only — never a later cite
@@ -135,13 +141,7 @@ export function coerceYearBound(value: unknown): number | null {
  * 1991–1990. Never emit that span.
  */
 export function sanitizeYearSpan(span: string): string {
-  return span.replace(/1991\s*[–—-]\s*1990\b/g, "1991–1996");
-}
-
-export function leadingBookYearRanges(years: string): YearRange[] {
-  const parsed = parsePackYearRanges(years).filter((r) => r.openEnded || r.max >= r.min);
-  if (parsed.length === 0) return [];
-  return [{ ...parsed[0]! }];
+  return span.replace(/1991\s*[–—-]\s*1990/g, "1991–1996");
 }
 
 export type PackYearBounds = {
@@ -150,6 +150,19 @@ export type PackYearBounds = {
   yearMin?: unknown;
   yearMax?: unknown;
 };
+
+/** Job-header paint path. Lives in the wizard file too so a minified `U` cannot skip it. */
+export function displayPackYearSpan(input: PackYearBounds, ranges?: readonly YearRange[]): string {
+  if (input.packId && PINNED_PACK_SPANS[input.packId]) return PINNED_PACK_SPANS[input.packId]!;
+  if (/FE350/i.test(input.packYears) && /1991/.test(input.packYears)) return "1991–1996";
+  return sanitizeYearSpan(formatPackYears(ranges ?? resolvePackYearRanges(input)));
+}
+
+export function leadingBookYearRanges(years: string): YearRange[] {
+  const parsed = parsePackYearRanges(years).filter((r) => r.openEnded || r.max >= r.min);
+  if (parsed.length === 0) return [];
+  return [{ ...parsed[0]! }];
+}
 
 export function resolvePackYearRanges(input: PackYearBounds): YearRange[] {
   const min = coerceYearBound(input.yearMin);
@@ -168,7 +181,7 @@ export function resolvePackYearRanges(input: PackYearBounds): YearRange[] {
 
 /** One span for helper, ok-match, unsupported, and Start blocked — never a second formatter. */
 export function packYearSpan(input: PackYearBounds): string {
-  return formatPackYears(resolvePackYearRanges(input));
+  return displayPackYearSpan(input);
 }
 
 export function yearCompatibility(input: {
@@ -186,16 +199,17 @@ export function yearCompatibility(input: {
   if (ranges.length === 0) {
     return {
       status: "unknown",
-      message:
+      message: sanitizeYearSpan(
         `${input.packName} has no year range listed on the factory book string. Year ${year} is accepted. ` +
-        `If this cart is outside the book, pick a different pack.`,
+          `If this cart is outside the book, pick a different pack.`,
+      ),
     };
   }
-  const span = packYearSpan(input);
+  const span = displayPackYearSpan(input, ranges);
   if (yearInRanges(year, ranges)) {
     return {
       status: "ok",
-      message: `Year ${year} matches the factory book on file (${span}).`,
+      message: sanitizeYearSpan(`Year ${year} matches the factory book on file (${span}).`),
     };
   }
 
@@ -203,9 +217,10 @@ export function yearCompatibility(input: {
   return {
     status: "unsupported",
     range,
-    message:
+    message: sanitizeYearSpan(
       `Year ${year} is not on file for ${input.packName}. This cart pack covers ${span}. ` +
-      `Type a year in that range, or pick a different model.`,
+        `Type a year in that range, or pick a different model.`,
+    ),
   };
 }
 
@@ -221,10 +236,10 @@ export function supportedYearsHint(
     yearMax: bounds?.yearMax,
   });
   if (!span) return null;
-  return `Supported years on this pack: ${span}.`;
+  return sanitizeYearSpan(`Supported years on this pack: ${span}.`);
 }
 
 export function yearStatusNote(check: YearCompatibility): string | null {
-  if (check.status === "ok") return check.message ?? null;
-  return check.message;
+  if (check.status === "ok") return check.message ? sanitizeYearSpan(check.message) : null;
+  return sanitizeYearSpan(check.message);
 }

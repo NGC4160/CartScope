@@ -150,10 +150,12 @@ export function PackGate({
 
   function showBlockers(list: ReturnType<typeof packSaveBlockers>): string {
     setBlockers(list);
+    const named = list.slice(0, 6).map((b) => b.field);
+    const extra = list.length > named.length ? ` and ${list.length - named.length} more` : "";
     const message = list.length
-      ? `Cannot save yet. ${list.length} field${list.length === 1 ? "" : "s"} still need a value.`
+      ? `Cannot save yet. Still needed: ${named.join(", ")}${extra}. Type resting volts and age, or mark IR/age not readable.`
       : "Cannot save yet.";
-    setError(list.length ? message : null);
+    setError(message);
     queueMicrotask(() => errorAnchor.current?.scrollIntoView({ block: "nearest" }));
     return message;
   }

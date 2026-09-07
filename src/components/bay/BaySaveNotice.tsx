@@ -11,7 +11,7 @@ export function BaySaveNotice({
     <div
       data-testid="bay-save-notice"
       role="alert"
-      className="shrink-0 border-t-2 border-danger bg-danger-bg px-3 py-3 text-lg font-semibold leading-snug text-danger"
+      className="shrink-0 border-t-4 border-danger bg-danger-bg px-3 py-3 text-xl font-semibold leading-snug text-danger shadow-[0_-6px_16px_rgba(0,0,0,0.12)]"
     >
       {title ? <p>{title}</p> : null}
       {details && details.length > 0 ? (
