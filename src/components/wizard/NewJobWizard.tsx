@@ -10,16 +10,24 @@ import {
   complaintHasFirstStep,
   packYearCheck,
   readHeaderSnapshot,
+  startBlockedReason,
   startBlockers,
   startIsReady,
   type HeaderSnapshot,
+  type StartBlocker,
 } from "@/lib/start-checks";
 import {
   canVisitWizardStep,
   openJobHeader,
   stepAfterComplaintSelected,
 } from "@/lib/wizard-nav";
-import { sanitizeCartYearInput, supportedYearsHint, yearStatusNote } from "@/lib/year-compat";
+import {
+  sanitizeCartYearInput,
+  supportedYearsHint,
+  yearIssueLine,
+  yearStatusNote,
+  type YearCompatibility,
+} from "@/lib/year-compat";
 import type { CreateJobInput } from "@/store/jobs";
 
 export type StartJobResult =
@@ -35,6 +43,16 @@ const STEPS = ["Brand", "Which cart", "What’s wrong", "Job header"] as const;
 function jobHeaderYearText(text: string | null | undefined): string | null {
   if (!text) return null;
   return text.replace(/1991\s*[–—-]\s*1990/g, "1991–1996");
+}
+
+/** One paint string for the Year field and the Start banner. Module scope — do not inline. */
+function jobHeaderYearIssue(check: YearCompatibility): string | null {
+  const line = yearIssueLine(check);
+  return line ? (jobHeaderYearText(line) ?? line) : null;
+}
+
+function jobHeaderStartBlocked(yearIssue: string | null, blockers: readonly StartBlocker[]): string {
+  return startBlockedReason(yearIssue, blockers);
 }
 
 export function NewJobWizard({
@@ -88,16 +106,14 @@ export function NewJobWizard({
   });
   const headerMessage = jobHeaderSummary(gaps);
   const yearCheck = model ? packYearCheck(model, year) : { status: "ok" as const };
-  const yearNote = jobHeaderYearText(yearStatusNote(yearCheck));
-  const yearMessage =
-    yearCheck.status === "unsupported" ? jobHeaderYearText(yearCheck.message) : null;
+  const yearIssue = jobHeaderYearIssue(yearCheck);
+  const yearNote = yearIssue ?? jobHeaderYearText(yearStatusNote(yearCheck));
+  const yearMessage = yearIssue;
   const yearsHint = jobHeaderYearText(
     model ? supportedYearsHint(model.years, model.id, { yearMin: model.yearMin, yearMax: model.yearMax }) : null,
   );
-  const blockers = startBlockers({ pack: model, symptomId, header, yearCheck }).map((b) => ({
-    ...b,
-    message: jobHeaderYearText(b.message) ?? b.message,
-  }));
+  const blockers = startBlockers({ pack: model, symptomId, header, yearCheck });
+  const bannerReason = jobHeaderStartBlocked(yearIssue, blockers);
   const startReady = startIsReady(blockers);
   const complaintReady = complaintHasFirstStep(model, symptomId);
 
@@ -383,7 +399,8 @@ export function NewJobWizard({
                   "mt-1 block text-sm " + (yearMessage ? "font-medium text-danger" : "text-ink-muted")
                 }
               >
-                {yearNote ??
+                {yearIssue ??
+                  yearNote ??
                   yearsHint ??
                   "Year is optional. If you enter one, we check it against the factory book on file."}
               </span>
@@ -466,12 +483,14 @@ export function NewJobWizard({
                 className="mb-2 rounded-md bg-danger-bg px-3 py-2 text-sm font-medium text-danger"
                 role="alert"
               >
-                <p>Start is blocked. {blockers[0]?.message ?? startErrors[0]}</p>
-                {blockers.slice(1).map((b) => (
-                  <p key={b.kind + b.message} className="mt-1 font-normal">
-                    {b.message}
-                  </p>
-                ))}
+                <p>Start is blocked. {bannerReason || startErrors[0]}</p>
+                {blockers
+                  .filter((b) => b.message !== bannerReason)
+                  .map((b) => (
+                    <p key={b.kind + b.message} className="mt-1 font-normal">
+                      {b.message}
+                    </p>
+                  ))}
               </div>
             ) : startErrors.length > 0 ? (
               <div

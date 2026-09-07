@@ -134,7 +134,7 @@ export function StepPanel({
       ].filter((f): f is string => Boolean(f));
       return failContinue("Unlock this motor check first. The controller must be unplugged from the motor.", fields);
     }
-    const pick = selectedRef.current;
+    const pick = selectedRef.current ?? selected;
     let payload = numeric ? raw : (pick ?? raw);
     if (numeric) {
       const live = meterRef.current?.value ?? raw;

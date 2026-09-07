@@ -4,6 +4,7 @@ import { benchUrl, canStartChecks, resolveStartJob } from "./wizard-nav.ts";
 import {
   sanitizeCartYearInput,
   yearCompatibility,
+  yearIssueLine,
   yearStatusNote,
   type YearCompatibility,
 } from "./year-compat.ts";
@@ -170,7 +171,7 @@ export function startBlockers(input: {
   if (pack) {
     const year = input.yearCheck ?? packYearCheck(pack, header.cartYear);
     if (year.status === "unsupported") {
-      blockers.push({ kind: "year", message: year.message });
+      blockers.push({ kind: "year", message: yearIssueLine(year) ?? year.message });
     }
   }
 
@@ -196,6 +197,12 @@ export function startIsReady(blockers: readonly StartBlocker[]): boolean {
   return blockers.length === 0;
 }
 
+/** Same line the Year field shows. Banner must not format year again. */
+export function startBlockedReason(yearIssue: string | null, blockers: readonly StartBlocker[]): string {
+  if (yearIssue) return yearIssue;
+  return blockers.find((b) => b.kind !== "year")?.message ?? blockers[0]?.message ?? "";
+}
+
 export function attemptStartChecks(input: {
   pack: ModelPack | null | undefined;
   symptomId: string | null;
@@ -215,7 +222,7 @@ export function attemptStartChecks(input: {
   const blockers = startBlockers({ pack, symptomId: input.symptomId, header, yearCheck: year });
   const messages = blockers.map((b) => b.message);
   const yearNote = yearStatusNote(year);
-  const yearMessage = year.status === "unsupported" ? year.message : null;
+  const yearMessage = yearIssueLine(year);
   const routeLabel = startRouteLabel({ pack, symptomId: input.symptomId, header });
 
   const symptom = symptomOf(pack, input.symptomId);
