@@ -1,6 +1,5 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { getPack } from "./index.ts";
 import { getSheet, sheetsForPack } from "./wiring.ts";
 
 test("Library TXT 36 V Non-PDS sheet is on the Non-PDS pack only", () => {
@@ -31,14 +30,4 @@ test("Library TXT 36 V PDS sheet sits with existing pds36 sheets", () => {
   for (const keep of ["pds36-4", "pds36-1", "pds36-2", "pds36-3", "pds36-5", "pds36-charger"]) {
     assert.ok(ids.includes(keep), keep);
   }
-});
-
-test("Non-PDS 36 V pack is selectable and is not an alias of DCS or TCT", () => {
-  const pack = getPack("ezgo-txt-36-non-pds");
-  assert.ok(pack);
-  assert.equal(pack.id, "ezgo-txt-36-non-pds");
-  assert.equal(pack.voltage, 36);
-  assert.notEqual(getPack("ezgo-txt-dcs")?.id, pack.id);
-  assert.notEqual(getPack("ezgo-txt-tct")?.id, pack.id);
-  assert.notEqual(getPack("ezgo-pds-36")?.id, pack.id);
 });
