@@ -1,10 +1,11 @@
-import { useCallback, useLayoutEffect, useRef, useState } from "react";
+import { useCallback, useLayoutEffect, useRef, useState, type PointerEvent } from "react";
 import { ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   emptyBayChrome,
   bayChromeClear,
   bayChromePublish,
+  createBayGesture,
   fireBaySaveOutcome,
   type BayActionChrome,
   type BayChromeSnapshot,
@@ -124,6 +125,7 @@ export function BayActionBar({
   fire?: () => boolean | BaySaveOutcome;
 }) {
   const [missed, setMissed] = useState<string | null>(null);
+  const gesture = useRef(createBayGesture(50)).current;
   if (!chrome) return null;
   const live = chrome;
   const noticeTitle = live.error || missed;
@@ -137,8 +139,6 @@ export function BayActionBar({
     const out = fireBaySaveOutcome({
       fire,
       fallback: () => live.onAction(),
-      formId,
-      document: typeof document !== "undefined" ? document : undefined,
     });
     if (!out.ran) {
       setMissed("Save did not run. Try Save again.");
@@ -151,8 +151,14 @@ export function BayActionBar({
     setMissed(null);
   }
 
+  function onPrimaryPointerUp(event: PointerEvent<HTMLButtonElement>) {
+    if (live.disabled || live.busy) return;
+    if (event.pointerType === "mouse" && event.button !== 0) return;
+    gesture.run(() => activate());
+  }
+
   function onPrimaryClick() {
-    activate();
+    gesture.run(() => activate());
   }
 
   return (
@@ -199,6 +205,7 @@ export function BayActionBar({
         className="mt-2 min-h-12 w-full min-w-0 justify-start text-left touch-manipulation active:scale-100"
         style={{ minHeight: Math.max(BAY_TAP_MIN_PX, 48) }}
         onClick={onPrimaryClick}
+        onPointerUp={onPrimaryPointerUp}
         disabled={live.disabled || live.busy}
       >
         <span className="pointer-events-none truncate">{live.label}</span>

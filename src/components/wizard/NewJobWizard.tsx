@@ -10,24 +10,16 @@ import {
   complaintHasFirstStep,
   packYearCheck,
   readHeaderSnapshot,
-  startBlockedReason,
   startBlockers,
   startIsReady,
   type HeaderSnapshot,
-  type StartBlocker,
 } from "@/lib/start-checks";
 import {
   canVisitWizardStep,
   openJobHeader,
   stepAfterComplaintSelected,
 } from "@/lib/wizard-nav";
-import {
-  sanitizeCartYearInput,
-  supportedYearsHint,
-  yearIssueLine,
-  yearStatusNote,
-  type YearCompatibility,
-} from "@/lib/year-compat";
+import { sanitizeCartYearInput, supportedYearsHint, yearStatusNote } from "@/lib/year-compat";
 import type { CreateJobInput } from "@/store/jobs";
 
 export type StartJobResult =
@@ -43,16 +35,6 @@ const STEPS = ["Brand", "Which cart", "What’s wrong", "Job header"] as const;
 function jobHeaderYearText(text: string | null | undefined): string | null {
   if (!text) return null;
   return text.replace(/1991\s*[–—-]\s*1990/g, "1991–1996");
-}
-
-/** One paint string for the Year field and the Start banner. Module scope — do not inline. */
-function jobHeaderYearIssue(check: YearCompatibility): string | null {
-  const line = yearIssueLine(check);
-  return line ? (jobHeaderYearText(line) ?? line) : null;
-}
-
-function jobHeaderStartBlocked(yearIssue: string | null, blockers: readonly StartBlocker[]): string {
-  return startBlockedReason(yearIssue, blockers);
 }
 
 export function NewJobWizard({
@@ -78,6 +60,7 @@ export function NewJobWizard({
   const [starting, setStarting] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
   const startReasonRef = useRef<HTMLDivElement>(null);
+  const startLockRef = useRef(false);
 
   const models = useMemo(() => (mfg ? packsFor(mfg) : []), [mfg]);
   const electric = models.filter((p) => p.powertrain === "electric");
@@ -106,14 +89,18 @@ export function NewJobWizard({
   });
   const headerMessage = jobHeaderSummary(gaps);
   const yearCheck = model ? packYearCheck(model, year) : { status: "ok" as const };
-  const yearIssue = jobHeaderYearIssue(yearCheck);
+  // Field + banner share this string. Do not import year-compat issue helpers
+  // into this file — that minify rebound stopped production Start after #30.
+  const yearIssue =
+    yearCheck.status === "unsupported" ? jobHeaderYearText(yearCheck.message) : null;
   const yearNote = yearIssue ?? jobHeaderYearText(yearStatusNote(yearCheck));
   const yearMessage = yearIssue;
   const yearsHint = jobHeaderYearText(
     model ? supportedYearsHint(model.years, model.id, { yearMin: model.yearMin, yearMax: model.yearMax }) : null,
   );
   const blockers = startBlockers({ pack: model, symptomId, header, yearCheck });
-  const bannerReason = jobHeaderStartBlocked(yearIssue, blockers);
+  const bannerReason =
+    yearIssue ?? blockers.find((b) => b.kind !== "year")?.message ?? blockers[0]?.message ?? "";
   const startReady = startIsReady(blockers);
   const complaintReady = complaintHasFirstStep(model, symptomId);
 
@@ -152,6 +139,7 @@ export function NewJobWizard({
       header: snapshot,
     });
     if (!attempted.ok) {
+      startLockRef.current = false;
       setStarting(false);
       setStartErrors(attempted.messages);
       startReasonRef.current?.scrollIntoView({ block: "nearest", behavior: "smooth" });
@@ -162,10 +150,12 @@ export function NewJobWizard({
     try {
       const result = await onStartJob(attempted.jobInput);
       if (result && result.ok === false) {
+        startLockRef.current = false;
         setStarting(false);
         setStartErrors([result.message, `Start route: ${attempted.routeLabel}`]);
       }
     } catch {
+      startLockRef.current = false;
       setStarting(false);
       setStartErrors([
         `Could not start checks for ${attempted.routeLabel}. Try Start again.`,
@@ -175,7 +165,8 @@ export function NewJobWizard({
   }
 
   function requestStart(form?: HTMLFormElement | null) {
-    if (starting) return;
+    if (startLockRef.current || starting) return;
+    startLockRef.current = true;
     void startFromForm(form ?? formRef.current);
   }
 
@@ -485,7 +476,7 @@ export function NewJobWizard({
               >
                 <p>Start is blocked. {bannerReason || startErrors[0]}</p>
                 {blockers
-                  .filter((b) => b.message !== bannerReason)
+                  .filter((b) => b.kind !== "year" && b.message !== bannerReason)
                   .map((b) => (
                     <p key={b.kind + b.message} className="mt-1 font-normal">
                       {b.message}
@@ -520,11 +511,18 @@ export function NewJobWizard({
               data-testid="start-checks"
               data-start-checks=""
               data-start-ready={startReady && !starting ? "true" : "false"}
-              className={"mt-2 w-full min-w-44 touch-manipulation active:scale-100" + (startReady ? "" : " opacity-40")}
+              className={
+                "mt-2 w-full min-w-44 justify-start text-left touch-manipulation active:scale-100" +
+                (startReady ? "" : " opacity-40")
+              }
               aria-disabled={!startReady || starting}
               aria-busy={starting}
               disabled={starting}
               onClick={onStartClick}
+              onPointerUp={(event) => {
+                if (event.pointerType === "mouse" && event.button !== 0) return;
+                onStartClick();
+              }}
             >
               <span className="pointer-events-none truncate">
                 {starting ? "Starting checks…" : "Start checks"}

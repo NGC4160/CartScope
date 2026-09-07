@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { readFileSync } from "node:fs";
 import type { ModelPack } from "../data/types.ts";
 import {
   attemptStartChecks,
@@ -492,4 +493,12 @@ test("empty FormData year does not wipe a live FE350 1996", () => {
   const snap = readHeaderSnapshot(form, live);
   assert.equal(snap.cartYear, "1996");
   assert.equal(snap.lastName, "Test");
+});
+
+test("Job header wizard must not import yearIssueLine (that minify rebound broke FE350 Start in #31)", () => {
+  const src = readFileSync(new URL("../components/wizard/NewJobWizard.tsx", import.meta.url), "utf8");
+  const imports = src.split("export function NewJobWizard")[0] ?? src;
+  assert.doesNotMatch(imports, /yearIssueLine/);
+  assert.doesNotMatch(imports, /startBlockedReason/);
+  assert.match(src, /onClick=\{onStartClick\}/);
 });
