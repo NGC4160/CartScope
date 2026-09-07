@@ -2,7 +2,9 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { getSheet, sheetsForPack } from "./wiring.ts";
 
-test("Library TXT 36 V Non-PDS sheet is on the Non-PDS pack only", () => {
+const MISMATCHED_PDS_IDS = ["pds36-4", "pds36-1", "pds36-2", "pds36-3", "pds36-5", "pds36-charger"];
+
+test("Library TXT 36 V Non-PDS sheet leads the Non-PDS pack with honest 1206 charts", () => {
   const sheet = getSheet("txt36-non-pds");
   assert.ok(sheet);
   assert.equal(sheet.src, "/wiring/txt36-non-pds-wiring.png");
@@ -11,13 +13,20 @@ test("Library TXT 36 V Non-PDS sheet is on the Non-PDS pack only", () => {
   assert.match(sheet.manualRef, /E-17/);
 
   const ids = sheetsForPack("ezgo-txt-36-non-pds").map((s) => s.id);
-  assert.deepEqual(ids, ["txt36-non-pds"]);
+  assert.deepEqual(ids, ["txt36-non-pds", "pds36-1", "pds36-2", "pds36-3"]);
+  for (const id of ["pds36-1", "pds36-2", "pds36-3"]) {
+    const moved = getSheet(id);
+    assert.ok(moved);
+    assert.match(moved.title, /Non-PDS/);
+    assert.doesNotMatch(moved.title, /PDS —/);
+    assert.match(moved.manualRef, /Non-PDS/);
+  }
   assert.ok(!sheetsForPack("ezgo-txt-dcs").some((s) => s.id === "txt36-non-pds"));
   assert.ok(!sheetsForPack("ezgo-txt-tct").some((s) => s.id === "txt36-non-pds"));
   assert.ok(!sheetsForPack("ezgo-pds-36").some((s) => s.id === "txt36-non-pds"));
 });
 
-test("Library TXT 36 V PDS sheet sits with existing pds36 sheets", () => {
+test("PDS pack shows only the Library PDS wire map", () => {
   const sheet = getSheet("txt36-pds");
   assert.ok(sheet);
   assert.equal(sheet.src, "/wiring/txt36-pds-wiring.png");
@@ -26,8 +35,11 @@ test("Library TXT 36 V PDS sheet sits with existing pds36 sheets", () => {
   assert.match(sheet.manualRef, /F-9/);
 
   const ids = sheetsForPack("ezgo-pds-36").map((s) => s.id);
-  assert.equal(ids[0], "txt36-pds");
-  for (const keep of ["pds36-4", "pds36-1", "pds36-2", "pds36-3", "pds36-5", "pds36-charger"]) {
-    assert.ok(ids.includes(keep), keep);
+  assert.deepEqual(ids, ["txt36-pds"]);
+  for (const id of MISMATCHED_PDS_IDS) {
+    assert.ok(!ids.includes(id), id);
   }
+  assert.equal(getSheet("pds36-4"), undefined);
+  assert.equal(getSheet("pds36-5"), undefined);
+  assert.equal(getSheet("pds36-charger"), undefined);
 });
