@@ -150,6 +150,10 @@ export function sanitizeYearSpan(span: string): string {
  * The Year field string. Start banner must reuse this — never format year
  * again (that is what printed 1991–1990 on the banner while the field was
  * already 1991–1996).
+ *
+ * Keep this in year-compat / start-checks. Do not import it into
+ * NewJobWizard — #31 did that and production Start stopped opening Check 1
+ * (minify rebound of the wizard click/nav path).
  */
 export function yearIssueLine(check: YearCompatibility): string | null {
   if (check.status !== "unsupported") return null;

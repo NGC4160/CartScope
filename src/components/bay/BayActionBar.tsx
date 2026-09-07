@@ -137,8 +137,6 @@ export function BayActionBar({
     const out = fireBaySaveOutcome({
       fire,
       fallback: () => live.onAction(),
-      formId,
-      document: typeof document !== "undefined" ? document : undefined,
     });
     if (!out.ran) {
       setMissed("Save did not run. Try Save again.");

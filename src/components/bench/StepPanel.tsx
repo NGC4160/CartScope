@@ -274,7 +274,7 @@ export function StepPanel({
       }}
     >
       <Header symptom={symptom?.label} progress={progress} />
-      <div className="min-h-0 flex-1 overflow-auto p-4">
+      <div className="min-h-0 flex-1 overflow-auto p-4 pb-36">
         <div className="flex flex-wrap items-center gap-2">
           <p className="font-mono text-xs font-semibold tracking-wide text-navy">
             CHECK {job.log.length + 1}
@@ -431,7 +431,7 @@ export function StepPanel({
                     setMissing([]);
                   }}
                   className={
-                    "min-h-14 rounded-md px-4 text-left text-sm font-medium shadow-[var(--shadow-border)] transition-[background-color,box-shadow] duration-150 " +
+                    "min-h-14 scroll-mb-36 rounded-md px-4 text-left text-sm font-medium shadow-[var(--shadow-border)] transition-[background-color,box-shadow] duration-150 " +
                     (selected === opt.id
                       ? "bg-navy text-navy-fg"
                       : "bg-surface text-ink hover:shadow-[var(--shadow-border-hover)]")
