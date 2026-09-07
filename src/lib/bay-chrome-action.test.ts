@@ -5,6 +5,7 @@ import {
   bayChromeDispatch,
   bayChromePublish,
   bayFormSubmitGate,
+  createBayGesture,
   createBaySubmitGate,
   createBaySubmitSlot,
   emptyBayChrome,
@@ -75,6 +76,38 @@ test("submit slot always fires the latest bind, even after a fake effect clear",
   assert.equal(slot.hasHandler(), true);
   assert.equal(slot.fire(), true);
   assert.deepEqual(calls, ["codes"]);
+});
+
+test("gesture gate only dedups the same Save tap, not a later tap", () => {
+  const gesture = createBayGesture(350);
+  const calls: string[] = [];
+  assert.equal(
+    gesture.run(() => calls.push("pointerup")),
+    true,
+  );
+  assert.equal(
+    gesture.run(() => calls.push("click")),
+    false,
+  );
+  assert.deepEqual(calls, ["pointerup"]);
+  gesture.reset();
+  assert.equal(
+    gesture.run(() => calls.push("after-reset")),
+    true,
+  );
+  assert.deepEqual(calls, ["pointerup", "after-reset"]);
+});
+
+test("a leftover form submit must not block the next sticky Save tap", () => {
+  const formGate = createBaySubmitGate(400);
+  const buttonGesture = createBayGesture(350);
+  const calls: string[] = [];
+  formGate.run(() => calls.push("enter-submit"), "bay-check-form");
+  assert.equal(
+    buttonGesture.run(() => calls.push("sticky-tap")),
+    true,
+  );
+  assert.deepEqual(calls, ["enter-submit", "sticky-tap"]);
 });
 
 test("submit gate lets the first save through and blocks the duplicate click", () => {

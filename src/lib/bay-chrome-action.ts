@@ -92,9 +92,32 @@ export function createBaySubmitSlot(): BaySubmitSlot {
 }
 
 /**
- * Deduplicate pointer-up requestSubmit + native click submit.
- * The actual save lives on the form's onSubmit — never on a button
- * preventDefault that can kill #bay-check-form.
+ * Pointer-up + click from ONE tap on the same sticky control.
+ * Must not share state with form onSubmit — that is what swallowed
+ * the real Save tap after a keyboard Done / leftover submit.
+ */
+export function createBayGesture(windowMs = 350): {
+  run: (fn: () => void) => boolean;
+  reset: () => void;
+} {
+  let last = 0;
+  return {
+    run(fn) {
+      const now = Date.now();
+      if (last > 0 && now - last < windowMs) return false;
+      last = now;
+      fn();
+      return true;
+    },
+    reset() {
+      last = 0;
+    },
+  };
+}
+
+/**
+ * Deduplicate leftover form submits only. Do not wrap the sticky
+ * Save button — a failed Enter submit must not block the glove tap.
  */
 export function createBaySubmitGate(windowMs = 400): {
   run: (fn: () => void, key?: string) => boolean;

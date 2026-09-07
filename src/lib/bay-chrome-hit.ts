@@ -1,0 +1,66 @@
+/**
+ * Live Grok / Remix chrome is position:fixed at max z-index. Stacking
+ * Save or Start above it cannot win. Keep the tap hit box out of that
+ * lower-right zone — the same contract Helper jump already uses.
+ */
+
+export const BAY_CHROME_CLEARANCE = {
+  rightRem: 11.5,
+  bottomRem: 5,
+  rightPx: 184,
+  bottomPx: 80,
+} as const;
+
+export const BAY_CHROME_CLEARANCE_CLASS = "bay-chrome-clearance";
+
+export type BayBox = { x: number; y: number; width: number; height: number };
+
+/** Where bay techs actually tap: lower-right of the wide sticky control. */
+export function bayPrimaryTapPoint(box: BayBox): { x: number; y: number } {
+  return {
+    x: box.x + box.width * 0.85,
+    y: box.y + box.height * 0.7,
+  };
+}
+
+export function bayChromeReservedRect(viewport: { width: number; height: number }): BayBox {
+  return {
+    x: Math.max(0, viewport.width - BAY_CHROME_CLEARANCE.rightPx),
+    y: Math.max(0, viewport.height - BAY_CHROME_CLEARANCE.bottomPx),
+    width: Math.min(BAY_CHROME_CLEARANCE.rightPx, viewport.width),
+    height: Math.min(BAY_CHROME_CLEARANCE.bottomPx, viewport.height),
+  };
+}
+
+export function pointInRect(point: { x: number; y: number }, rect: BayBox): boolean {
+  return (
+    point.x >= rect.x &&
+    point.x <= rect.x + rect.width &&
+    point.y >= rect.y &&
+    point.y <= rect.y + rect.height
+  );
+}
+
+/** True when the glove/mouse tap a tech actually uses is not under chrome. */
+export function bayTapClearsChrome(box: BayBox, viewport: { width: number; height: number }): boolean {
+  return !pointInRect(bayPrimaryTapPoint(box), bayChromeReservedRect(viewport));
+}
+
+/**
+ * Inset a sticky bar so its primary button cannot occupy the chrome zone.
+ * Used by unit tests to prove the CSS padding contract.
+ */
+export function bayClearanceBox(
+  bar: BayBox,
+  viewport: { width: number; height: number },
+): BayBox {
+  const reserved = bayChromeReservedRect(viewport);
+  const right = Math.max(bar.x, reserved.x);
+  const bottom = Math.max(bar.y, reserved.y);
+  return {
+    x: bar.x,
+    y: bar.y,
+    width: Math.max(0, right - bar.x),
+    height: Math.max(0, bottom - bar.y),
+  };
+}
