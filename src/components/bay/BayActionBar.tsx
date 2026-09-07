@@ -1,4 +1,4 @@
-import { useCallback, useLayoutEffect, useRef, useState, type PointerEvent } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type PointerEvent } from "react";
 import { ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -127,6 +127,18 @@ export function BayActionBar({
   const [missed, setMissed] = useState<string | null>(null);
   const gesture = useRef(createBayGesture()).current;
   const suppressClick = useRef(false);
+  const sawPanelError = useRef(false);
+  useEffect(() => {
+    const err = chrome?.error ?? null;
+    if (err) {
+      sawPanelError.current = true;
+      return;
+    }
+    if (sawPanelError.current) {
+      sawPanelError.current = false;
+      setMissed(null);
+    }
+  }, [chrome?.error]);
   if (!chrome) return null;
   const live = chrome;
   const noticeTitle = live.error || missed;

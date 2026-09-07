@@ -134,6 +134,8 @@ export function PackGate({
     const next = liveRef.current.cells.map((x, idx) => (idx === i ? { ...x, ...patch } : x));
     liveRef.current = { ...liveRef.current, cells: next };
     setCells(next);
+    setError(null);
+    setBlockers([]);
   }
 
   function currentBlockers() {
@@ -258,8 +260,8 @@ export function PackGate({
     label: bayPackActionLabel(packAction),
     onAction: submit,
     disabled: false,
-    error,
-    errorDetails: blockers.map((b) => b.message),
+    error: error,
+    errorDetails: blockers.slice(0, 4).map((b) => b.message),
   });
 
   return (
