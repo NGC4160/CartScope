@@ -4,6 +4,7 @@ import {
   applyBulkAgeUnreadable,
   emptyPackCells,
   groupPackBlockers,
+  packSaveBlockedReason,
   packSaveBlockers,
   parseBulkPackPaste,
   typedVoltage,
@@ -50,6 +51,23 @@ test("bulk age unreadable plus IR reason lets the 6-pack save", () => {
     noMonitor: false,
   });
   assert.deepEqual(blockers, []);
+});
+
+test("empty Precedent pack Save reason names resting volts and age", () => {
+  const blockers = packSaveBlockers({
+    lithium: false,
+    cellCount: 6,
+    cells: emptyPackCells(6),
+    irSkip: false,
+    irSkipReason: "",
+    monitorV: "",
+    noMonitor: false,
+  });
+  const reason = packSaveBlockedReason(blockers);
+  assert.match(reason, /resting volts/i);
+  assert.match(reason, /age/i);
+  assert.match(reason, /Battery 1 resting volts/);
+  assert.match(reason, /Battery 1 age/);
 });
 
 test("empty voltages are named even when the shop example is 8.49", () => {

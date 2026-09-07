@@ -118,11 +118,11 @@ export function createBaySubmitSlot(): BaySubmitSlot {
 }
 
 /**
- * Dedup pointerdown + click from ONE physical tap (usually <50ms apart).
- * Timestamp only — no sticky sameTurn flag. A same-turn flag is what
- * swallowed FE350 Start (pointerup no-op, then click/Enter both skipped)
- * and left Yamaha / Precedent Save silent when pointerdown and click
- * landed in the same task.
+ * Dedup pointerup + click from ONE physical tap.
+ * Sticky Save uses ~400ms so a leftover click after pack / Check 1
+ * advances cannot submit the next screen empty. 50ms is only for
+ * same-event pairing. Timestamp only — no sticky sameTurn flag
+ * (that swallowed FE350 Start).
  */
 export function createBayGesture(windowMs = 50): {
   run: (fn: () => void) => boolean;

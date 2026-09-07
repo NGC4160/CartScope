@@ -73,6 +73,16 @@ export function packSaveBlockers(input: {
   return blockers;
 }
 
+/** Sticky-bar copy. Keep this out of NewJobWizard — year minify rebound lives there. */
+export function packSaveBlockedReason(blockers: readonly PackBlocker[]): string {
+  if (blockers.length === 0) {
+    return "Cannot save yet. Type resting volts and age, or mark IR/age not readable.";
+  }
+  const named = blockers.slice(0, 6).map((b) => b.field);
+  const extra = blockers.length > named.length ? ` and ${blockers.length - named.length} more` : "";
+  return `Cannot save yet. Still needed: ${named.join(", ")}${extra}. Type resting volts and age, or mark IR/age not readable.`;
+}
+
 export function applyBulkAgeUnreadable(cells: PackCellDraft[], unread: boolean): PackCellDraft[] {
   return cells.map((c) => ({
     ...c,

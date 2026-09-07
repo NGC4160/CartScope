@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { bayPrimaryTapPoint, pointInRect } from "./bay-chrome-hit.ts";
+import { bayChromeReservedRect, bayPrimaryTapPoint, pointHitsBaySave, pointInRect } from "./bay-chrome-hit.ts";
 
 test("bay tech tap is on the Save label, left of the chat pill", () => {
   const tap = bayPrimaryTapPoint({ x: 0, y: 0, width: 400, height: 50 });
@@ -14,4 +14,22 @@ test("full-width Save puts the tester tap on the control, not a padded dead zone
   assert.equal(pointInRect(tap, bar), true);
   assert.ok(tap.x < bar.x + bar.width * 0.5);
   assert.ok(tap.x > bar.x + bar.width * 0.2);
+});
+
+test("a tap on the Grok pill that overlaps the Save row still counts as Save", () => {
+  const viewport = { width: 1024, height: 768 };
+  const bar = { x: 16, y: 700, width: 992, height: 56 };
+  const reserved = bayChromeReservedRect(viewport);
+  const onPillOverSave = { x: reserved.x + 20, y: bar.y + 28 };
+  assert.equal(pointHitsBaySave(onPillOverSave, bar, viewport), true);
+  assert.equal(pointHitsBaySave(bayPrimaryTapPoint(bar), bar, viewport), true);
+});
+
+test("a Grok-pill tap well above the Save row is not Save (Helper jump zone)", () => {
+  const viewport = { width: 1024, height: 768 };
+  const bar = { x: 16, y: 730, width: 992, height: 36 };
+  const reserved = bayChromeReservedRect(viewport);
+  const aboveBar = { x: reserved.x + 20, y: reserved.y + 4 };
+  assert.ok(aboveBar.y < bar.y - 12);
+  assert.equal(pointHitsBaySave(aboveBar, bar, viewport), false);
 });

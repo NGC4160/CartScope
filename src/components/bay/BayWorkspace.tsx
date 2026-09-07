@@ -129,7 +129,12 @@ export function BayWorkspace({ job, pack }: { job: JobRecord; pack: ModelPack })
                 className={showHelper ? "pointer-events-none" : "relative z-30 shrink-0 overflow-visible"}
                 aria-hidden={showHelper || undefined}
               >
-                <BayActionBar chrome={checkChrome} formId={BAY_CHECK_FORM_ID} fire={checkSlot.outcome} />
+                <BayActionBar
+                  chrome={checkChrome}
+                  formId={BAY_CHECK_FORM_ID}
+                  fire={checkSlot.outcome}
+                  armed={!showHelper}
+                />
               </div>
               {showHelper ? (
                 <BayHelperSheet

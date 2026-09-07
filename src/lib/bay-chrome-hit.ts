@@ -47,6 +47,23 @@ export function bayTapClearsChrome(box: BayBox, viewport: { width: number; heigh
 }
 
 /**
+ * Live testers tap the right of sticky Save, under the Grok chat pill.
+ * The pill is max z-index and steals click. A capture-phase pointerup still
+ * sees those coordinates — treat a tap on the bar, or on the pill where it
+ * overlaps the Save row, as Save. Helper jumps stay padded out of that zone.
+ */
+export function pointHitsBaySave(
+  point: { x: number; y: number },
+  bar: BayBox,
+  viewport: { width: number; height: number },
+): boolean {
+  if (pointInRect(point, bar)) return true;
+  const reserved = bayChromeReservedRect(viewport);
+  if (!pointInRect(point, reserved)) return false;
+  return point.y >= bar.y - 12 && point.y <= bar.y + bar.height + 12;
+}
+
+/**
  * Inset a sticky bar so its primary button cannot occupy the chrome zone.
  * Used by unit tests to prove the CSS padding contract.
  */

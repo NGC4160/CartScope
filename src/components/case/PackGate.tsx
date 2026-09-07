@@ -12,6 +12,7 @@ import { packLayout, scaledLeadAcidLimits } from "@/lib/pack-layout";
 import {
   applyBulkAgeUnreadable,
   packPasteTemplate,
+  packSaveBlockedReason,
   packSaveBlockers,
   parseBulkPackPaste,
   typedVoltage,
@@ -152,11 +153,7 @@ export function PackGate({
 
   function showBlockers(list: ReturnType<typeof packSaveBlockers>): string {
     setBlockers(list);
-    const named = list.slice(0, 6).map((b) => b.field);
-    const extra = list.length > named.length ? ` and ${list.length - named.length} more` : "";
-    const message = list.length
-      ? `Cannot save yet. Still needed: ${named.join(", ")}${extra}. Type resting volts and age, or mark IR/age not readable.`
-      : "Cannot save yet.";
+    const message = packSaveBlockedReason(list);
     setError(message);
     queueMicrotask(() => errorAnchor.current?.scrollIntoView({ block: "nearest" }));
     return message;
@@ -171,13 +168,14 @@ export function PackGate({
   }
 
   function buildRecord(verdict: PackCheckRecord["verdict"], issues: string[]): PackCheckRecord {
-    const mapped: PackCellReading[] = cells.map((c, index) => ({
+    const snap = liveRef.current;
+    const mapped: PackCellReading[] = snap.cells.map((c, index) => ({
       index,
       volts: c.volts,
-      ir: irSkip || lithium ? undefined : c.ir.trim() || undefined,
-      irUnit: irSkip || lithium ? undefined : resolveIrUnit(c.irUnit),
-      irCouldNot: !lithium && irSkip ? true : undefined,
-      irSkipReason: !lithium && irSkip ? irSkipReason.trim() : undefined,
+      ir: snap.irSkip || lithium ? undefined : c.ir.trim() || undefined,
+      irUnit: snap.irSkip || lithium ? undefined : resolveIrUnit(c.irUnit),
+      irCouldNot: !lithium && snap.irSkip ? true : undefined,
+      irSkipReason: !lithium && snap.irSkip ? snap.irSkipReason.trim() : undefined,
       ageMonthYear: lithium || c.ageSkip ? undefined : c.age.trim() || undefined,
       ageNotReadable: !lithium && c.ageSkip ? true : undefined,
     }));
@@ -188,17 +186,17 @@ export function PackGate({
       cellCount: layout.count,
       nominalV: layout.nominalV,
       cells: mapped,
-      loadDropPct: loadDrop.trim() || undefined,
-      irCouldNotMeasure: lithium ? undefined : irSkip,
-      irSkipReason: lithium || !irSkip ? undefined : irSkipReason.trim(),
-      ageLabelPhotoNote: lithium ? undefined : agePhoto.trim() || undefined,
+      loadDropPct: snap.loadDrop.trim() || undefined,
+      irCouldNotMeasure: lithium ? undefined : snap.irSkip,
+      irSkipReason: lithium || !snap.irSkip ? undefined : snap.irSkipReason.trim(),
+      ageLabelPhotoNote: lithium ? undefined : snap.agePhoto.trim() || undefined,
       irSpreadNote: irNote || undefined,
       verdict,
       issues: allIssues,
-      lithiumMonitorV: monitorV.trim() || undefined,
-      lithiumMinCell: minCell.trim() || undefined,
-      lithiumFaults: faults.trim() || undefined,
-      lithiumNoMonitor: noMonitor,
+      lithiumMonitorV: snap.monitorV.trim() || undefined,
+      lithiumMinCell: snap.minCell.trim() || undefined,
+      lithiumFaults: snap.faults.trim() || undefined,
+      lithiumNoMonitor: snap.noMonitor,
     };
   }
 

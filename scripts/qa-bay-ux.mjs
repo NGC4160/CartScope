@@ -64,6 +64,37 @@ async function installLiveChrome(page) {
   });
 }
 
+/**
+ * Live pack miss: scroll the long pack form, then tap the RIGHT of Save
+ * where the Grok chat pill sits. Click lands on the pill; Save must still run.
+ */
+async function gloveTapPrimary(page) {
+  await installLiveChrome(page);
+  await page.evaluate(() => {
+    const form = document.getElementById("bay-check-form");
+    const scroller = form?.querySelector("[class*='overflow-auto']") ?? form;
+    if (scroller) scroller.scrollTop = scroller.scrollHeight;
+  });
+  const bar = page.getByTestId("bay-action-bar");
+  const btn = bar.getByTestId("bay-primary-action").filter({ visible: true });
+  await btn.waitFor({ state: "visible" });
+  const box = await btn.boundingBox();
+  if (!box) throw new Error("sticky Save button has no box");
+  const x = box.x + Math.min(box.width * 0.86, box.width - 8);
+  const y = box.y + box.height * 0.55;
+  return { x, y };
+}
+
+async function gloveClickPrimary(page) {
+  const { x, y } = await gloveTapPrimary(page);
+  await page.mouse.click(x, y, { button: "left" });
+}
+
+async function gloveTouchPrimary(page) {
+  const { x, y } = await gloveTapPrimary(page);
+  await page.touchscreen.tap(x, y);
+}
+
 /** Tester tap: on the Save control itself, left of the Grok chat pill. */
 async function mouseClickPrimary(page) {
   const bar = page.getByTestId("bay-action-bar");
@@ -421,7 +452,7 @@ async function runStickySaveAdvance() {
       (await packSave.getAttribute("data-bay-primary")) !== null,
   );
   check("advance pack Save is a button path", (await packSave.getAttribute("type")) === "button");
-  await mouseClickPrimary(page);
+  await gloveClickPrimary(page);
   await page.getByRole("heading", { name: /Save a program file before you clear/i }).waitFor({ timeout: 10000 });
   check("advance pack sticky Save left pack", await page.getByRole("heading", { name: /Save a program file before you clear/i }).isVisible());
   check("advance pack heading gone", (await page.getByRole("heading", { name: /Check the pack before you blame other parts/i }).count()) === 0);
@@ -795,7 +826,7 @@ async function runLiveFailList() {
   });
   await fillLeadAcidPack(yamaha, { count: 6, volts: "8.45", ir: "3.4", age: "03/2026" });
   check("YDRE pack in shop range", await yamaha.getByText(/in the shop range/i).isVisible());
-  await mouseClickPrimary(yamaha);
+  await gloveClickPrimary(yamaha);
   await yamaha.getByRole("heading", { name: /Save a program file before you clear/i }).waitFor({ timeout: 10000 });
   check(
     "YDRE DC mouse Save left Battery Pack",
@@ -826,7 +857,7 @@ async function runLiveFailList() {
     serial: "ERIC01",
     who: "Ryan",
   });
-  await mouseClickPrimary(precedent);
+  await gloveClickPrimary(precedent);
   const emptyPackNotice = precedent.getByTestId("bay-save-notice");
   check("Precedent empty pack Save shows a reason", await emptyPackNotice.isVisible());
   const emptyPackText = await emptyPackNotice.innerText();
@@ -841,10 +872,7 @@ async function runLiveFailList() {
   );
   await fillLeadAcidPack(precedent, { count: 6, volts: "8.45", ir: "3.4", age: "03/2026" });
   check("Precedent ERIC pack in shop range", await precedent.getByText(/in the shop range/i).isVisible());
-  const ericBtn = precedent.getByTestId("bay-primary-action").filter({ visible: true });
-  await ericBtn.waitFor({ state: "visible" });
-  const ericBox = await ericBtn.boundingBox();
-  await precedent.touchscreen.tap(ericBox.x + ericBox.width * 0.4, ericBox.y + ericBox.height * 0.5);
+  await gloveTouchPrimary(precedent);
   await precedent.getByRole("heading", { name: /Save a program file before you clear/i }).waitFor({ timeout: 10000 });
   check(
     "Precedent ERIC touch Save left Battery Pack",

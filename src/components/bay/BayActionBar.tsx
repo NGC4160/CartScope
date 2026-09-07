@@ -5,6 +5,7 @@ import {
   emptyBayChrome,
   bayChromeClear,
   bayChromePublish,
+  createBayGesture,
   fireBaySaveOutcome,
   type BayActionChrome,
   type BayChromeSnapshot,
@@ -12,6 +13,7 @@ import {
   type BaySaveOutcome,
 } from "@/lib/bay-chrome-action";
 import { BAY_TAP_MIN_PX } from "@/lib/bay-chrome";
+import { pointHitsBaySave } from "@/lib/bay-chrome-hit";
 import { BaySaveNotice } from "@/components/bay/BaySaveNotice";
 
 export type { BayActionChrome } from "@/lib/bay-chrome-action";
@@ -118,45 +120,85 @@ export function BayActionBar({
   chrome,
   formId,
   fire,
+  armed = true,
 }: {
   chrome: BayActionChrome | null;
   formId?: string;
   fire?: () => boolean | BaySaveOutcome;
+  /** False while Helper covers the bar — do not steal that tap. */
+  armed?: boolean;
 }) {
   const [missed, setMissed] = useState<string | null>(null);
+  const barRef = useRef<HTMLDivElement>(null);
+  const gesture = useRef(createBayGesture(400)).current;
+  const fireRef = useRef(fire);
+  fireRef.current = fire;
+  const chromeRef = useRef(chrome);
+  chromeRef.current = chrome;
+  const armedRef = useRef(armed);
+  armedRef.current = armed;
+
+  const activate = useCallback(() => {
+    const live = chromeRef.current;
+    if (!live || !armedRef.current) return;
+    gesture.run(() => {
+      if (live.disabled || live.busy) {
+        setMissed(live.disabled ? "Save is not available on this check." : "Save is still working.");
+        return;
+      }
+      const out = fireBaySaveOutcome({
+        fire: fireRef.current,
+        fallback: () => live.onAction(),
+      });
+      if (!out.ran) {
+        setMissed("Save did not run. Try Save again.");
+        return;
+      }
+      if (out.blocked) {
+        setMissed(out.blocked);
+        return;
+      }
+      setMissed(null);
+    });
+  }, [gesture]);
+
+  const hasChrome = chrome != null;
+  useLayoutEffect(() => {
+    if (!hasChrome || !armed) return;
+    function onDocPointerUp(event: PointerEvent) {
+      if (event.pointerType === "mouse" && event.button !== 0) return;
+      if (!armedRef.current) return;
+      const bar = barRef.current;
+      if (!bar) return;
+      const rect = bar.getBoundingClientRect();
+      const barBox = { x: rect.left, y: rect.top, width: rect.width, height: rect.height };
+      const hit = event.target;
+      if (hit instanceof Element && hit.closest("[data-bay-secondary]")) return;
+      if (
+        !pointHitsBaySave({ x: event.clientX, y: event.clientY }, barBox, {
+          width: window.innerWidth,
+          height: window.innerHeight,
+        })
+      ) {
+        return;
+      }
+      activate();
+    }
+    document.addEventListener("pointerup", onDocPointerUp, true);
+    return () => document.removeEventListener("pointerup", onDocPointerUp, true);
+  }, [hasChrome, armed, activate]);
+
   if (!chrome) return null;
   const live = chrome;
   const noticeTitle = live.error || missed;
   const noticeDetails = live.error ? live.errorDetails : undefined;
 
-  function activate() {
-    if (live.disabled || live.busy) {
-      setMissed(live.disabled ? "Save is not available on this check." : "Save is still working.");
-      return;
-    }
-    const out = fireBaySaveOutcome({
-      fire,
-      fallback: () => live.onAction(),
-    });
-    if (!out.ran) {
-      setMissed("Save did not run. Try Save again.");
-      return;
-    }
-    if (out.blocked) {
-      setMissed(out.blocked);
-      return;
-    }
-    setMissed(null);
-  }
-
-  function onPrimaryClick() {
-    activate();
-  }
-
   return (
     <div
+      ref={barRef}
       data-testid="bay-action-bar"
       data-save-blocked={noticeTitle ? "true" : "false"}
+      data-save-armed={armed ? "true" : "false"}
       className="no-print relative z-30 isolate shrink-0 overflow-visible border-t border-navy-deep bg-surface px-3 pt-2 pb-[max(0.6rem,env(safe-area-inset-bottom))]"
     >
       {noticeTitle ? (
@@ -196,7 +238,7 @@ export function BayActionBar({
         data-bay-primary=""
         className="mt-2 min-h-12 w-full min-w-0 justify-start text-left touch-manipulation active:scale-100"
         style={{ minHeight: Math.max(BAY_TAP_MIN_PX, 48) }}
-        onClick={onPrimaryClick}
+        onClick={activate}
         disabled={live.disabled || live.busy}
       >
         <span className="pointer-events-none truncate">{live.label}</span>
