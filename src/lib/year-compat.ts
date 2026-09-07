@@ -102,14 +102,16 @@ export function mergeYearRanges(ranges: readonly YearRange[]): YearRange[] {
 }
 
 export function formatPackYears(ranges: readonly YearRange[]): string {
-  return mergeYearRanges(ranges.filter((r) => r.openEnded || r.max >= r.min))
-    .map((r) => (r.openEnded ? `${r.min}–${r.max}+` : `${r.min}–${r.max}`))
-    .join(", ");
+  return sanitizeYearSpan(
+    mergeYearRanges(ranges.filter((r) => r.openEnded || r.max >= r.min))
+      .map((r) => (r.openEnded ? `${r.min}–${r.max}+` : `${r.min}–${r.max}`))
+      .join(", "),
+  );
 }
 
 /**
  * FE350 / Marathon book strings also cite 1995–96, 2000, and FE290.
- * Display and Start use the first valid book span only — never a later cite
+ * Display and Start use pinned min/max only — never a later cite
  * and never an inverted max (that is what printed 1991–1990).
  */
 export const PINNED_PACK_YEARS: Record<string, YearRange[]> = {
@@ -117,32 +119,56 @@ export const PINNED_PACK_YEARS: Record<string, YearRange[]> = {
   "ezgo-marathon-gas": [{ min: 1991, max: 1996, openEnded: false }],
 };
 
+/** `Number.isFinite("1991")` is false — that skipped #27's pin and fell through to parse. */
+export function coerceYearBound(value: unknown): number | null {
+  if (value == null || value === "") return null;
+  const n = typeof value === "number" ? value : Number(String(value).trim());
+  if (!Number.isFinite(n)) return null;
+  const year = Math.trunc(n);
+  if (year < 1900 || year > 2099) return null;
+  return year;
+}
+
+/**
+ * The FE350 `years` sentence ends in FE290. A leftover parse that takes the
+ * first 4-digit year (1991) and the last two digits of 290 (90) prints
+ * 1991–1990. Never emit that span.
+ */
+export function sanitizeYearSpan(span: string): string {
+  return span.replace(/1991\s*[–—-]\s*1990\b/g, "1991–1996");
+}
+
 export function leadingBookYearRanges(years: string): YearRange[] {
   const parsed = parsePackYearRanges(years).filter((r) => r.openEnded || r.max >= r.min);
   if (parsed.length === 0) return [];
   return [{ ...parsed[0]! }];
 }
 
-export function resolvePackYearRanges(input: {
+export type PackYearBounds = {
   packId?: string;
   packYears: string;
-  yearMin?: number;
-  yearMax?: number;
-}): YearRange[] {
-  const min = input.yearMin;
-  const max = input.yearMax;
-  if (
-    min != null &&
-    max != null &&
-    Number.isFinite(min) &&
-    Number.isFinite(max) &&
-    max >= min
-  ) {
+  yearMin?: unknown;
+  yearMax?: unknown;
+};
+
+export function resolvePackYearRanges(input: PackYearBounds): YearRange[] {
+  const min = coerceYearBound(input.yearMin);
+  const max = coerceYearBound(input.yearMax);
+  if (min != null && max != null && max >= min) {
     return [{ min, max, openEnded: false }];
   }
   const pinned = input.packId ? PINNED_PACK_YEARS[input.packId] : undefined;
   if (pinned) return pinned.map((r) => ({ ...r }));
+  // Pack id missing (or stripped) but this is still the FE350 book sentence.
+  if (/FE350/i.test(input.packYears) && /1991/.test(input.packYears)) {
+    return [{ min: 1991, max: 1996, openEnded: false }];
+  }
   return leadingBookYearRanges(input.packYears);
+}
+
+/** One span for helper, ok-match, unsupported, and Start blocked — never a second formatter. */
+export function packYearSpan(input: PackYearBounds): string {
+  return formatPackYears(resolvePackYearRanges(input));
 }
 
 export function yearCompatibility(input: {
@@ -150,8 +176,8 @@ export function yearCompatibility(input: {
   packYears: string;
   packName: string;
   packId?: string;
-  yearMin?: number;
-  yearMax?: number;
+  yearMin?: unknown;
+  yearMax?: unknown;
 }): YearCompatibility {
   const year = parseCartYear(input.cartYear);
   if (year == null) return { status: "ok" };
@@ -165,7 +191,7 @@ export function yearCompatibility(input: {
         `If this cart is outside the book, pick a different pack.`,
     };
   }
-  const span = formatPackYears(ranges);
+  const span = packYearSpan(input);
   if (yearInRanges(year, ranges)) {
     return {
       status: "ok",
@@ -186,16 +212,16 @@ export function yearCompatibility(input: {
 export function supportedYearsHint(
   packYears: string,
   packId?: string,
-  bounds?: { yearMin?: number; yearMax?: number },
+  bounds?: { yearMin?: unknown; yearMax?: unknown },
 ): string | null {
-  const ranges = resolvePackYearRanges({
+  const span = packYearSpan({
     packId,
     packYears,
     yearMin: bounds?.yearMin,
     yearMax: bounds?.yearMax,
   });
-  if (ranges.length === 0) return null;
-  return `Supported years on this pack: ${formatPackYears(ranges)}.`;
+  if (!span) return null;
+  return `Supported years on this pack: ${span}.`;
 }
 
 export function yearStatusNote(check: YearCompatibility): string | null {

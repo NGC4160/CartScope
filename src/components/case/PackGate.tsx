@@ -7,7 +7,7 @@ import { Field, inputClass, IrUnitPicker, VoltageInput } from "@/components/case
 import type { JobRecord, ModelPack, PackCheckRecord, PackCellReading, PackDraft } from "@/data/types";
 import { IR_UNIT_HELP, resolveIrUnit } from "@/lib/ir-unit";
 import { bayPackActionLabel, bayProgressChip } from "@/lib/bay-chrome";
-import { BAY_CHECK_FORM_ID, bayFormSubmitGate } from "@/lib/bay-chrome-action";
+import { BAY_CHECK_FORM_ID, bayFormSubmitGate, type BaySaveHandler } from "@/lib/bay-chrome-action";
 import { packLayout, scaledLeadAcidLimits } from "@/lib/pack-layout";
 import {
   applyBulkAgeUnreadable,
@@ -54,7 +54,7 @@ export function PackGate({
   job: JobRecord;
   pack: ModelPack;
   onChrome?: (chrome: BayActionChrome | null) => void;
-  bindSubmit?: (fn: () => void) => void;
+  bindSubmit?: (fn: BaySaveHandler) => void;
 }) {
   const save = useJobStore((s) => s.savePackCheck);
   const patchJob = useJobStore((s) => s.patchJob);
@@ -148,10 +148,14 @@ export function PackGate({
     });
   }
 
-  function showBlockers(list: ReturnType<typeof packSaveBlockers>) {
+  function showBlockers(list: ReturnType<typeof packSaveBlockers>): string {
     setBlockers(list);
-    setError(list.length ? `Cannot save yet. ${list.length} field${list.length === 1 ? "" : "s"} still need a value.` : null);
+    const message = list.length
+      ? `Cannot save yet. ${list.length} field${list.length === 1 ? "" : "s"} still need a value.`
+      : "Cannot save yet.";
+    setError(list.length ? message : null);
     queueMicrotask(() => errorAnchor.current?.scrollIntoView({ block: "nearest" }));
+    return message;
   }
 
   function applyPaste() {
@@ -194,18 +198,18 @@ export function PackGate({
     };
   }
 
-  function continuePass() {
+  function continuePass(): string | void {
     const missing = currentBlockers();
     if (missing.length) {
-      showBlockers(missing);
-      return;
+      return showBlockers(missing);
     }
     setBlockers([]);
     setError(null);
     if (!lithium && !evalr.pass) {
-      setError("This pack does not pass. Charge or fix it first, or continue on a test battery.");
+      const message = "This pack does not pass. Charge or fix it first, or continue on a test battery.";
+      setError(message);
       queueMicrotask(() => errorAnchor.current?.scrollIntoView({ block: "nearest" }));
-      return;
+      return message;
     }
     save(job.id, buildRecord("pass", irNote ? [irNote] : []));
   }
@@ -222,16 +226,16 @@ export function PackGate({
     setTestPath(false);
   }
 
-  function continueTestBattery() {
+  function continueTestBattery(): string | void {
     const missing = currentBlockers();
     if (missing.length) {
-      showBlockers(missing);
-      return;
+      return showBlockers(missing);
     }
     if (!testNote.trim() || testNote.trim().length < 8) {
-      setError("Write what you measured on the pack, and that later steps used a known-good test battery.");
+      const message = "Write what you measured on the pack, and that later steps used a known-good test battery.";
+      setError(message);
       queueMicrotask(() => errorAnchor.current?.scrollIntoView({ block: "nearest" }));
-      return;
+      return message;
     }
     save(job.id, buildRecord("fail", evalr.issues), { used: true, measuredProblem: testNote.trim() });
   }

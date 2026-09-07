@@ -1,7 +1,12 @@
 import type { BatteryType, ModelPack } from "../data/types.ts";
 import { JOB_HEADER_MESSAGES, jobHeaderGaps, type JobHeaderGap } from "./job-header.ts";
 import { benchUrl, canStartChecks, resolveStartJob } from "./wizard-nav.ts";
-import { sanitizeCartYearInput, yearCompatibility, yearStatusNote } from "./year-compat.ts";
+import {
+  sanitizeCartYearInput,
+  yearCompatibility,
+  yearStatusNote,
+  type YearCompatibility,
+} from "./year-compat.ts";
 import type { CreateJobInput } from "../store/jobs.ts";
 
 export type HeaderSnapshot = {
@@ -122,10 +127,23 @@ export function complaintHasFirstStep(
   return Boolean(symptom?.startStepId && pack?.steps[symptom.startStepId]);
 }
 
+export function packYearCheck(pack: ModelPack, cartYear: string): YearCompatibility {
+  return yearCompatibility({
+    cartYear,
+    packYears: pack.years,
+    packName: pack.fullName,
+    packId: pack.id,
+    yearMin: pack.yearMin,
+    yearMax: pack.yearMax,
+  });
+}
+
 export function startBlockers(input: {
   pack: ModelPack | null | undefined;
   symptomId: string | null;
   header: HeaderSnapshot;
+  /** Same object the Year field shows — never a second format pass. */
+  yearCheck?: YearCompatibility;
 }): StartBlocker[] {
   const pack = input.pack ?? null;
   const header = input.header;
@@ -142,14 +160,7 @@ export function startBlockers(input: {
   }
 
   if (pack) {
-    const year = yearCompatibility({
-      cartYear: header.cartYear,
-      packYears: pack.years,
-      packName: pack.fullName,
-      packId: pack.id,
-      yearMin: pack.yearMin,
-      yearMax: pack.yearMax,
-    });
+    const year = input.yearCheck ?? packYearCheck(pack, header.cartYear);
     if (year.status === "unsupported") {
       blockers.push({ kind: "year", message: year.message });
     }
@@ -192,18 +203,9 @@ export function attemptStartChecks(input: {
     technician: header.technician,
   });
 
-  const blockers = startBlockers({ pack, symptomId: input.symptomId, header });
+  const year = pack ? packYearCheck(pack, header.cartYear) : { status: "ok" as const };
+  const blockers = startBlockers({ pack, symptomId: input.symptomId, header, yearCheck: year });
   const messages = blockers.map((b) => b.message);
-  const year = pack
-    ? yearCompatibility({
-        cartYear: header.cartYear,
-        packYears: pack.years,
-        packName: pack.fullName,
-        packId: pack.id,
-        yearMin: pack.yearMin,
-        yearMax: pack.yearMax,
-      })
-    : { status: "ok" as const };
   const yearNote = yearStatusNote(year);
   const yearMessage = year.status === "unsupported" ? year.message : null;
   const routeLabel = startRouteLabel({ pack, symptomId: input.symptomId, header });

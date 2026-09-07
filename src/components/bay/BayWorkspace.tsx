@@ -126,7 +126,7 @@ export function BayWorkspace({ job, pack }: { job: JobRecord; pack: ModelPack })
                 </button>
               ) : null}
               <div className={showHelper ? "pointer-events-none" : undefined} aria-hidden={showHelper || undefined}>
-                <BayActionBar chrome={checkChrome} formId={BAY_CHECK_FORM_ID} fire={checkSlot.fire} />
+                <BayActionBar chrome={checkChrome} formId={BAY_CHECK_FORM_ID} fire={checkSlot.outcome} />
               </div>
               {showHelper ? (
                 <BayHelperSheet
@@ -170,7 +170,7 @@ export function BayWorkspace({ job, pack }: { job: JobRecord; pack: ModelPack })
                 }
               }
               formId={BAY_REPORT_FORM_ID}
-              fire={reportSlot.fire}
+              fire={reportSlot.outcome}
             />
           </div>
         ) : null}

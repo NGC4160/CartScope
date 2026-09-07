@@ -2,11 +2,14 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { readFileSync } from "node:fs";
 import {
+  coerceYearBound,
   formatPackYears,
+  packYearSpan,
   parseCartYear,
   parsePackYearRanges,
   resolvePackYearRanges,
   sanitizeCartYearInput,
+  sanitizeYearSpan,
   supportedYearsHint,
   yearCompatibility,
   yearInRanges,
@@ -234,4 +237,54 @@ test("starting-model-year and open-ended plus ranges parse from real pack copy",
   assert.equal(plus[0]?.max, 2012);
   assert.equal(plus[0]?.openEnded, true);
   assert.equal(yearInRanges(2016, plus), true);
+});
+
+test("numeric-string yearMin/yearMax still pin FE350 — Number.isFinite skipped #27's pin", () => {
+  assert.equal(coerceYearBound("1991"), 1991);
+  assert.equal(coerceYearBound("1996"), 1996);
+  assert.equal(Number.isFinite("1991"), false);
+  const ranges = resolvePackYearRanges({
+    packId: "club-car-ds-gas",
+    packYears: "not a range",
+    yearMin: "1991",
+    yearMax: "1996",
+  });
+  assert.deepEqual(ranges, [{ min: 1991, max: 1996, openEnded: false }]);
+});
+
+test("FE350 book sentence without bounds still pins 1991–1996 (FE290 tail used to print 1991–1990)", () => {
+  const nums = [...FE350_YEARS.matchAll(/\d{2,4}/g)].map((m) => m[0]);
+  const last = nums.at(-1) ?? "";
+  const leftover = `1991–${1900 + Number(String(last).slice(-2))}`;
+  assert.equal(last, "290");
+  assert.equal(leftover, "1991–1990");
+  assert.equal(sanitizeYearSpan(leftover), "1991–1996");
+  assert.equal(packYearSpan({ packYears: FE350_YEARS }), "1991–1996");
+  assert.equal(packYearSpan({ packYears: FE350_YEARS, packId: "club-car-ds-gas" }), "1991–1996");
+});
+
+test("FE350 helper and unsupported banner are the same string across two calls", () => {
+  const args = {
+    cartYear: "2010",
+    packYears: FE350_YEARS,
+    packName: "Club Car DS gasoline (Kawasaki FE350)",
+    packId: "club-car-ds-gas",
+    yearMin: "1991",
+    yearMax: "1996",
+  };
+  const field = yearCompatibility(args);
+  const banner = yearCompatibility(args);
+  assert.equal(field.status, "unsupported");
+  assert.equal(banner.status, "unsupported");
+  if (field.status === "unsupported" && banner.status === "unsupported") {
+    assert.equal(field.message, banner.message);
+    assert.match(field.message, /1991–1996/);
+    assert.doesNotMatch(field.message, /1991–1990/);
+  }
+  const ok = yearCompatibility({ ...args, cartYear: "1996" });
+  assert.equal(ok.status, "ok");
+  if (ok.status === "ok") {
+    assert.match(ok.message ?? "", /1991–1996/);
+    assert.doesNotMatch(ok.message ?? "", /1991–1990/);
+  }
 });

@@ -9,14 +9,16 @@ export type BayChromeMeta = {
   errorDetails?: string[];
 };
 
+export type BaySaveHandler = () => void | string;
+
 export type BayActionChrome = BayChromeMeta & {
-  onAction: () => void;
+  onAction: BaySaveHandler;
   onSecondary?: () => void;
 };
 
 export type BayChromeSnapshot = {
   seq: number;
-  action: (() => void) | null;
+  action: BaySaveHandler | null;
   secondary?: () => void;
   meta: BayChromeMeta | null;
 };
@@ -65,35 +67,50 @@ export function bayChromeDispatch(snapshot: BayChromeSnapshot): boolean {
 export const BAY_CHECK_FORM_ID = "bay-check-form";
 export const BAY_REPORT_FORM_ID = "bay-report-form";
 
+export type BaySaveOutcome = {
+  ran: boolean;
+  blocked?: string;
+};
+
 export type BaySubmitSlot = {
-  bind: (fn: () => void) => void;
+  bind: (fn: BaySaveHandler) => void;
   fire: () => boolean;
+  outcome: () => BaySaveOutcome;
   hasHandler: () => boolean;
 };
+
+function outcomeFromReturn(ret: unknown): BaySaveOutcome {
+  if (typeof ret === "string" && ret.trim()) return { ran: true, blocked: ret.trim() };
+  return { ran: true };
+}
 
 /**
  * Latest-submit slot. Bind during render (a ref write). Fire on tap.
  * Does not live in React state, so an effect cleanup cannot clear it.
+ * A returned string from the handler is a block reason for the sticky bar.
  */
 export function createBaySubmitSlot(): BaySubmitSlot {
-  let handler: (() => void) | null = null;
+  let handler: BaySaveHandler | null = null;
+  function outcome(): BaySaveOutcome {
+    if (typeof handler !== "function") {
+      console.warn("[CartScope] sticky Save tapped with no handler");
+      return { ran: false };
+    }
+    try {
+      return outcomeFromReturn(handler());
+    } catch (err) {
+      console.warn("[CartScope] sticky Save handler failed", err);
+      return { ran: false };
+    }
+  }
   return {
     bind(fn) {
       handler = fn;
     },
     fire() {
-      if (typeof handler !== "function") {
-        console.warn("[CartScope] sticky Save tapped with no handler");
-        return false;
-      }
-      try {
-        handler();
-        return true;
-      } catch (err) {
-        console.warn("[CartScope] sticky Save handler failed", err);
-        return false;
-      }
+      return outcome().ran;
     },
+    outcome,
     hasHandler() {
       return typeof handler === "function";
     },
@@ -191,24 +208,40 @@ export function requestBayFormSubmit(doc: Document | undefined, formId: string |
  * The bound handler (PackGate / StepPanel / CodeGate / CaseReport) runs first.
  * Form requestSubmit is never treated as proof of save — that is what left
  * Yamaha / Precedent pack and gas Check 1 stuck after a mouse tap.
+ * A handler string return is a block reason for the sticky bar (not a miss).
  */
-export function fireBaySave(opts: {
-  fire?: () => boolean;
-  fallback?: () => void;
+export function fireBaySaveOutcome(opts: {
+  fire?: () => boolean | BaySaveOutcome;
+  fallback?: BaySaveHandler;
   formId?: string;
   document?: Document;
-}): boolean {
+}): BaySaveOutcome {
   try {
-    if (opts.fire?.()) return true;
+    if (opts.fire) {
+      const result = opts.fire();
+      if (result && typeof result === "object" && "ran" in result) {
+        if (result.ran) return result;
+      } else if (result === true) {
+        return { ran: true };
+      }
+    }
     if (typeof opts.fallback === "function") {
-      opts.fallback();
-      return true;
+      return outcomeFromReturn(opts.fallback());
     }
   } catch (err) {
     console.warn("[CartScope] sticky Save handler failed", err);
-    return false;
+    return { ran: false };
   }
   requestBayFormSubmit(opts.document, opts.formId);
   console.warn("[CartScope] sticky Save tapped with no handler");
-  return false;
+  return { ran: false };
+}
+
+export function fireBaySave(opts: {
+  fire?: () => boolean | BaySaveOutcome;
+  fallback?: BaySaveHandler;
+  formId?: string;
+  document?: Document;
+}): boolean {
+  return fireBaySaveOutcome(opts).ran;
 }

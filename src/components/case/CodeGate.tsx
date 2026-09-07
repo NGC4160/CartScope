@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Field, inputClass } from "@/components/case/fields";
 import type { JobRecord, ModelPack } from "@/data/types";
 import { bayCodesActionLabel, bayProgressChip } from "@/lib/bay-chrome";
-import { BAY_CHECK_FORM_ID, bayFormSubmitGate } from "@/lib/bay-chrome-action";
+import { BAY_CHECK_FORM_ID, bayFormSubmitGate, type BaySaveHandler } from "@/lib/bay-chrome-action";
 import { handheldSaveBlockers } from "@/lib/handheld-form";
 import { suggestedHandheldName } from "@/lib/handheld";
 import { useJobStore } from "@/store/jobs";
@@ -21,7 +21,7 @@ export function CodeGate({
   job: JobRecord;
   pack: ModelPack;
   onChrome?: (chrome: BayActionChrome | null) => void;
-  bindSubmit?: (fn: () => void) => void;
+  bindSubmit?: (fn: BaySaveHandler) => void;
 }) {
   const save = useJobStore((s) => s.saveCodeSave);
   const submitGate = bayFormSubmitGate;
@@ -66,13 +66,14 @@ export function CodeGate({
   });
   const captured = missing.length === 0;
 
-  function go() {
+  function go(): string | void {
     setError(null);
     if (!captured) {
       setBlockers(missing.map((b) => b.message));
-      setError(`Cannot save yet. ${missing.length} field${missing.length === 1 ? "" : "s"} still need a value.`);
+      const message = `Cannot save yet. ${missing.length} field${missing.length === 1 ? "" : "s"} still need a value.`;
+      setError(message);
       queueMicrotask(() => errorAnchor.current?.scrollIntoView({ block: "nearest" }));
-      return;
+      return message;
     }
     setBlockers([]);
     save(job.id, {

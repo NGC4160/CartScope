@@ -102,6 +102,30 @@ export type SaveContinueOk = {
 
 export type SaveContinueResult = SaveContinueOk | SaveContinueFail;
 
+export function observationSaveBlock(spec: Pick<MeasurementSpec, "kind" | "options">): {
+  message: string;
+  missingFields: string[];
+} {
+  const labels = (spec.options ?? []).map((o) => o.label.trim()).filter(Boolean);
+  const field = meterFieldLabel(spec.kind);
+  if (labels.length >= 2) {
+    return {
+      message: `Save is waiting. Tap “${labels[0]}” or “${labels[1]}”. Then Save can go on.`,
+      missingFields: [field],
+    };
+  }
+  if (labels.length === 1) {
+    return {
+      message: `Save is waiting. Tap “${labels[0]}”. Then Save can go on.`,
+      missingFields: [field],
+    };
+  }
+  return {
+    message: "Tap what you saw. Then we can go on.",
+    missingFields: [field],
+  };
+}
+
 export function saveAndContinueMeasurement(
   step: Pick<DiagnosticStep, "measurement" | "pass" | "fail" | "branches">,
   raw: string,
@@ -118,11 +142,12 @@ export function saveAndContinueMeasurement(
     committed = commit.raw;
     numeric = commit.numeric;
   } else if (!optionId) {
+    const block = observationSaveBlock(spec);
     return {
       ok: false,
       reason: "empty",
-      message: "Tap what you saw. Then we can go on.",
-      missingFields: [meterFieldLabel(spec.kind)],
+      message: block.message,
+      missingFields: block.missingFields,
     };
   }
 
