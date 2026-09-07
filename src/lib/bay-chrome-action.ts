@@ -119,10 +119,10 @@ export function createBaySubmitSlot(): BaySubmitSlot {
 
 /**
  * Dedup pointerup + click from ONE physical tap.
- * Sticky Save uses ~120ms so pointerup + leftover click cannot
- * empty-submit the next screen, without eating the next glove tap
- * after a blocked Save. Timestamp only — no sticky sameTurn flag
- * (that swallowed FE350 Start).
+ * Sticky Save uses ~400ms after a successful advance so a leftover
+ * click cannot empty-submit codes / Check 2. Blocked Save resets the
+ * lock so pick-then-Save is not eaten. Timestamp only — no sameTurn
+ * flag (that swallowed FE350 Start).
  */
 export function createBayGesture(windowMs = 50): {
   run: (fn: () => void) => boolean;

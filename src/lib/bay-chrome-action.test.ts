@@ -80,7 +80,7 @@ test("submit slot always fires the latest bind, even after a fake effect clear",
 });
 
 test("a blocked Save resets the lock so the next tap after a pick still runs", () => {
-  const gesture = createBayGesture(120);
+  const gesture = createBayGesture(400);
   const calls: string[] = [];
   assert.equal(
     gesture.run(() => {
@@ -96,8 +96,8 @@ test("a blocked Save resets the lock so the next tap after a pick still runs", (
   assert.deepEqual(calls, ["blocked", "after-pick"]);
 });
 
-test("120ms Save lock drops a leftover click so Check 2 is not submitted empty", async () => {
-  const gesture = createBayGesture(120);
+test("400ms Save lock drops a leftover click so Check 2 is not submitted empty", async () => {
+  const gesture = createBayGesture(400);
   const calls: string[] = [];
   assert.equal(
     gesture.run(() => calls.push("pack-or-check-1")),
@@ -108,7 +108,7 @@ test("120ms Save lock drops a leftover click so Check 2 is not submitted empty",
     false,
   );
   assert.deepEqual(calls, ["pack-or-check-1"]);
-  await new Promise((resolve) => setTimeout(resolve, 140));
+  await new Promise((resolve) => setTimeout(resolve, 420));
   assert.equal(
     gesture.run(() => calls.push("later-save")),
     true,

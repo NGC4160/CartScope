@@ -130,7 +130,7 @@ export function BayActionBar({
 }) {
   const [missed, setMissed] = useState<string | null>(null);
   const barRef = useRef<HTMLDivElement>(null);
-  const gesture = useRef(createBayGesture(120)).current;
+  const gesture = useRef(createBayGesture(400)).current;
   const fireRef = useRef(fire);
   fireRef.current = fire;
   const chromeRef = useRef(chrome);
