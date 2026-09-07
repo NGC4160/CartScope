@@ -4,7 +4,6 @@ import { Field, HeaderNoteInput, inputClass } from "@/components/case/fields";
 import { Button } from "@/components/ui/button";
 import { MANUFACTURERS, packsFor } from "@/data/index";
 import type { BatteryType, ManufacturerId, ModelPack } from "@/data/types";
-import { BAY_CHROME_CLEARANCE_CLASS } from "@/lib/bay-chrome-hit";
 import { createBayGesture } from "@/lib/bay-chrome-action";
 import { JOB_HEADER_MESSAGES, jobHeaderGaps, jobHeaderSummary } from "@/lib/job-header";
 import {
@@ -84,11 +83,16 @@ export function NewJobWizard({
         cartYear: year,
         packYears: model.years,
         packName: model.fullName,
+        packId: model.id,
+        yearMin: model.yearMin,
+        yearMax: model.yearMax,
       })
     : { status: "ok" as const };
   const yearNote = yearStatusNote(yearCheck);
   const yearMessage = yearCheck.status === "unsupported" ? yearCheck.message : null;
-  const yearsHint = model ? supportedYearsHint(model.years) : null;
+  const yearsHint = model
+    ? supportedYearsHint(model.years, model.id, { yearMin: model.yearMin, yearMax: model.yearMax })
+    : null;
   const blockers = startBlockers({ pack: model, symptomId, header });
   const startReady = startIsReady(blockers);
   const complaintReady = complaintHasFirstStep(model, symptomId);
@@ -377,6 +381,7 @@ export function NewJobWizard({
               <span
                 id="year-compat-note"
                 data-testid="year-compat"
+                data-pack-year-span={yearsHint ?? yearNote ?? ""}
                 className={
                   "mt-1 block text-sm " + (yearMessage ? "font-medium text-danger" : "text-ink-muted")
                 }
@@ -455,10 +460,7 @@ export function NewJobWizard({
             </p>
           ) : null}
           <div
-            className={
-              "sticky bottom-0 z-30 isolate mt-5 border-t border-navy-deep bg-paper px-1 pt-2 " +
-              BAY_CHROME_CLEARANCE_CLASS
-            }
+            className="sticky bottom-0 z-30 isolate mt-5 border-t border-navy-deep bg-paper px-1 pt-2 pb-[max(0.6rem,env(safe-area-inset-bottom))]"
           >
             {!startReady ? (
               <div

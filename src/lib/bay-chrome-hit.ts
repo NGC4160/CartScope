@@ -1,7 +1,7 @@
 /**
- * Live Grok / Remix chrome is position:fixed at max z-index. Stacking
- * Save or Start above it cannot win. Keep the tap hit box out of that
- * lower-right zone — the same contract Helper jump already uses.
+ * Helper jump keeps a reserved lower-right pad. Sticky Save and Start do
+ * not — testers tap the lower-right of those controls, and padding there
+ * was a silent dead zone (PR #25 / #26).
  */
 
 export const BAY_CHROME_CLEARANCE = {

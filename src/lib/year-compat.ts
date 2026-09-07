@@ -107,15 +107,56 @@ export function formatPackYears(ranges: readonly YearRange[]): string {
     .join(", ");
 }
 
+/**
+ * FE350 / Marathon book strings also cite 1995–96, 2000, and FE290.
+ * Display and Start use the first valid book span only — never a later cite
+ * and never an inverted max (that is what printed 1991–1990).
+ */
+export const PINNED_PACK_YEARS: Record<string, YearRange[]> = {
+  "club-car-ds-gas": [{ min: 1991, max: 1996, openEnded: false }],
+  "ezgo-marathon-gas": [{ min: 1991, max: 1996, openEnded: false }],
+};
+
+export function leadingBookYearRanges(years: string): YearRange[] {
+  const parsed = parsePackYearRanges(years).filter((r) => r.openEnded || r.max >= r.min);
+  if (parsed.length === 0) return [];
+  return [{ ...parsed[0]! }];
+}
+
+export function resolvePackYearRanges(input: {
+  packId?: string;
+  packYears: string;
+  yearMin?: number;
+  yearMax?: number;
+}): YearRange[] {
+  const min = input.yearMin;
+  const max = input.yearMax;
+  if (
+    min != null &&
+    max != null &&
+    Number.isFinite(min) &&
+    Number.isFinite(max) &&
+    max >= min
+  ) {
+    return [{ min, max, openEnded: false }];
+  }
+  const pinned = input.packId ? PINNED_PACK_YEARS[input.packId] : undefined;
+  if (pinned) return pinned.map((r) => ({ ...r }));
+  return leadingBookYearRanges(input.packYears);
+}
+
 export function yearCompatibility(input: {
   cartYear: string;
   packYears: string;
   packName: string;
+  packId?: string;
+  yearMin?: number;
+  yearMax?: number;
 }): YearCompatibility {
   const year = parseCartYear(input.cartYear);
   if (year == null) return { status: "ok" };
 
-  const ranges = parsePackYearRanges(input.packYears);
+  const ranges = resolvePackYearRanges(input);
   if (ranges.length === 0) {
     return {
       status: "unknown",
@@ -142,8 +183,17 @@ export function yearCompatibility(input: {
   };
 }
 
-export function supportedYearsHint(packYears: string): string | null {
-  const ranges = parsePackYearRanges(packYears);
+export function supportedYearsHint(
+  packYears: string,
+  packId?: string,
+  bounds?: { yearMin?: number; yearMax?: number },
+): string | null {
+  const ranges = resolvePackYearRanges({
+    packId,
+    packYears,
+    yearMin: bounds?.yearMin,
+    yearMax: bounds?.yearMax,
+  });
   if (ranges.length === 0) return null;
   return `Supported years on this pack: ${formatPackYears(ranges)}.`;
 }

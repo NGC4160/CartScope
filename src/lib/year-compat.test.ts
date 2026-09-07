@@ -2,8 +2,10 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { readFileSync } from "node:fs";
 import {
+  formatPackYears,
   parseCartYear,
   parsePackYearRanges,
+  resolvePackYearRanges,
   sanitizeCartYearInput,
   supportedYearsHint,
   yearCompatibility,
@@ -96,11 +98,53 @@ test("V-Glide 1994–2000 and short 1995–96 both accept 1994", () => {
 });
 
 test("cart year typing keeps 1996 and never rewrites it to 1990", () => {
+  let typed = "";
+  for (const ch of "1996") {
+    typed = sanitizeCartYearInput(typed + ch);
+  }
+  assert.equal(typed, "1996");
   assert.equal(sanitizeCartYearInput("1996"), "1996");
   assert.equal(sanitizeCartYearInput("1996 "), "1996");
   assert.equal(sanitizeCartYearInput("19-96"), "1996");
   assert.equal(parseCartYear("1996"), 1996);
   assert.notEqual(sanitizeCartYearInput("1996"), "1990");
+});
+
+test("formatPackYears never emits an inverted 1991–1990 span", () => {
+  assert.equal(formatPackYears([{ min: 1991, max: 1990, openEnded: false }]), "");
+  assert.equal(
+    formatPackYears([
+      { min: 1991, max: 1996, openEnded: false },
+      { min: 1991, max: 1990, openEnded: false },
+    ]),
+    "1991–1996",
+  );
+});
+
+test("FE350 pack id pins 1991–1996 even when the book sentence is noisy", () => {
+  const ranges = resolvePackYearRanges({
+    packId: "club-car-ds-gas",
+    packYears: "FE290 leftover 2000 manual 1995–96",
+    yearMin: 1991,
+    yearMax: 1996,
+  });
+  assert.deepEqual(ranges, [{ min: 1991, max: 1996, openEnded: false }]);
+  const hint = supportedYearsHint("not a range", "club-car-ds-gas", { yearMin: 1991, yearMax: 1996 });
+  assert.match(hint ?? "", /1991–1996/);
+  assert.doesNotMatch(hint ?? "", /1991–1990/);
+  const bad = yearCompatibility({
+    cartYear: "2010",
+    packYears: "not a range",
+    packName: "Club Car DS gasoline (Kawasaki FE350)",
+    packId: "club-car-ds-gas",
+    yearMin: 1991,
+    yearMax: 1996,
+  });
+  assert.equal(bad.status, "unsupported");
+  if (bad.status === "unsupported") {
+    assert.match(bad.message, /1991–1996/);
+    assert.doesNotMatch(bad.message, /1991–1990/);
+  }
 });
 
 test("FE350 year parse is stable across repeated calls (no shared /g lastIndex)", () => {
@@ -117,6 +161,8 @@ test("FE350 year parse is stable across repeated calls (no shared /g lastIndex)"
 test("DS FE350 pack years start at 1991–1996 and accept 1991 and 1996", () => {
   const src = readFileSync(new URL("../data/packs/club-car-ds-gas.ts", import.meta.url), "utf8");
   assert.match(src, /1991–1996 Club Car DS gasoline/);
+  assert.match(src, /yearMin:\s*1991/);
+  assert.match(src, /yearMax:\s*1996/);
   const ranges = parsePackYearRanges(FE350_YEARS);
   assert.ok(ranges.some((r) => r.min === 1991 && r.max === 1996));
   assert.equal(yearInRanges(1991, ranges), true);
@@ -130,12 +176,18 @@ test("DS FE350 pack years start at 1991–1996 and accept 1991 and 1996", () => 
     cartYear: "1996",
     packYears: FE350_YEARS,
     packName: "Club Car DS gasoline (Kawasaki FE350)",
+    packId: "club-car-ds-gas",
+    yearMin: 1991,
+    yearMax: 1996,
   });
   assert.equal(ok.status, "ok");
   const bad = yearCompatibility({
     cartYear: "2010",
     packYears: FE350_YEARS,
     packName: "Club Car DS gasoline (Kawasaki FE350)",
+    packId: "club-car-ds-gas",
+    yearMin: 1991,
+    yearMax: 1996,
   });
   assert.equal(bad.status, "unsupported");
   if (bad.status === "unsupported") {

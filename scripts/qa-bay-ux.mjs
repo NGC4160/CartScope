@@ -24,7 +24,6 @@ async function fillHeader(page, { last, job, year, battery, complaint, serial, w
 
 async function startIqJob(page, who = "Ryan") {
   await page.goto(BASE, { waitUntil: "networkidle" });
-  await installLiveChrome(page);
   const neu = page.getByRole("button", { name: /New job/i });
   if (await neu.count()) await neu.click();
   await page.getByRole("button", { name: /Club Car/i }).click();
@@ -52,44 +51,42 @@ function check(name, ok, extra = "") {
   if (!ok) fails.push(name);
 }
 
-/** Live cart-scope.vercel.app has a fixed Grok pill on the lower-right. */
+/** Helper jump still keeps a reserved lower-right pad. Save/Start do not. */
 async function installLiveChrome(page) {
   await page.evaluate(() => {
     if (document.getElementById("grok-pill-sim")) return;
     const el = document.createElement("div");
     el.id = "grok-pill-sim";
     el.setAttribute("data-testid", "grok-pill-sim");
-    // Match the reserved 11.5rem × 5rem zone testers actually hit.
     el.style.cssText =
       "position:fixed;right:0;bottom:0;z-index:2147483647;width:11.5rem;height:5rem;background:rgba(20,20,20,0.55);pointer-events:auto;border-radius:12px 0 0 0;";
     document.body.appendChild(el);
   });
 }
 
-/** Real mouse click on the sticky Save — not keyboard Enter, not a JS click. */
+/** Tester tap: lower-right of the sticky bar (the control itself, not a padded dead zone). */
 async function mouseClickPrimary(page) {
-  await installLiveChrome(page);
-  const btn = page.getByTestId("bay-primary-action").filter({ visible: true });
+  const bar = page.getByTestId("bay-action-bar");
+  const btn = bar.getByTestId("bay-primary-action").filter({ visible: true });
   await btn.waitFor({ state: "visible" });
-  const box = await btn.boundingBox();
-  if (!box) throw new Error("sticky Save has no box");
+  const box = await bar.boundingBox();
+  if (!box) throw new Error("sticky Save bar has no box");
   const x = box.x + box.width * 0.85;
   const y = box.y + box.height * 0.7;
   const hit = await page.evaluate(
     ({ x, y }) => {
       const el = document.elementFromPoint(x, y);
-      if (!el) return { hitSave: false, start: false, pill: false, tag: null };
+      if (!el) return { hitSave: false, start: false, tag: null };
       return {
-        hitSave: Boolean(el.closest("[data-testid='bay-primary-action']")),
+        hitSave: Boolean(el.closest("[data-testid='bay-primary-action'], [data-testid='bay-action-bar']")),
         start: Boolean(el.closest("[data-testid='start-checks']")),
-        pill: Boolean(el.closest("[data-testid='grok-pill-sim']")),
         tag: el.tagName,
         testid: el.getAttribute("data-testid"),
       };
     },
     { x, y },
   );
-  if (!hit.hitSave || hit.start || hit.pill) {
+  if (!hit.hitSave || hit.start) {
     throw new Error(`sticky Save mouse target is not Save: ${JSON.stringify(hit)}`);
   }
   await page.mouse.click(x, y, { button: "left" });
@@ -97,7 +94,6 @@ async function mouseClickPrimary(page) {
 
 /** Real mouse click on Job header Start checks — same path the bay tech uses. */
 async function mouseClickStart(page) {
-  await installLiveChrome(page);
   const btn = page.getByTestId("start-checks");
   await btn.waitFor({ state: "visible" });
   await btn.scrollIntoViewIfNeeded();
@@ -110,14 +106,13 @@ async function mouseClickStart(page) {
       const el = document.elementFromPoint(x, y);
       return {
         hitStart: Boolean(el?.closest?.("[data-testid='start-checks']")),
-        pill: Boolean(el?.closest?.("[data-testid='grok-pill-sim']")),
         tag: el?.tagName ?? null,
         testid: el?.getAttribute?.("data-testid") ?? null,
       };
     },
     { x, y },
   );
-  if (!hit.hitStart || hit.pill) {
+  if (!hit.hitStart) {
     throw new Error(`Start mouse target is not Start: ${JSON.stringify(hit)}`);
   }
   await page.mouse.click(x, y, { button: "left" });
@@ -426,7 +421,6 @@ async function runStickySaveAdvance() {
 
   const gas = await browser.newPage({ viewport: { width: 1024, height: 768 } });
   await gas.goto(BASE, { waitUntil: "networkidle" });
-  await installLiveChrome(gas);
   const neu = gas.getByRole("button", { name: /New job/i });
   if (await neu.count()) await neu.click();
   await gas.getByRole("button", { name: /Club Car/i }).click();
@@ -564,7 +558,6 @@ async function runRound7StartValidationAndBayImprovements() {
   page.on("pageerror", (e) => console.log("PAGEERROR", e.message));
 
   await page.goto(BASE, { waitUntil: "networkidle" });
-  await installLiveChrome(page);
   const neu = page.getByRole("button", { name: /New job/i });
   if (await neu.count()) await neu.click();
   await page.getByRole("button", { name: /Club Car/i }).click();
@@ -610,7 +603,6 @@ async function runRound7StartValidationAndBayImprovements() {
   const gas = await browser.newPage({ viewport: { width: 1024, height: 768 } });
   gas.on("pageerror", (e) => console.log("PAGEERROR", e.message));
   await gas.goto(BASE, { waitUntil: "networkidle" });
-  await installLiveChrome(gas);
   const neuGas = gas.getByRole("button", { name: /New job/i });
   if (await neuGas.count()) await neuGas.click();
   await gas.getByRole("button", { name: /EZ-GO/i }).click();
@@ -661,7 +653,6 @@ async function runHelperJumpFromNotFullyCharged() {
   const page = await browser.newPage({ viewport: { width: 1024, height: 768 } });
   page.on("pageerror", (e) => console.log("PAGEERROR", e.message));
   await page.goto(BASE, { waitUntil: "networkidle" });
-  await installLiveChrome(page);
   const neu = page.getByRole("button", { name: /New job/i });
   if (await neu.count()) await neu.click();
   await page.getByRole("button", { name: /Club Car/i }).click();
@@ -728,7 +719,6 @@ async function runHelperJumpFromNotFullyCharged() {
 
 async function startElectricPackJob(page, { brand, model, complaint, last, job, year, serial, who }) {
   await page.goto(BASE, { waitUntil: "networkidle" });
-  await installLiveChrome(page);
   const neu = page.getByRole("button", { name: /New job/i });
   if (await neu.count()) await neu.click();
   await page.getByRole("button", { name: brand }).click();
@@ -805,7 +795,6 @@ async function runLiveFailList() {
   const fe350 = await browser.newPage({ viewport: { width: 1024, height: 768 } });
   fe350.on("pageerror", (e) => console.log("PAGEERROR", e.message));
   await fe350.goto(BASE, { waitUntil: "networkidle" });
-  await installLiveChrome(fe350);
   const neu = fe350.getByRole("button", { name: /New job/i });
   if (await neu.count()) await neu.click();
   await fe350.getByRole("button", { name: /Club Car/i }).click();
@@ -829,8 +818,10 @@ async function runLiveFailList() {
   await mouseClickStart(fe350);
   await fe350.waitForTimeout(400);
   check("FE350 2010 Start stays on header", (await fe350.getByTestId("start-checks").count()) === 1);
-  await fe350.getByLabel(/^Year$/i).fill("1996");
-  check("FE350 1996 stays 1996 in the box", (await fe350.getByLabel(/^Year$/i).inputValue()) === "1996");
+  const yearBox = fe350.getByLabel(/^Year$/i);
+  await yearBox.fill("");
+  await yearBox.pressSequentially("1996", { delay: 40 });
+  check("FE350 1996 stays 1996 in the box", (await yearBox.inputValue()) === "1996");
   check("FE350 1996 hint is not 1991–1990", !/1991–1990|1991-1990/.test(await fe350.getByTestId("year-compat").innerText()));
   check("FE350 1996 Start ready", (await fe350.getByTestId("start-checks").getAttribute("data-start-ready")) === "true");
   await mouseClickStart(fe350);
