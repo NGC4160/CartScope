@@ -11,7 +11,7 @@ export const ezgoTxt36NonPds = buildEzgoDc({
   diagramNotes: [
     "36 V Non-PDS TXT: six 6 V batteries. This is the series 1206 cart from the 2001+ 36 V book, not DCS 1996–2001 and not PDS.",
     "The solenoid is the main power switch. The controller is a Curtis 1206. Motor posts are A1, A2, S1, S2. The direction switch is the mechanical F&R with MS2 (in gear) and MS4 (reverse only).",
-    "Factory Non-PDS troubleshooting tree sheets (Fig. 7–14 / E-5–E-12) from the 2001+ 36 V book are in the wire library after the Fig. 19 map.",
+    "Factory Non-PDS sheets from the 2001+ 36 V book are in the wire library after the Fig. 19 map: Fig. 6 simplified overview (E-4), then detailed trees Fig. 7–14 (E-5–E-12).",
   ],
   voltage: 36,
   controllerName: "Curtis 1206 Non-PDS controller",

@@ -461,7 +461,43 @@ export const WIRING_SHEETS: WiringSheet[] = [
     landscape: false,
   },
   // Factory troubleshooting trees — 2001+ EZ-GO TXT 36 V Service Manual (pub 28646-G01),
-  // Drive PDF 12rUoEOA_H_Fj7yXGzijfqL9GuP4pNg2h, Diagnostics PDF pages 51–58 (Non-PDS) and 76–85 (PDS).
+  // Drive PDF 12rUoEOA_H_Fj7yXGzijfqL9GuP4pNg2h, Diagnostics PDF pages 50–58 (Non-PDS) and 72–85 (PDS).
+  {
+    id: "txt36-nonpds-fig6",
+    title: "TXT 36 V Non-PDS — simplified troubleshooting diagram (Fig. 6)",
+    manualRef:
+      "2001+ EZ-GO TXT 36 V Service Manual (pub 28646-G01), Fig. 6 Simplified Troubleshooting Diagram, page E-4 — Electronic Speed Control (Non-PDS)",
+    src: "/wiring/txt36-nonpds-fig6.jpg",
+    kind: "control",
+    landscape: false,
+  },
+  {
+    id: "txt36-pds-intro",
+    title: "TXT 36 V PDS — troubleshooting diagrams intro (F-6)",
+    manualRef:
+      "2001+ EZ-GO TXT 36 V Service Manual (pub 28646-G01), page F-6 — Electronic Speed Control (PDS) troubleshooting diagrams intro, Fig. 5–6 continuity checks",
+    src: "/wiring/txt36-pds-intro.jpg",
+    kind: "control",
+    landscape: false,
+  },
+  {
+    id: "txt36-pds-fault-codes-1",
+    title: "TXT 36 V PDS — diagnostic mode fault codes (Fig. 7)",
+    manualRef:
+      "2001+ EZ-GO TXT 36 V Service Manual (pub 28646-G01), Fig. 7 PDS Diagnostic Mode Fault Codes, page F-7 — Electronic Speed Control (PDS)",
+    src: "/wiring/txt36-pds-fault-codes-1.jpg",
+    kind: "control",
+    landscape: false,
+  },
+  {
+    id: "txt36-pds-fault-codes-2",
+    title: "TXT 36 V PDS — fault codes continued and controller connectors (Fig. 7 / Fig. 8)",
+    manualRef:
+      "2001+ EZ-GO TXT 36 V Service Manual (pub 28646-G01), Fig. 7 PDS Diagnostic Mode Fault Codes (continued) and Fig. 8 Controller Connectors and Connections, page F-8 — Electronic Speed Control (PDS)",
+    src: "/wiring/txt36-pds-fault-codes-2.jpg",
+    kind: "pinout",
+    landscape: false,
+  },
   {
     id: "txt36-nonpds-tree-1",
     title: "TXT 36 V Non-PDS — troubleshooting tree sheet 1 (Fig. 7)",
@@ -790,6 +826,9 @@ const BY_PACK: Record<string, string[]> = {
   ],
   "ezgo-pds-36": [
     "txt36-pds",
+    "txt36-pds-intro",
+    "txt36-pds-fault-codes-1",
+    "txt36-pds-fault-codes-2",
     "txt36-pds-tree-1",
     "txt36-pds-tree-2",
     "txt36-pds-tree-3",
@@ -803,6 +842,7 @@ const BY_PACK: Record<string, string[]> = {
   ],
   "ezgo-txt-36-non-pds": [
     "txt36-non-pds",
+    "txt36-nonpds-fig6",
     "txt36-nonpds-tree-1",
     "txt36-nonpds-tree-2",
     "txt36-nonpds-tree-3",
