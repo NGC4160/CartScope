@@ -7,9 +7,29 @@ import {
   readHeaderSnapshot,
   reverseOrOneWaySymptom,
   startBlockers,
+  startControl,
   startIsReady,
   type HeaderSnapshot,
 } from "./start-checks.ts";
+/** Real Club Car DS FE350 year copy from `club-car-ds-gas`. */
+const clubCarDsFe350 = {
+  id: "club-car-ds-gas",
+  manufacturerLabel: "Club Car",
+  name: "DS FE350 gasoline",
+  fullName: "Club Car DS gasoline (Kawasaki FE350)",
+  powertrain: "gasoline",
+  years:
+    "1991–1996 Club Car DS gasoline (Kawasaki FE350; 1995–96 DS gas/electric; 2000 Club Car Service Manual). FE290 DS/Villager is a separate pack.",
+  symptoms: [
+    {
+      id: "no-crank",
+      label: "Engine will not crank",
+      summary: "Key START does nothing.",
+      startStepId: "g-setup",
+    },
+  ],
+  steps: { "g-setup": { id: "g-setup" } },
+} as unknown as ModelPack;
 
 /** Real Club Car DS IQ motor-braking path from `club-car-iq`. */
 const clubCarDsIq = {
@@ -373,6 +393,49 @@ test("Marathon year 2010 blocks Start with a readable year error; 1996 starts", 
   if (startedOk.ok) {
     assert.equal(startedOk.startStepId, "g-setup");
   }
+});
+
+test("Start stays disabled for a bad year or fault and enables only when Start would work", () => {
+  const header: HeaderSnapshot = {
+    lastName: "Ryan",
+    hcpJobNumber: "882001",
+    technician: "Hayden",
+    cartYear: "2010",
+    serialNumber: "",
+    batteryType: "",
+    complaintNote: "",
+    fuelNote: "",
+  };
+  const blockedYear = startBlockers({
+    pack: clubCarDsFe350,
+    symptomId: "no-crank",
+    header,
+  });
+  assert.equal(startControl(blockedYear).disabled, true);
+  assert.equal(startControl(blockedYear).ready, false);
+  assert.ok(blockedYear.some((b) => b.kind === "year" && /1991–1996/.test(b.message)));
+
+  const blockedFault = startBlockers({
+    pack: clubCarDsFe350,
+    symptomId: "not-a-real-fault",
+    header: { ...header, cartYear: "1996" },
+  });
+  assert.equal(startControl(blockedFault).disabled, true);
+  assert.ok(blockedFault.some((b) => b.kind === "complaint" || b.kind === "first-step"));
+
+  const ready = startBlockers({
+    pack: clubCarDsFe350,
+    symptomId: "no-crank",
+    header: { ...header, cartYear: "1996" },
+  });
+  assert.equal(startControl(ready).disabled, false);
+  assert.equal(startControl(ready, true).disabled, true);
+  const started = attemptStartChecks({
+    pack: clubCarDsFe350,
+    symptomId: "no-crank",
+    header: { ...header, cartYear: "1996" },
+  });
+  assert.equal(started.ok, true);
 });
 
 test("a missing first factory check is named, never a silent no-op", () => {

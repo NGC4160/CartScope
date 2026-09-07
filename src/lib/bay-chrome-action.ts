@@ -118,7 +118,11 @@ export function createBaySubmitGate(windowMs = 400): {
  */
 export const bayFormSubmitGate = createBaySubmitGate(400);
 
-/** Associated-form submit. Used as a missed-click backup — not a second save path. */
+/**
+ * Associated-form submit. Backup only — requestSubmit can return without
+ * running onSubmit (constraint validation, lost click after pointer capture).
+ * Do not treat a true here as proof that Save ran.
+ */
 export function requestBayFormSubmit(doc: Document | undefined, formId: string | undefined): boolean {
   if (!doc || !formId) return false;
   const form = doc.getElementById(formId);
@@ -135,18 +139,22 @@ export function requestBayFormSubmit(doc: Document | undefined, formId: string |
   return false;
 }
 
+/**
+ * One Save path for pack, checks, and report. The bound handler runs first.
+ * Form requestSubmit is a last-ditch kick, never the only path.
+ */
 export function fireBaySave(opts: {
   fire?: () => boolean;
   fallback?: () => void;
   formId?: string;
   document?: Document;
 }): boolean {
-  if (requestBayFormSubmit(opts.document, opts.formId)) return true;
   if (opts.fire?.()) return true;
   if (typeof opts.fallback === "function") {
     opts.fallback();
     return true;
   }
+  if (requestBayFormSubmit(opts.document, opts.formId)) return true;
   console.warn("[CartScope] sticky Save tapped with no handler");
   return false;
 }

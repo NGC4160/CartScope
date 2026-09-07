@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type FormEvent, type PointerEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Field, HeaderNoteInput, inputClass } from "@/components/case/fields";
 import { Button } from "@/components/ui/button";
@@ -10,7 +10,7 @@ import {
   complaintHasFirstStep,
   readHeaderSnapshot,
   startBlockers,
-  startIsReady,
+  startControl,
   type HeaderSnapshot,
 } from "@/lib/start-checks";
 import {
@@ -88,7 +88,7 @@ export function NewJobWizard({
   const yearMessage = yearCheck.status === "unsupported" ? yearCheck.message : null;
   const yearsHint = model ? supportedYearsHint(model.years) : null;
   const blockers = startBlockers({ pack: model, symptomId, header });
-  const startReady = startIsReady(blockers);
+  const { ready: startReady, disabled: startDisabled } = startControl(blockers, starting);
   const complaintReady = complaintHasFirstStep(model, symptomId);
 
   useEffect(() => {
@@ -158,22 +158,6 @@ export function NewJobWizard({
   function onStartSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     requestStart(e.currentTarget);
-  }
-
-  function onStartPointerDown(event: PointerEvent<HTMLButtonElement>) {
-    if (starting) return;
-    event.currentTarget.setPointerCapture(event.pointerId);
-  }
-
-  function onStartPointerUp(event: PointerEvent<HTMLButtonElement>) {
-    if (starting) return;
-    if (event.pointerType === "mouse" && event.button !== 0) return;
-    requestStart(event.currentTarget.form ?? event.currentTarget.closest("form"));
-  }
-
-  function onStartClick(event: { preventDefault: () => void; currentTarget: HTMLButtonElement }) {
-    event.preventDefault();
-    requestStart(event.currentTarget.form ?? event.currentTarget.closest("form"));
   }
 
   return (
@@ -322,7 +306,7 @@ export function NewJobWizard({
       ) : null}
 
       {step === 4 && model ? (
-        <form onSubmit={onStartSubmit}>
+        <form noValidate onSubmit={onStartSubmit}>
           <p className="mb-3 text-sm text-ink-muted">
             Every case needs the customer last name, the Housecall Pro job number, and who checked it
             {electricCart ? ", plus the battery type" : ""}. Then we can start checks.
@@ -464,12 +448,12 @@ export function NewJobWizard({
               <div
                 ref={startReasonRef}
                 data-testid="start-blocked-reason"
-                className="mb-2 rounded-md bg-danger-bg px-3 py-2 text-sm font-medium text-danger"
+                className="mb-2 rounded-md bg-danger-bg px-3 py-3 text-lg font-semibold leading-snug text-danger"
                 role="alert"
               >
                 <p>Start is blocked. {blockers[0]?.message ?? startErrors[0]}</p>
                 {blockers.slice(1).map((b) => (
-                  <p key={b.kind + b.message} className="mt-1 font-normal">
+                  <p key={b.kind + b.message} className="mt-2 text-base font-medium">
                     {b.message}
                   </p>
                 ))}
@@ -478,7 +462,7 @@ export function NewJobWizard({
               <div
                 ref={startReasonRef}
                 data-testid="start-blocked-reason"
-                className="mb-2 rounded-md bg-danger-bg px-3 py-2 text-sm font-medium text-danger"
+                className="mb-2 rounded-md bg-danger-bg px-3 py-3 text-lg font-semibold leading-snug text-danger"
                 role="alert"
               >
                 {startErrors.map((m) => (
@@ -497,17 +481,14 @@ export function NewJobWizard({
               </Button>
             ) : null}
             <Button
-              type="button"
+              type="submit"
               data-testid="start-checks"
               data-start-checks=""
               data-start-ready={startReady && !starting ? "true" : "false"}
-              className={"ml-auto min-w-44 touch-manipulation" + (startReady ? "" : " opacity-40")}
-              aria-disabled={!startReady || starting}
+              className="ml-auto min-w-44 touch-manipulation"
+              aria-disabled={startDisabled}
               aria-busy={starting}
-              disabled={starting}
-              onPointerDown={onStartPointerDown}
-              onPointerUp={onStartPointerUp}
-              onClick={onStartClick}
+              disabled={startDisabled}
             >
               <span className="pointer-events-none truncate">
                 {starting ? "Starting checks…" : "Start checks"}

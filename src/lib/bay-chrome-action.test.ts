@@ -139,7 +139,45 @@ test("requestBayFormSubmit uses the live form and ignores a no-op chrome fallbac
     }),
     true,
   );
-  assert.deepEqual(submitted, ["form", "form"]);
+  assert.deepEqual(submitted, ["form", "slot"]);
+});
+
+test("sticky Save runs the bound handler even when requestSubmit is a silent no-op", () => {
+  const submitted: string[] = [];
+  const form = {
+    requestSubmit() {
+      submitted.push("form");
+    },
+  };
+  const doc = {
+    getElementById(id: string) {
+      return id === "bay-check-form" ? form : null;
+    },
+  } as unknown as Document;
+  assert.equal(
+    fireBaySave({
+      fire: () => {
+        submitted.push("slot");
+        return true;
+      },
+      fallback: () => submitted.push("fallback"),
+      formId: "bay-check-form",
+      document: doc,
+    }),
+    true,
+  );
+  assert.deepEqual(submitted, ["slot"]);
+});
+
+test("sticky Save falls back to chrome onAction when no slot is bound", () => {
+  const submitted: string[] = [];
+  assert.equal(
+    fireBaySave({
+      fallback: () => submitted.push("chrome"),
+    }),
+    true,
+  );
+  assert.deepEqual(submitted, ["chrome"]);
 });
 
 test("submit slot logs and returns false when Save is tapped with no handler", () => {
