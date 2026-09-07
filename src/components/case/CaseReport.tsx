@@ -11,7 +11,6 @@ import { BAY_REPORT_FORM_ID, bayFormSubmitGate } from "@/lib/bay-chrome-action";
 import { reportShowsFactoryCheckLog } from "@/lib/bay-layer";
 import { submitBrainCopy } from "@/lib/brain-submit";
 import { helperNoteSpeaker, helperNotesForReport, plainCaseSummary, reportWhoCheckedIt } from "@/lib/case-summary";
-import { statusLabel } from "@/lib/case-flow";
 import { formatReading } from "@/lib/diagnostics";
 import { formatHandheldRecord } from "@/lib/handheld";
 import { PackNaBanner } from "@/components/case/PackNaBanner";
@@ -162,7 +161,7 @@ export function CaseReport({
                 : job.fuelNote || "—"
             }
           />
-          <Row label="Status" value={statusLabel(job)} />
+          <Row label="Status" value={job.reportConfirmed ? "Complete" : job.status === "diagnosed" ? "Ready to review" : "Still working"} />
           <Row label="Started" value={formatTime(job.createdAt)} />
           <Row label="Updated" value={formatTime(job.updatedAt)} />
         </dl>
