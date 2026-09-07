@@ -18,7 +18,7 @@ test("Library TXT 36 V Non-PDS sheet leads the Non-PDS pack with honest 1206 cha
     const moved = getSheet(id);
     assert.ok(moved);
     assert.match(moved.title, /Non-PDS/);
-    assert.doesNotMatch(moved.title, /PDS —/);
+    assert.doesNotMatch(moved.title, /^36 V PDS/);
     assert.match(moved.manualRef, /Non-PDS/);
   }
   assert.ok(!sheetsForPack("ezgo-txt-dcs").some((s) => s.id === "txt36-non-pds"));
