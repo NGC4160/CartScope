@@ -10,6 +10,7 @@ import {
   createBaySubmitSlot,
   emptyBayChrome,
   fireBaySave,
+  fireBaySaveOutcome,
   requestBayFormSubmit,
 } from "./bay-chrome-action.ts";
 
@@ -251,6 +252,21 @@ test("submit slot returns false when the bound handler throws", () => {
     console.warn = orig;
   }
   assert.ok(warns.some((w) => /sticky Save handler failed/.test(w)));
+});
+
+test("submit slot reports a block reason without treating Save as a miss", () => {
+  const slot = createBaySubmitSlot();
+  slot.bind(
+    () =>
+      "Save is waiting. Tap “Setup is right — keep going” or “A switch or cable is wrong”. Then Save can go on.",
+  );
+  const out = slot.outcome();
+  assert.equal(out.ran, true);
+  assert.match(out.blocked ?? "", /Setup is right — keep going/);
+  assert.equal(slot.fire(), true);
+  const fired = fireBaySaveOutcome({ fire: slot.outcome });
+  assert.equal(fired.ran, true);
+  assert.match(fired.blocked ?? "", /A switch or cable is wrong/);
 });
 
 test("submit slot logs and returns false when Save is tapped with no handler", () => {

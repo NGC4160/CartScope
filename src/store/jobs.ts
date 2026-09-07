@@ -23,7 +23,7 @@ import {
   outcomeFor,
   resultFromAttempt,
 } from "@/lib/diagnostics";
-import { commitMeterReading, meterFieldLabel } from "@/lib/meter-input";
+import { commitMeterReading, observationSaveBlock } from "@/lib/meter-input";
 import { applyJumpToStep } from "@/lib/jump-step";
 import { uid } from "@/lib/utils";
 
@@ -175,11 +175,12 @@ export const useJobStore = create<JobState>()(
           }
           raw = commit.raw;
         } else if (!optionId) {
+          const block = observationSaveBlock(step.measurement);
           return {
             status: "invalid" as const,
             job,
-            message: "Tap what you saw. Then we can go on.",
-            missingFields: [meterFieldLabel(step.measurement.kind)],
+            message: block.message,
+            missingFields: block.missingFields,
           };
         }
 

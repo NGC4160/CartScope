@@ -118,6 +118,36 @@ async function mouseClickStart(page) {
   await page.mouse.click(x, y, { button: "left" });
 }
 
+function yearCoverSpan(text) {
+  const m = String(text).match(/1991\s*[–—-]\s*\d{4}/);
+  return m ? m[0].replace(/\s+/g, "") : "";
+}
+
+async function fillHandheldAndSave(page) {
+  await page.getByRole("heading", { name: /Save a program file before you clear/i }).waitFor({ timeout: 10000 });
+  const present = page.getByPlaceholder(/write each code/i);
+  if (await present.count()) await present.fill("None");
+  const history = page.getByPlaceholder(/stored code/i);
+  if (await history.count()) await history.fill("None");
+  const noRead = page.getByText(/This controller does not show fault counters/i);
+  if (await noRead.count()) await noRead.click();
+  await mouseClickPrimary(page);
+  await page.getByText(/CHECK 1/i).first().waitFor({ timeout: 15000 });
+}
+
+async function saveFactoryCheck1To2(page, pickLabel, nextHeading, label) {
+  await page.getByText(/CHECK 1/i).first().waitFor({ timeout: 15000 });
+  const pick = page.getByRole("button", { name: pickLabel });
+  await pick.waitFor({ state: "visible" });
+  await pick.click();
+  await mouseClickPrimary(page);
+  await page.getByText(/CHECK 2/i).first().waitFor({ timeout: 10000 });
+  check(`${label} sticky Save left Check 1`, await page.getByText(/CHECK 2/i).first().isVisible());
+  if (nextHeading) {
+    check(`${label} Check 2 heading`, await page.getByRole("heading", { name: nextHeading }).isVisible());
+  }
+}
+
 async function mouseClickLocator(page, locator, label) {
   await installLiveChrome(page);
   await locator.waitFor({ state: "visible" });
@@ -439,6 +469,16 @@ async function runStickySaveAdvance() {
   await mouseClickStart(gas);
   await gas.waitForURL("**/bench/**", { timeout: 15000 });
   await gas.getByText(/CHECK 1/i).first().waitFor();
+  await mouseClickPrimary(gas);
+  const blockedSave = gas.getByTestId("bay-save-notice");
+  check("advance factory Save without a pick shows a reason", await blockedSave.isVisible());
+  const blockedText = await blockedSave.innerText();
+  check(
+    "advance factory Save names the missing setup choice",
+    /Setup is right — keep going/.test(blockedText) && /A switch or cable is wrong/.test(blockedText),
+    blockedText,
+  );
+  check("advance factory still Check 1 after blocked Save", await gas.getByText(/CHECK 1/i).first().isVisible());
   await gas.getByRole("button", { name: /Setup is right — keep going/i }).click();
   const checkSave = gas.getByTestId("bay-primary-action");
   check("advance factory save enabled", await checkSave.isEnabled());
@@ -765,6 +805,13 @@ async function runLiveFailList() {
     "YDRE DC pack heading gone",
     (await yamaha.getByRole("heading", { name: /Check the pack before you blame other parts/i }).count()) === 0,
   );
+  await fillHandheldAndSave(yamaha);
+  await saveFactoryCheck1To2(
+    yamaha,
+    /Solenoid does NOT click/i,
+    /Step 1 — RUN position/i,
+    "YDRE DC",
+  );
   await yamaha.close();
 
   const precedent = await browser.newPage({ viewport: { width: 1024, height: 768 }, hasTouch: true });
@@ -790,6 +837,13 @@ async function runLiveFailList() {
     "Precedent ERIC touch Save left Battery Pack",
     await precedent.getByRole("heading", { name: /Save a program file before you clear/i }).isVisible(),
   );
+  await fillHandheldAndSave(precedent);
+  await saveFactoryCheck1To2(
+    precedent,
+    /Switches are set — go on/i,
+    /Check battery pack power/i,
+    "Precedent ERIC",
+  );
   await precedent.close();
 
   const fe350 = await browser.newPage({ viewport: { width: 1024, height: 768 } });
@@ -811,9 +865,17 @@ async function runLiveFailList() {
   });
   const yearNote = fe350.getByTestId("year-compat");
   const yearText = await yearNote.innerText();
+  const bannerText = await fe350.getByTestId("start-blocked-reason").innerText();
   check("FE350 2010 names 1991–1996", /2010/.test(yearText) && /1991–1996|1991-1996/.test(yearText), yearText);
-  check("FE350 2010 does not show 1991–1990", !/1991–1990|1991-1990/.test(yearText), yearText);
-  check("FE350 2010 does not show 1995–1996 as the range", !/1995–1996|1995-1996/.test(yearText), yearText);
+  check("FE350 2010 field does not show 1991–1990", !/1991–1990|1991-1990/.test(yearText), yearText);
+  check("FE350 2010 banner names 1991–1996", /2010/.test(bannerText) && /1991–1996|1991-1996/.test(bannerText), bannerText);
+  check("FE350 2010 banner does not show 1991–1990", !/1991–1990|1991-1990/.test(bannerText), bannerText);
+  check(
+    "FE350 2010 field and Start banner use the same year span",
+    yearCoverSpan(yearText) === yearCoverSpan(bannerText) && yearCoverSpan(yearText).includes("1996"),
+    `${yearCoverSpan(yearText)} vs ${yearCoverSpan(bannerText)}`,
+  );
+  check("FE350 2010 does not show 1995–1996 as the range", !/1995–1996|1995-1996/.test(yearText + bannerText), yearText);
   check("FE350 2010 Start not ready", (await fe350.getByTestId("start-checks").getAttribute("data-start-ready")) === "false");
   await mouseClickStart(fe350);
   await fe350.waitForTimeout(400);
@@ -822,7 +884,9 @@ async function runLiveFailList() {
   await yearBox.fill("");
   await yearBox.pressSequentially("1996", { delay: 40 });
   check("FE350 1996 stays 1996 in the box", (await yearBox.inputValue()) === "1996");
-  check("FE350 1996 hint is not 1991–1990", !/1991–1990|1991-1990/.test(await fe350.getByTestId("year-compat").innerText()));
+  const okHint = await fe350.getByTestId("year-compat").innerText();
+  check("FE350 1996 hint is not 1991–1990", !/1991–1990|1991-1990/.test(okHint), okHint);
+  check("FE350 1996 hint names 1991–1996", /1991–1996|1991-1996/.test(okHint), okHint);
   check("FE350 1996 Start ready", (await fe350.getByTestId("start-checks").getAttribute("data-start-ready")) === "true");
   await mouseClickStart(fe350);
   await fe350.waitForURL("**/bench/**", { timeout: 15000 });

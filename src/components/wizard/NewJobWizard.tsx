@@ -9,6 +9,7 @@ import { JOB_HEADER_MESSAGES, jobHeaderGaps, jobHeaderSummary } from "@/lib/job-
 import {
   attemptStartChecks,
   complaintHasFirstStep,
+  packYearCheck,
   readHeaderSnapshot,
   startBlockers,
   startIsReady,
@@ -19,7 +20,7 @@ import {
   openJobHeader,
   stepAfterComplaintSelected,
 } from "@/lib/wizard-nav";
-import { sanitizeCartYearInput, supportedYearsHint, yearCompatibility, yearStatusNote } from "@/lib/year-compat";
+import { sanitizeCartYearInput, supportedYearsHint, yearStatusNote } from "@/lib/year-compat";
 import type { CreateJobInput } from "@/store/jobs";
 
 export type StartJobResult =
@@ -78,22 +79,13 @@ export function NewJobWizard({
     technician,
   });
   const headerMessage = jobHeaderSummary(gaps);
-  const yearCheck = model
-    ? yearCompatibility({
-        cartYear: year,
-        packYears: model.years,
-        packName: model.fullName,
-        packId: model.id,
-        yearMin: model.yearMin,
-        yearMax: model.yearMax,
-      })
-    : { status: "ok" as const };
+  const yearCheck = model ? packYearCheck(model, year) : { status: "ok" as const };
   const yearNote = yearStatusNote(yearCheck);
   const yearMessage = yearCheck.status === "unsupported" ? yearCheck.message : null;
   const yearsHint = model
     ? supportedYearsHint(model.years, model.id, { yearMin: model.yearMin, yearMax: model.yearMax })
     : null;
-  const blockers = startBlockers({ pack: model, symptomId, header });
+  const blockers = startBlockers({ pack: model, symptomId, header, yearCheck });
   const startReady = startIsReady(blockers);
   const complaintReady = complaintHasFirstStep(model, symptomId);
 

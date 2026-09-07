@@ -4,12 +4,14 @@ import type { ModelPack } from "../data/types.ts";
 import {
   attemptStartChecks,
   complaintHasFirstStep,
+  packYearCheck,
   readHeaderSnapshot,
   reverseOrOneWaySymptom,
   startBlockers,
   startIsReady,
   type HeaderSnapshot,
 } from "./start-checks.ts";
+import { yearStatusNote } from "./year-compat.ts";
 
 /** Real Club Car DS IQ motor-braking path from `club-car-iq`. */
 const clubCarDsIq = {
@@ -430,6 +432,17 @@ test("DS FE350 year 1996 starts Check 1; year 2010 stays blocked with the 1991�
     assert.match(blocked.yearMessage ?? "", /1991–1996|1991-1996/);
     assert.doesNotMatch(blocked.yearMessage ?? "", /1991–1990|1991-1990/);
     assert.doesNotMatch(blocked.yearMessage ?? "", /1995–1996|1995-1996/);
+    const yearCheck = packYearCheck(fe350, "2010");
+    const liveBlockers = startBlockers({
+      pack: fe350,
+      symptomId: "no-crank",
+      header: { ...header1996, cartYear: "2010" },
+      yearCheck,
+    });
+    const yearBlock = liveBlockers.find((b) => b.kind === "year");
+    assert.equal(yearBlock?.message, yearCheck.message);
+    assert.equal(yearStatusNote(yearCheck), yearCheck.message);
+    assert.equal(yearBlock?.message, blocked.yearMessage);
   }
 });
 

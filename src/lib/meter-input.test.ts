@@ -110,7 +110,12 @@ test("resistance OL commits and a missing observation names the field", () => {
   };
   const missing = saveAndContinueMeasurement(obs, "");
   assert.equal(missing.ok, false);
-  if (!missing.ok) assert.deepEqual(missing.missingFields, ["What you saw"]);
+  if (!missing.ok) {
+    assert.deepEqual(missing.missingFields, ["What you saw"]);
+    assert.match(missing.message, /Setup is right — keep going/);
+    assert.match(missing.message, /A switch or cable is wrong/);
+    assert.match(missing.message, /Save is waiting/);
+  }
 
   const picked = saveAndContinueMeasurement(obs, "", "yes");
   assert.equal(picked.ok, true);

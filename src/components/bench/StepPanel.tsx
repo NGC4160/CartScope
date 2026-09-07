@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/button";
 import { isMotorIsolationStep } from "@/lib/case-flow";
 import { bayProgressChip, bayStepActionLabel, readMeterDraft } from "@/lib/bay-chrome";
 import { packNaBadge } from "@/lib/pack-na";
-import { BAY_CHECK_FORM_ID, bayFormSubmitGate } from "@/lib/bay-chrome-action";
+import { BAY_CHECK_FORM_ID, bayFormSubmitGate, type BaySaveHandler } from "@/lib/bay-chrome-action";
 import { formatClock } from "@/lib/utils";
 import { formatReading, rangeLabel, unusualVerifyBanner } from "@/lib/diagnostics";
 import {
@@ -24,6 +24,7 @@ import {
   meterExampleHint,
   meterFieldLabel,
   meterPlaceholderText,
+  observationSaveBlock,
   savedContinueNote,
 } from "@/lib/meter-input";
 import { evaluateProof } from "@/lib/proof";
@@ -46,7 +47,7 @@ export function StepPanel({
   job: JobRecord;
   pack: ModelPack;
   onChrome?: (chrome: BayActionChrome | null) => void;
-  bindSubmit?: (fn: () => void) => void;
+  bindSubmit?: (fn: BaySaveHandler) => void;
   onOpenDiagram?: () => void;
   onOpenReport?: () => void;
 }) {
@@ -109,17 +110,17 @@ export function StepPanel({
     patchJob(job.id, { meterDraft: { stepId: step.id, raw: nextRaw, selected: nextSelected } });
   }
 
-  function failContinue(message: string, fields: string[]) {
+  function failContinue(message: string, fields: string[]): string {
     setSavedNote(null);
     setError(message);
     setMissing(fields);
     queueMicrotask(() => errorAnchor.current?.scrollIntoView({ block: "nearest" }));
+    return message;
   }
 
-  function onSubmit() {
+  function onSubmit(): string | void {
     if (!step || !spec) {
-      failContinue("This check is missing. Start a new job.", []);
-      return;
+      return failContinue("This check is missing. Start a new job.", []);
     }
     setError(null);
     setMissing([]);
@@ -128,8 +129,7 @@ export function StepPanel({
         !job.motorUnlock?.commandedNoMove ? "Commanded, no move" : null,
         !job.motorUnlock?.controllerUnplugged ? "Controller unplugged from the motor" : null,
       ].filter((f): f is string => Boolean(f));
-      failContinue("Unlock this motor check first. The controller must be unplugged from the motor.", fields);
-      return;
+      return failContinue("Unlock this motor check first. The controller must be unplugged from the motor.", fields);
     }
     let payload = numeric ? raw : (selected ?? raw);
     if (numeric) {
@@ -139,23 +139,21 @@ export function StepPanel({
         fieldLabel: meterFieldLabel(spec.kind, verifyPhase),
       });
       if (!commit.ok) {
-        failContinue(commit.message, commit.missingFields);
         if (live !== raw) setRaw(live);
-        return;
+        return failContinue(commit.message, commit.missingFields);
       }
       payload = commit.raw;
       if (payload !== raw) setRaw(payload);
     } else if (!selected) {
-      failContinue("Tap what you saw. Then we can go on.", [meterFieldLabel(spec.kind)]);
-      return;
+      const block = observationSaveBlock(spec);
+      return failContinue(block.message, block.missingFields);
     }
     const result = submit(job.id, pack, payload, selected ?? undefined);
     if (result.status === "invalid") {
-      failContinue(
+      return failContinue(
         result.message ?? "We could not save that check.",
         result.missingFields ?? [numeric ? meterFieldLabel(spec.kind, verifyPhase) : meterFieldLabel(spec.kind)],
       );
-      return;
     }
     const shown = numeric
       ? payload

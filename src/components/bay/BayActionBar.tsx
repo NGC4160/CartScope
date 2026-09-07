@@ -6,9 +6,11 @@ import {
   bayChromeClear,
   bayChromePublish,
   createBayGesture,
-  fireBaySave,
+  fireBaySaveOutcome,
   type BayActionChrome,
   type BayChromeSnapshot,
+  type BaySaveHandler,
+  type BaySaveOutcome,
 } from "@/lib/bay-chrome-action";
 import { BAY_TAP_MIN_PX } from "@/lib/bay-chrome";
 import { BaySaveNotice } from "@/components/bay/BaySaveNotice";
@@ -70,7 +72,7 @@ export function usePublishBayChrome(
     badge?: string | null;
     error?: string | null;
     errorDetails?: string[];
-    onAction: () => void;
+    onAction: BaySaveHandler;
     onSecondary?: () => void;
   },
 ) {
@@ -120,7 +122,7 @@ export function BayActionBar({
 }: {
   chrome: BayActionChrome | null;
   formId?: string;
-  fire?: () => boolean;
+  fire?: () => boolean | BaySaveOutcome;
 }) {
   const [missed, setMissed] = useState<string | null>(null);
   const gesture = useRef(createBayGesture()).current;
@@ -133,11 +135,15 @@ export function BayActionBar({
   function activate() {
     if (live.disabled || live.busy) return;
     gesture.run(() => {
-      const ran = fireBaySave({
+      const out = fireBaySaveOutcome({
         fire,
         fallback: () => live.onAction(),
       });
-      setMissed(ran ? null : "Save did not run. Try Save again.");
+      if (!out.ran) {
+        setMissed("Save did not run. Try Save again.");
+        return;
+      }
+      setMissed(out.blocked ?? null);
     });
   }
 

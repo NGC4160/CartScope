@@ -7,7 +7,7 @@ import { BrainStatus } from "@/components/case/BrainStatus";
 import { Field, inputClass } from "@/components/case/fields";
 import type { JobRecord, ModelPack } from "@/data/types";
 import { bayProgressChip, bayReportActionLabel } from "@/lib/bay-chrome";
-import { BAY_REPORT_FORM_ID, bayFormSubmitGate } from "@/lib/bay-chrome-action";
+import { BAY_REPORT_FORM_ID, bayFormSubmitGate, type BaySaveHandler } from "@/lib/bay-chrome-action";
 import { reportShowsFactoryCheckLog } from "@/lib/bay-layer";
 import { submitBrainCopy } from "@/lib/brain-submit";
 import { helperNoteSpeaker, helperNotesForReport, plainCaseSummary, reportWhoCheckedIt } from "@/lib/case-summary";
@@ -39,7 +39,7 @@ export function CaseReport({
   peek?: boolean;
   onBackToChecks?: () => void;
   onChrome?: (chrome: BayActionChrome | null) => void;
-  bindSubmit?: (fn: () => void) => void;
+  bindSubmit?: (fn: BaySaveHandler) => void;
 }) {
   const proof = evaluateProof(job, pack);
   const submitGate = bayFormSubmitGate;
