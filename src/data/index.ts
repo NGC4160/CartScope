@@ -19,6 +19,7 @@ import { ezgoMarathonGas } from "@/data/packs/ezgo-marathon-gas";
 import { ezgoPds36 } from "@/data/packs/ezgo-pds-36";
 import { ezgoRxv } from "@/data/packs/ezgo-rxv";
 import { ezgoTxt } from "@/data/packs/ezgo-txt";
+import { ezgoTxt36NonPds } from "@/data/packs/ezgo-txt-36-non-pds";
 import { ezgoTxtDcs } from "@/data/packs/ezgo-txt-dcs";
 import { ezgoTxtGas } from "@/data/packs/ezgo-txt-gas";
 import { yamahaG29 } from "@/data/packs/yamaha-g29";
@@ -41,6 +42,7 @@ export const MODEL_PACKS: ModelPack[] = [
   clubCarPrecedentGas,
   clubCarTempoGas,
   ezgoTxtDcs,
+  ezgoTxt36NonPds,
   ezgoPds36,
   ezgoTxt,
   ezgoRxv,
