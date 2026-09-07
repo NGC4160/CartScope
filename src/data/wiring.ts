@@ -442,6 +442,24 @@ export const WIRING_SHEETS: WiringSheet[] = [
     kind: "full",
     landscape: false,
   },
+  // Library Drive 1QnJpnsq9Pp1ayELBLKBR0N1zNJ8O1KIW — EZGo TXT 36v Non-PDS Wiring Diagram
+  {
+    id: "txt36-non-pds",
+    title: "TXT 36 V Non-PDS — speed-control wire map (Fig. 19)",
+    manualRef: "2001+ EZ-GO TXT 36 V Service Manual, Fig. 19 Wiring Diagram, page E-17 — Electronic Speed Control (Non-PDS)",
+    src: "/wiring/txt36-non-pds-wiring.png",
+    kind: "full",
+    landscape: false,
+  },
+  // Library Drive 11oKUpgKKvHWMBxxKjw9lstu5cBcHb7oh — EZGo TXT 36v PDS Wiring Diagram
+  {
+    id: "txt36-pds",
+    title: "TXT 36 V PDS — 1206MX wire map (Fig. 9)",
+    manualRef: "2001+ EZ-GO TXT 36 V Service Manual, Fig. 9 Wiring Diagram, page F-9 — Electronic Speed Control (PDS)",
+    src: "/wiring/txt36-pds-wiring.png",
+    kind: "full",
+    landscape: false,
+  },
   {
     id: "pds36-1",
     title: "36 V PDS — battery setup and wires (I-2)",
@@ -654,7 +672,8 @@ const BY_PACK: Record<string, string[]> = {
     "marathon-horn-g",
     "marathon-horn-e",
   ],
-  "ezgo-pds-36": ["pds36-4", "pds36-1", "pds36-2", "pds36-3", "pds36-5", "pds36-charger"],
+  "ezgo-pds-36": ["txt36-pds", "pds36-4", "pds36-1", "pds36-2", "pds36-3", "pds36-5", "pds36-charger"],
+  "ezgo-txt-36-non-pds": ["txt36-non-pds"],
   "ezgo-rxv-ac": ["rxv-k1", "rxv-k2", "rxv-k3", "rxv-k4"],
   "ezgo-txt-dcs": ["dcs-connector", "dcs-wiring"],
   "ezgo-txt-gas": ["ezgas-l2", "ezgas-l9", "ezgas-l10", "ezgas-l11"],
