@@ -426,6 +426,7 @@ test("DS FE350 year 1996 starts Check 1; year 2010 stays blocked with the 1991�
     assert.equal(startIsReady(blocked.blockers), false);
     assert.match(blocked.yearMessage ?? "", /2010/);
     assert.match(blocked.yearMessage ?? "", /1991–1996|1991-1996/);
+    assert.doesNotMatch(blocked.yearMessage ?? "", /1991–1990|1991-1990/);
     assert.doesNotMatch(blocked.yearMessage ?? "", /1995–1996|1995-1996/);
   }
 });

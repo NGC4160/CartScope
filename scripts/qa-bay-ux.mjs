@@ -73,9 +73,9 @@ async function mouseClickPrimary(page) {
   await btn.waitFor({ state: "visible" });
   const box = await btn.boundingBox();
   if (!box) throw new Error("sticky Save has no box");
-  // Live testers tap the lower-right of the wide Save, under the Grok pill.
-  const x = box.x + box.width * 0.85;
-  const y = box.y + box.height * 0.7;
+  // Click the labeled Save control itself, not the chrome-avoidance inset.
+  const x = box.x + box.width * 0.5;
+  const y = box.y + box.height * 0.5;
   const hit = await page.evaluate(
     ({ x, y }) => {
       const el = document.elementFromPoint(x, y);
@@ -104,9 +104,8 @@ async function mouseClickStart(page) {
   await btn.scrollIntoViewIfNeeded();
   const box = await btn.boundingBox();
   if (!box) throw new Error("Start checks has no box");
-  // Same lower-right tap testers use on the enabled Start control.
-  const x = box.x + box.width * 0.85;
-  const y = box.y + box.height * 0.7;
+  const x = box.x + box.width * 0.5;
+  const y = box.y + box.height * 0.5;
   const hit = await page.evaluate(
     ({ x, y }) => {
       const el = document.elementFromPoint(x, y);
@@ -796,7 +795,7 @@ async function runLiveFailList() {
   const ericBtn = precedent.getByTestId("bay-primary-action").filter({ visible: true });
   await ericBtn.waitFor({ state: "visible" });
   const ericBox = await ericBtn.boundingBox();
-  await precedent.touchscreen.tap(ericBox.x + ericBox.width * 0.85, ericBox.y + ericBox.height * 0.7);
+  await precedent.touchscreen.tap(ericBox.x + ericBox.width * 0.5, ericBox.y + ericBox.height * 0.5);
   await precedent.getByRole("heading", { name: /Save a program file before you clear/i }).waitFor({ timeout: 10000 });
   check(
     "Precedent ERIC touch Save left Battery Pack",
@@ -825,12 +824,15 @@ async function runLiveFailList() {
   const yearNote = fe350.getByTestId("year-compat");
   const yearText = await yearNote.innerText();
   check("FE350 2010 names 1991–1996", /2010/.test(yearText) && /1991–1996|1991-1996/.test(yearText), yearText);
+  check("FE350 2010 does not show 1991–1990", !/1991–1990|1991-1990/.test(yearText), yearText);
   check("FE350 2010 does not show 1995–1996 as the range", !/1995–1996|1995-1996/.test(yearText), yearText);
   check("FE350 2010 Start not ready", (await fe350.getByTestId("start-checks").getAttribute("data-start-ready")) === "false");
   await mouseClickStart(fe350);
   await fe350.waitForTimeout(400);
   check("FE350 2010 Start stays on header", (await fe350.getByTestId("start-checks").count()) === 1);
   await fe350.getByLabel(/^Year$/i).fill("1996");
+  check("FE350 1996 stays 1996 in the box", (await fe350.getByLabel(/^Year$/i).inputValue()) === "1996");
+  check("FE350 1996 hint is not 1991–1990", !/1991–1990|1991-1990/.test(await fe350.getByTestId("year-compat").innerText()));
   check("FE350 1996 Start ready", (await fe350.getByTestId("start-checks").getAttribute("data-start-ready")) === "true");
   await mouseClickStart(fe350);
   await fe350.waitForURL("**/bench/**", { timeout: 15000 });

@@ -11,7 +11,7 @@ import {
   type BayChromeSnapshot,
 } from "@/lib/bay-chrome-action";
 import { BAY_TAP_MIN_PX } from "@/lib/bay-chrome";
-import { BAY_CHROME_CLEARANCE_CLASS } from "@/lib/bay-chrome-hit";
+import { BaySaveNotice } from "@/components/bay/BaySaveNotice";
 
 export type { BayActionChrome } from "@/lib/bay-chrome-action";
 
@@ -37,7 +37,9 @@ export function useBayChrome() {
         prev.disabled === incoming.disabled &&
         prev.busy === incoming.busy &&
         prev.secondaryLabel === incoming.secondaryLabel &&
-        prev.badge === incoming.badge
+        prev.badge === incoming.badge &&
+        prev.error === incoming.error &&
+        sameDetails(prev.errorDetails, incoming.errorDetails)
       ) {
         return prev;
       }
@@ -66,6 +68,8 @@ export function usePublishBayChrome(
     busy?: boolean;
     secondaryLabel?: string;
     badge?: string | null;
+    error?: string | null;
+    errorDetails?: string[];
     onAction: () => void;
     onSecondary?: () => void;
   },
@@ -74,6 +78,7 @@ export function usePublishBayChrome(
   actionRef.current = spec.onAction;
   const secondaryRef = useRef(spec.onSecondary);
   secondaryRef.current = spec.onSecondary;
+  const errorKey = spec.errorDetails?.join("\n") ?? "";
 
   useLayoutEffect(() => {
     if (!onChrome) return;
@@ -84,10 +89,28 @@ export function usePublishBayChrome(
       busy: spec.busy,
       secondaryLabel: spec.secondaryLabel,
       badge: spec.badge ?? null,
+      error: spec.error ?? null,
+      errorDetails: spec.errorDetails ?? [],
       onAction: () => actionRef.current(),
       onSecondary: spec.secondaryLabel ? () => secondaryRef.current?.() : undefined,
     });
-  }, [onChrome, spec.chip, spec.label, spec.disabled, spec.busy, spec.secondaryLabel, spec.badge]);
+  }, [
+    onChrome,
+    spec.chip,
+    spec.label,
+    spec.disabled,
+    spec.busy,
+    spec.secondaryLabel,
+    spec.badge,
+    spec.error,
+    errorKey,
+  ]);
+}
+
+function sameDetails(a?: string[], b?: string[]): boolean {
+  if (a === b) return true;
+  if (!a || !b || a.length !== b.length) return false;
+  return a.every((item, i) => item === b[i]);
 }
 
 export function BayActionBar({
@@ -100,9 +123,11 @@ export function BayActionBar({
   fire?: () => boolean;
 }) {
   const [missed, setMissed] = useState<string | null>(null);
-  const gesture = useRef(createBayGesture(350)).current;
+  const gesture = useRef(createBayGesture()).current;
   if (!chrome) return null;
   const live = chrome;
+  const noticeTitle = live.error || missed;
+  const noticeDetails = live.error ? live.errorDetails : undefined;
 
   function activate() {
     if (live.disabled || live.busy) return;
@@ -124,19 +149,12 @@ export function BayActionBar({
   return (
     <div
       data-testid="bay-action-bar"
-      className={
-        "no-print relative z-20 isolate shrink-0 border-t border-navy-deep bg-surface px-3 pt-2 " +
-        BAY_CHROME_CLEARANCE_CLASS
-      }
+      className="no-print relative z-20 isolate shrink-0 border-t border-navy-deep bg-surface px-3 pt-2 pb-[max(0.6rem,env(safe-area-inset-bottom))]"
     >
-      {missed ? (
-        <p
-          data-testid="bay-save-missed"
-          className="mb-2 rounded-md bg-danger-bg px-3 py-2 text-lg font-semibold text-danger"
-          role="alert"
-        >
-          {missed}
-        </p>
+      {noticeTitle ? (
+        <div className="mb-2" data-testid={missed && !live.error ? "bay-save-missed" : undefined}>
+          <BaySaveNotice title={noticeTitle} details={noticeDetails} />
+        </div>
       ) : null}
       <div className="flex items-center gap-2">
         <p className="shrink-0 rounded-md bg-paper-sunken px-2.5 py-1 font-mono text-xs font-semibold tabular-nums text-navy">

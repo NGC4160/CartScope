@@ -78,8 +78,8 @@ test("submit slot always fires the latest bind, even after a fake effect clear",
   assert.deepEqual(calls, ["codes"]);
 });
 
-test("gesture gate only dedups the same Save tap, not a later tap", () => {
-  const gesture = createBayGesture(350);
+test("gesture gate only dedups the same Save tap, not a later tap", async () => {
+  const gesture = createBayGesture();
   const calls: string[] = [];
   assert.equal(
     gesture.run(() => calls.push("pointerup")),
@@ -90,12 +90,12 @@ test("gesture gate only dedups the same Save tap, not a later tap", () => {
     false,
   );
   assert.deepEqual(calls, ["pointerup"]);
-  gesture.reset();
+  await new Promise((resolve) => setTimeout(resolve, 0));
   assert.equal(
-    gesture.run(() => calls.push("after-reset")),
+    gesture.run(() => calls.push("later-tap")),
     true,
   );
-  assert.deepEqual(calls, ["pointerup", "after-reset"]);
+  assert.deepEqual(calls, ["pointerup", "later-tap"]);
 });
 
 test("a leftover form submit must not block the next sticky Save tap", () => {
@@ -233,6 +233,24 @@ test("requestSubmit returning true is not treated as Save having run", () => {
     false,
   );
   assert.deepEqual(submitted, ["form"]);
+});
+
+test("submit slot returns false when the bound handler throws", () => {
+  const slot = createBaySubmitSlot();
+  slot.bind(() => {
+    throw new Error("pack save exploded");
+  });
+  const warns: string[] = [];
+  const orig = console.warn;
+  console.warn = (msg) => {
+    warns.push(String(msg));
+  };
+  try {
+    assert.equal(slot.fire(), false);
+  } finally {
+    console.warn = orig;
+  }
+  assert.ok(warns.some((w) => /sticky Save handler failed/.test(w)));
 });
 
 test("submit slot logs and returns false when Save is tapped with no handler", () => {

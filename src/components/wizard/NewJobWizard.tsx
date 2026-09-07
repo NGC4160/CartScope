@@ -4,7 +4,6 @@ import { Field, HeaderNoteInput, inputClass } from "@/components/case/fields";
 import { Button } from "@/components/ui/button";
 import { MANUFACTURERS, packsFor } from "@/data/index";
 import type { BatteryType, ManufacturerId, ModelPack } from "@/data/types";
-import { BAY_CHROME_CLEARANCE_CLASS } from "@/lib/bay-chrome-hit";
 import { createBayGesture } from "@/lib/bay-chrome-action";
 import { JOB_HEADER_MESSAGES, jobHeaderGaps, jobHeaderSummary } from "@/lib/job-header";
 import {
@@ -20,7 +19,7 @@ import {
   openJobHeader,
   stepAfterComplaintSelected,
 } from "@/lib/wizard-nav";
-import { supportedYearsHint, yearCompatibility, yearStatusNote } from "@/lib/year-compat";
+import { sanitizeCartYearInput, supportedYearsHint, yearCompatibility, yearStatusNote } from "@/lib/year-compat";
 import type { CreateJobInput } from "@/store/jobs";
 
 export type StartJobResult =
@@ -50,7 +49,7 @@ export function NewJobWizard({
   const [fuelNote, setFuelNote] = useState("");
   const [startErrors, setStartErrors] = useState<string[]>([]);
   const [starting, setStarting] = useState(false);
-  const startGesture = useRef(createBayGesture(350)).current;
+  const startGesture = useRef(createBayGesture()).current;
   const startReasonRef = useRef<HTMLDivElement>(null);
 
   const models = useMemo(() => (mfg ? packsFor(mfg) : []), [mfg]);
@@ -114,7 +113,7 @@ export function NewJobWizard({
     setLastName(next.lastName);
     setHcp(next.hcpJobNumber);
     setTechnician(next.technician);
-    setYear(next.cartYear);
+    setYear(sanitizeCartYearInput(next.cartYear));
     setSerial(next.serialNumber);
     setBatteryType(next.batteryType);
     setComplaintNote(next.complaintNote);
@@ -368,7 +367,7 @@ export function NewJobWizard({
               <HeaderNoteInput
                 name="cartYear"
                 value={year}
-                onChange={setYear}
+                onChange={(next) => setYear(sanitizeCartYearInput(next))}
                 inputMode="numeric"
                 aria-label="Year"
                 aria-invalid={Boolean(yearMessage)}
@@ -454,12 +453,7 @@ export function NewJobWizard({
               {headerMessage}
             </p>
           ) : null}
-          <div
-            className={
-              "sticky bottom-0 z-30 isolate mt-5 border-t border-navy-deep bg-paper px-1 pt-2 " +
-              BAY_CHROME_CLEARANCE_CLASS
-            }
-          >
+          <div className="sticky bottom-0 z-30 isolate mt-5 border-t border-navy-deep bg-paper px-1 pt-2 pb-[max(0.6rem,env(safe-area-inset-bottom))]">
             {!startReady ? (
               <div
                 ref={startReasonRef}
