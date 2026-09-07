@@ -3,6 +3,7 @@ import test from "node:test";
 import { readFileSync } from "node:fs";
 import {
   coerceYearBound,
+  displayPackYearSpan,
   formatPackYears,
   packYearSpan,
   parseCartYear,
@@ -259,8 +260,15 @@ test("FE350 book sentence without bounds still pins 1991–1996 (FE290 tail used
   assert.equal(last, "290");
   assert.equal(leftover, "1991–1990");
   assert.equal(sanitizeYearSpan(leftover), "1991–1996");
+  assert.equal(sanitizeYearSpan("Year 1996 matches the factory book on file (1991–1990)."), "Year 1996 matches the factory book on file (1991–1996).");
+  assert.equal(sanitizeYearSpan("This cart pack covers 1991-1990."), "This cart pack covers 1991–1996.");
   assert.equal(packYearSpan({ packYears: FE350_YEARS }), "1991–1996");
   assert.equal(packYearSpan({ packYears: FE350_YEARS, packId: "club-car-ds-gas" }), "1991–1996");
+  assert.equal(packYearSpan({ packYears: "garbage", packId: "club-car-ds-gas", yearMin: 1991, yearMax: 1990 }), "1991–1996");
+  assert.equal(
+    displayPackYearSpan({ packYears: FE350_YEARS, packId: "club-car-ds-gas" }, [{ min: 1991, max: 1990, openEnded: true }]),
+    "1991–1996",
+  );
 });
 
 test("FE350 helper and unsupported banner are the same string across two calls", () => {

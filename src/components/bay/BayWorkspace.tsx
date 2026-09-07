@@ -107,7 +107,7 @@ export function BayWorkspace({ job, pack }: { job: JobRecord; pack: ModelPack })
 
             <div
               className={
-                "relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden " +
+                "relative flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden " +
                 (showSplitDiagram ? "min-w-[22rem] max-w-[42%]" : "")
               }
             >
@@ -125,7 +125,10 @@ export function BayWorkspace({ job, pack }: { job: JobRecord; pack: ModelPack })
                   {job.techObservation.trim()}
                 </button>
               ) : null}
-              <div className={showHelper ? "pointer-events-none" : undefined} aria-hidden={showHelper || undefined}>
+              <div
+                className={showHelper ? "pointer-events-none" : "relative z-30 shrink-0 overflow-visible"}
+                aria-hidden={showHelper || undefined}
+              >
                 <BayActionBar chrome={checkChrome} formId={BAY_CHECK_FORM_ID} fire={checkSlot.outcome} />
               </div>
               {showHelper ? (

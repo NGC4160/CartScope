@@ -826,6 +826,19 @@ async function runLiveFailList() {
     serial: "ERIC01",
     who: "Ryan",
   });
+  await mouseClickPrimary(precedent);
+  const emptyPackNotice = precedent.getByTestId("bay-save-notice");
+  check("Precedent empty pack Save shows a reason", await emptyPackNotice.isVisible());
+  const emptyPackText = await emptyPackNotice.innerText();
+  check(
+    "Precedent empty pack names missing volts or age",
+    /resting volts|age|Battery 1/i.test(emptyPackText),
+    emptyPackText,
+  );
+  check(
+    "Precedent empty pack still on pack after blocked Save",
+    await precedent.getByRole("heading", { name: /Check the pack before you blame other parts/i }).isVisible(),
+  );
   await fillLeadAcidPack(precedent, { count: 6, volts: "8.45", ir: "3.4", age: "03/2026" });
   check("Precedent ERIC pack in shop range", await precedent.getByText(/in the shop range/i).isVisible());
   const ericBtn = precedent.getByTestId("bay-primary-action").filter({ visible: true });
@@ -892,6 +905,20 @@ async function runLiveFailList() {
   await fe350.waitForURL("**/bench/**", { timeout: 15000 });
   await fe350.getByText(/CHECK 1/i).first().waitFor({ timeout: 15000 });
   check("FE350 1996 Start opened Check 1", await fe350.getByText(/CHECK 1/i).first().isVisible());
+  await mouseClickPrimary(fe350);
+  const fe350Blocked = fe350.getByTestId("bay-save-notice");
+  check("FE350 gas no-pick Save shows a reason", await fe350Blocked.isVisible());
+  const fe350BlockedText = await fe350Blocked.innerText();
+  check(
+    "FE350 gas no-pick names Setup is right",
+    /Setup is right — keep going/.test(fe350BlockedText) && /A switch or cable is wrong/.test(fe350BlockedText),
+    fe350BlockedText,
+  );
+  check("FE350 gas no-pick still Check 1", await fe350.getByText(/CHECK 1/i).first().isVisible());
+  await fe350.getByRole("button", { name: /Setup is right — keep going/i }).click();
+  await mouseClickPrimary(fe350);
+  await fe350.getByText(/CHECK 2/i).first().waitFor({ timeout: 10000 });
+  check("FE350 gas after pick sticky Save left Check 1", await fe350.getByText(/CHECK 2/i).first().isVisible());
   await fe350.close();
 }
 

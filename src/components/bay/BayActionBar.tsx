@@ -1,4 +1,4 @@
-import { useCallback, useLayoutEffect, useRef, useState, type PointerEvent } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type PointerEvent } from "react";
 import { ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -127,14 +127,28 @@ export function BayActionBar({
   const [missed, setMissed] = useState<string | null>(null);
   const gesture = useRef(createBayGesture()).current;
   const suppressClick = useRef(false);
+  const sawPanelError = useRef(false);
+  useEffect(() => {
+    const err = chrome?.error ?? null;
+    if (err) {
+      sawPanelError.current = true;
+      return;
+    }
+    if (sawPanelError.current) {
+      sawPanelError.current = false;
+      setMissed(null);
+    }
+  }, [chrome?.error]);
   if (!chrome) return null;
   const live = chrome;
   const noticeTitle = live.error || missed;
   const noticeDetails = live.error ? live.errorDetails : undefined;
 
-  function activate() {
-    if (live.disabled || live.busy) return;
-    gesture.run(() => {
+  function activate(): boolean {
+    if (live.disabled || live.busy) return false;
+    let invoked = false;
+    const scheduled = gesture.run(() => {
+      invoked = true;
       const out = fireBaySaveOutcome({
         fire,
         fallback: () => live.onAction(),
@@ -145,6 +159,7 @@ export function BayActionBar({
       }
       setMissed(out.blocked ?? null);
     });
+    return scheduled && invoked;
   }
 
   function onBarPointerDown(event: PointerEvent<HTMLDivElement>) {
@@ -152,8 +167,10 @@ export function BayActionBar({
     if (event.pointerType === "mouse" && event.button !== 0) return;
     const target = event.target as HTMLElement | null;
     if (target?.closest("[data-bay-secondary]")) return;
-    suppressClick.current = true;
-    activate();
+    const ran = activate();
+    // Only eat the follow-up click when pointerdown actually ran Save.
+    // #28 set this first; a same-turn gesture miss then swallowed the click — silent no-op.
+    suppressClick.current = ran;
   }
 
   function onPrimaryClick() {
@@ -167,11 +184,12 @@ export function BayActionBar({
   return (
     <div
       data-testid="bay-action-bar"
-      className="no-print relative z-20 isolate shrink-0 border-t border-navy-deep bg-surface px-3 pt-2 pb-[max(0.6rem,env(safe-area-inset-bottom))]"
+      data-save-blocked={noticeTitle ? "true" : "false"}
+      className="no-print relative z-30 isolate shrink-0 overflow-visible border-t border-navy-deep bg-surface px-3 pt-2 pb-[max(0.6rem,env(safe-area-inset-bottom))]"
       onPointerDown={onBarPointerDown}
     >
       {noticeTitle ? (
-        <div className="mb-2" data-testid={missed && !live.error ? "bay-save-missed" : undefined}>
+        <div className="relative z-40 mb-2" data-testid={missed && !live.error ? "bay-save-missed" : undefined}>
           <BaySaveNotice title={noticeTitle} details={noticeDetails} />
         </div>
       ) : null}

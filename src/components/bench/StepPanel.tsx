@@ -68,6 +68,8 @@ export function StepPanel({
   const [selected, setSelected] = useState<string | null>(
     () => readMeterDraft(job.meterDraft, job.currentStepId).selected,
   );
+  const selectedRef = useRef<string | null>(selected);
+  selectedRef.current = selected;
   const [error, setError] = useState<string | null>(null);
   const [missing, setMissing] = useState<string[]>([]);
   const [savedNote, setSavedNote] = useState<string | null>(null);
@@ -101,6 +103,7 @@ export function StepPanel({
     const draft = readMeterDraft(job.meterDraft, job.currentStepId);
     setRaw(draft.raw);
     setSelected(draft.selected);
+    selectedRef.current = draft.selected;
   }, [job.currentStepId]);
 
   function persistMeter(nextRaw: string, nextSelected: string | null) {
@@ -131,7 +134,8 @@ export function StepPanel({
       ].filter((f): f is string => Boolean(f));
       return failContinue("Unlock this motor check first. The controller must be unplugged from the motor.", fields);
     }
-    let payload = numeric ? raw : (selected ?? raw);
+    const pick = selectedRef.current;
+    let payload = numeric ? raw : (pick ?? raw);
     if (numeric) {
       const live = meterRef.current?.value ?? raw;
       const commit = commitMeterReading(live, {
@@ -144,11 +148,11 @@ export function StepPanel({
       }
       payload = commit.raw;
       if (payload !== raw) setRaw(payload);
-    } else if (!selected) {
+    } else if (!pick) {
       const block = observationSaveBlock(spec);
       return failContinue(block.message, block.missingFields);
     }
-    const result = submit(job.id, pack, payload, selected ?? undefined);
+    const result = submit(job.id, pack, payload, pick ?? undefined);
     if (result.status === "invalid") {
       return failContinue(
         result.message ?? "We could not save that check.",
@@ -157,7 +161,7 @@ export function StepPanel({
     }
     const shown = numeric
       ? payload
-      : (spec.options?.find((o) => o.id === selected)?.label ?? payload);
+      : (spec.options?.find((o) => o.id === pick)?.label ?? payload);
     const nextTitle = pack.steps[result.job.currentStepId]?.title;
     setSavedNote(
       savedContinueNote(shown, spec, {
@@ -420,6 +424,7 @@ export function StepPanel({
                   key={opt.id}
                   type="button"
                   onClick={() => {
+                    selectedRef.current = opt.id;
                     setSelected(opt.id);
                     persistMeter(raw, opt.id);
                     setError(null);
