@@ -7,6 +7,8 @@ export const ezgoMarathonGas = buildGas({
   name: "Marathon / GX-444 4-cycle",
   fullName: "EZ-GO Marathon 4-cycle / GX-444 / Freedom / GXT / TUFF1 / PC4GX / BC-360",
   years: "1991–1996 4-cycle gasoline (manual 27206-G01): GX-444, GX-444F Freedom, GX-444F HP, 1992–1994 GXT/1-804, TUFF1, 1992–1995 PC4GX / PC4GXI, 1992–1994 BC-360",
+  yearMin: 1991,
+  yearMax: 1996,
   architecture: "Marathon 4-cycle carburetor · starter-generator · magneto spark",
   diagramTitle: "Starting and spark picture — Marathon / GX-444 4-cycle",
   diagramNotes: [

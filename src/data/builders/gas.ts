@@ -9,6 +9,8 @@ export interface GasSpec {
   name: string;
   fullName: string;
   years: string;
+  yearMin?: number;
+  yearMax?: number;
   architecture: string;
   diagramTitle: string;
   diagramNotes: string[];
@@ -352,6 +354,8 @@ export function buildGas(spec: GasSpec): ModelPack {
     powertrain: "gasoline",
     architecture: spec.architecture,
     years: spec.years,
+    yearMin: spec.yearMin,
+    yearMax: spec.yearMax,
     diagramTitle: spec.diagramTitle,
     diagramNotes: spec.diagramNotes,
     components,

@@ -384,6 +384,8 @@ test("DS FE350 year 1996 starts Check 1; year 2010 stays blocked with the 1991�
     powertrain: "gasoline",
     years:
       "1991–1996 Club Car DS gasoline (Kawasaki FE350; 1995–96 DS gas/electric; 2000 Club Car Service Manual). FE290 DS/Villager is a separate pack.",
+    yearMin: 1991,
+    yearMax: 1996,
     symptoms: [
       {
         id: "no-crank",

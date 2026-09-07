@@ -82,12 +82,6 @@
     padding-bottom: 5rem;
   }
 
-  /* Same reserved zone for sticky Save and Job header Start. */
-  .bay-chrome-clearance {
-    padding-right: 11.5rem;
-    padding-bottom: max(5rem, calc(env(safe-area-inset-bottom) + 4.5rem));
-  }
-
   /* Report: no Checks tab, table, or workspace — even if markup leaks. */
   [data-bay-report-open] [data-bay-dock-checks],
   [data-bay-report-pane] [data-testid="report-check-log"],

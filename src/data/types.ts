@@ -138,6 +138,9 @@ export interface ModelPack {
   powertrain: Powertrain;
   architecture: string;
   years: string;
+  /** Inclusive factory years. When set, UI/Start use this instead of parsing `years`. */
+  yearMin?: number;
+  yearMax?: number;
   diagramTitle: string;
   diagramNotes: string[];
   components: ComponentDef[];

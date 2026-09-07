@@ -146,6 +146,9 @@ export function startBlockers(input: {
       cartYear: header.cartYear,
       packYears: pack.years,
       packName: pack.fullName,
+      packId: pack.id,
+      yearMin: pack.yearMin,
+      yearMax: pack.yearMax,
     });
     if (year.status === "unsupported") {
       blockers.push({ kind: "year", message: year.message });
@@ -196,6 +199,9 @@ export function attemptStartChecks(input: {
         cartYear: header.cartYear,
         packYears: pack.years,
         packName: pack.fullName,
+        packId: pack.id,
+        yearMin: pack.yearMin,
+        yearMax: pack.yearMax,
       })
     : { status: "ok" as const };
   const yearNote = yearStatusNote(year);

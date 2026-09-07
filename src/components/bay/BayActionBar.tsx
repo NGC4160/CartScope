@@ -11,7 +11,6 @@ import {
   type BayChromeSnapshot,
 } from "@/lib/bay-chrome-action";
 import { BAY_TAP_MIN_PX } from "@/lib/bay-chrome";
-import { BAY_CHROME_CLEARANCE_CLASS } from "@/lib/bay-chrome-hit";
 import { BaySaveNotice } from "@/components/bay/BaySaveNotice";
 
 export type { BayActionChrome } from "@/lib/bay-chrome-action";
@@ -125,6 +124,7 @@ export function BayActionBar({
 }) {
   const [missed, setMissed] = useState<string | null>(null);
   const gesture = useRef(createBayGesture()).current;
+  const suppressClick = useRef(false);
   if (!chrome) return null;
   const live = chrome;
   const noticeTitle = live.error || missed;
@@ -141,19 +141,28 @@ export function BayActionBar({
     });
   }
 
-  function onPrimaryPointerUp(event: PointerEvent<HTMLButtonElement>) {
+  function onBarPointerDown(event: PointerEvent<HTMLDivElement>) {
     if (live.disabled || live.busy) return;
     if (event.pointerType === "mouse" && event.button !== 0) return;
+    const target = event.target as HTMLElement | null;
+    if (target?.closest("[data-bay-secondary]")) return;
+    suppressClick.current = true;
+    activate();
+  }
+
+  function onPrimaryClick() {
+    if (suppressClick.current) {
+      suppressClick.current = false;
+      return;
+    }
     activate();
   }
 
   return (
     <div
       data-testid="bay-action-bar"
-      className={
-        "no-print relative z-20 isolate shrink-0 border-t border-navy-deep bg-surface px-3 pt-2 " +
-        BAY_CHROME_CLEARANCE_CLASS
-      }
+      className="no-print relative z-20 isolate shrink-0 border-t border-navy-deep bg-surface px-3 pt-2 pb-[max(0.6rem,env(safe-area-inset-bottom))]"
+      onPointerDown={onBarPointerDown}
     >
       {noticeTitle ? (
         <div className="mb-2" data-testid={missed && !live.error ? "bay-save-missed" : undefined}>
@@ -176,6 +185,7 @@ export function BayActionBar({
           <Button
             type="button"
             variant="ghost"
+            data-bay-secondary=""
             className="min-h-11 shrink-0"
             style={{ minHeight: BAY_TAP_MIN_PX }}
             onClick={live.onSecondary}
@@ -190,8 +200,7 @@ export function BayActionBar({
           data-bay-primary=""
           className="min-h-12 min-w-0 flex-1 touch-manipulation active:scale-100"
           style={{ minHeight: Math.max(BAY_TAP_MIN_PX, 48) }}
-          onPointerUp={onPrimaryPointerUp}
-          onClick={activate}
+          onClick={onPrimaryClick}
           disabled={live.disabled || live.busy}
         >
           <span className="pointer-events-none truncate">{live.label}</span>
