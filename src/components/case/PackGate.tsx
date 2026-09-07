@@ -274,7 +274,7 @@ export function PackGate({
         submitGate.run(submit, BAY_CHECK_FORM_ID);
       }}
     >
-      <div className="min-h-0 flex-1 overflow-auto p-4">
+      <div className="min-h-0 flex-1 overflow-auto p-4 pb-36">
         <p className="font-mono text-xs font-semibold tracking-wide text-navy">BATTERY PACK</p>
         <h2 className="mt-1 font-display text-2xl font-semibold leading-tight text-ink">
           Check the pack before you blame other parts
