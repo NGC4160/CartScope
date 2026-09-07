@@ -141,7 +141,24 @@ export function coerceYearBound(value: unknown): number | null {
  * 1991–1990. Never emit that span.
  */
 export function sanitizeYearSpan(span: string): string {
-  return span.replace(/1991\s*[–—-]\s*1990/g, "1991–1996");
+  return span
+    .replace(/1991\s*[–—\-‐‑‒―]\s*1990/g, "1991–1996")
+    .replace(/1991\D{0,4}1990/g, "1991–1996");
+}
+
+/**
+ * The Year field string. Start banner must reuse this — never format year
+ * again (that is what printed 1991–1990 on the banner while the field was
+ * already 1991–1996).
+ */
+export function yearIssueLine(check: YearCompatibility): string | null {
+  if (check.status !== "unsupported") return null;
+  const years = sanitizeYearSpan(`${check.range.min}–${check.range.max}`);
+  const rewritten = check.message.replace(
+    /This cart pack covers\s+[^.]+\./,
+    `This cart pack covers ${years}.`,
+  );
+  return sanitizeYearSpan(rewritten);
 }
 
 export type PackYearBounds = {

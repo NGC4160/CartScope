@@ -14,6 +14,7 @@ import {
   supportedYearsHint,
   yearCompatibility,
   yearInRanges,
+  yearIssueLine,
 } from "./year-compat.ts";
 
 const FE350_YEARS =
@@ -288,6 +289,8 @@ test("FE350 helper and unsupported banner are the same string across two calls",
     assert.equal(field.message, banner.message);
     assert.match(field.message, /1991–1996/);
     assert.doesNotMatch(field.message, /1991–1990/);
+    assert.equal(yearIssueLine(field), field.message);
+    assert.equal(yearIssueLine(banner), yearIssueLine(field));
   }
   const ok = yearCompatibility({ ...args, cartYear: "1996" });
   assert.equal(ok.status, "ok");
@@ -295,4 +298,19 @@ test("FE350 helper and unsupported banner are the same string across two calls",
     assert.match(ok.message ?? "", /1991–1996/);
     assert.doesNotMatch(ok.message ?? "", /1991–1990/);
   }
+});
+
+test("yearIssueLine rewrites an inverted 1991–1990 banner onto the field 1991–1996 string", () => {
+  const inverted = {
+    status: "unsupported" as const,
+    range: { min: 1991, max: 1990, openEnded: false },
+    message:
+      "Year 2010 is not on file for Club Car DS gasoline (Kawasaki FE350). This cart pack covers 1991–1990. Type a year in that range, or pick a different model.",
+  };
+  const line = yearIssueLine(inverted);
+  assert.ok(line);
+  assert.match(line, /2010/);
+  assert.match(line, /1991–1996/);
+  assert.doesNotMatch(line, /1991–1990/);
+  assert.equal(line, yearIssueLine(inverted));
 });

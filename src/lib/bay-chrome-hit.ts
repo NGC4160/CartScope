@@ -1,7 +1,7 @@
 /**
  * Helper jump keeps a reserved lower-right pad. Sticky Save and Start do
- * not — testers tap the lower-right of those controls, and padding there
- * was a silent dead zone (PR #25 / #26).
+ * not inset for that pad. Testers aim at the Save label, which is left-
+ * aligned so the tap lands left of the Grok chat pill (PR #30 bay miss).
  */
 
 export const BAY_CHROME_CLEARANCE = {
@@ -15,11 +15,11 @@ export const BAY_CHROME_CLEARANCE_CLASS = "bay-chrome-clearance";
 
 export type BayBox = { x: number; y: number; width: number; height: number };
 
-/** Where bay techs actually tap: lower-right of the wide sticky control. */
+/** Where bay techs tap the Save words: left of center, left of the chat pill. */
 export function bayPrimaryTapPoint(box: BayBox): { x: number; y: number } {
   return {
-    x: box.x + box.width * 0.85,
-    y: box.y + box.height * 0.7,
+    x: box.x + box.width * 0.4,
+    y: box.y + box.height * 0.5,
   };
 }
 

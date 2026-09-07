@@ -1,11 +1,10 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, useState, type PointerEvent } from "react";
+import { useCallback, useLayoutEffect, useRef, useState, type MouseEvent } from "react";
 import { ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   emptyBayChrome,
   bayChromeClear,
   bayChromePublish,
-  createBayGesture,
   fireBaySaveOutcome,
   type BayActionChrome,
   type BayChromeSnapshot,
@@ -125,52 +124,35 @@ export function BayActionBar({
   fire?: () => boolean | BaySaveOutcome;
 }) {
   const [missed, setMissed] = useState<string | null>(null);
-  const gesture = useRef(createBayGesture()).current;
-  const suppressClick = useRef(false);
-  const chip = chrome?.chip ?? "";
-  const label = chrome?.label ?? "";
-  useEffect(() => {
-    setMissed(null);
-  }, [chip, label]);
   if (!chrome) return null;
   const live = chrome;
   const noticeTitle = live.error || missed;
   const noticeDetails = live.error ? live.errorDetails : undefined;
 
-  function activate(): boolean {
-    if (live.disabled || live.busy) return false;
-    let invoked = false;
-    const scheduled = gesture.run(() => {
-      invoked = true;
-      const out = fireBaySaveOutcome({
-        fire,
-        fallback: () => live.onAction(),
-      });
-      if (!out.ran) {
-        setMissed("Save did not run. Try Save again.");
-        return;
-      }
-      setMissed(out.blocked ?? null);
-    });
-    return scheduled && invoked;
-  }
-
-  function onBarPointerDown(event: PointerEvent<HTMLDivElement>) {
-    if (live.disabled || live.busy) return;
-    if (event.pointerType === "mouse" && event.button !== 0) return;
-    const target = event.target as HTMLElement | null;
-    if (target?.closest("[data-bay-secondary]")) return;
-    const ran = activate();
-    // Only eat the follow-up click when pointerdown actually ran Save.
-    // #28 set this first; a same-turn gesture miss then swallowed the click — silent no-op.
-    suppressClick.current = ran;
-  }
-
-  function onPrimaryClick() {
-    if (suppressClick.current) {
-      suppressClick.current = false;
+  function activate() {
+    if (live.disabled || live.busy) {
+      setMissed(live.disabled ? "Save is not available on this check." : "Save is still working.");
       return;
     }
+    const out = fireBaySaveOutcome({
+      fire,
+      fallback: () => live.onAction(),
+      formId,
+      document: typeof document !== "undefined" ? document : undefined,
+    });
+    if (!out.ran) {
+      setMissed("Save did not run. Try Save again.");
+      return;
+    }
+    if (out.blocked) {
+      setMissed(out.blocked);
+      return;
+    }
+    setMissed(null);
+  }
+
+  function onPrimaryClick(event: MouseEvent<HTMLButtonElement>) {
+    event.preventDefault();
     activate();
   }
 
@@ -179,7 +161,6 @@ export function BayActionBar({
       data-testid="bay-action-bar"
       data-save-blocked={noticeTitle ? "true" : "false"}
       className="no-print relative z-30 isolate shrink-0 overflow-visible border-t border-navy-deep bg-surface px-3 pt-2 pb-[max(0.6rem,env(safe-area-inset-bottom))]"
-      onPointerDown={onBarPointerDown}
     >
       {noticeTitle ? (
         <div className="relative z-40 mb-2" data-testid={missed && !live.error ? "bay-save-missed" : undefined}>
@@ -212,18 +193,18 @@ export function BayActionBar({
         ) : null}
       </div>
       <Button
-          type="button"
-          form={formId}
-          data-testid="bay-primary-action"
-          data-bay-primary=""
-          className="mt-2 min-h-12 w-full min-w-0 touch-manipulation active:scale-100"
-          style={{ minHeight: Math.max(BAY_TAP_MIN_PX, 48) }}
-          onClick={onPrimaryClick}
-          disabled={live.disabled || live.busy}
-        >
-          <span className="pointer-events-none truncate">{live.label}</span>
-          <ChevronRight className="pointer-events-none size-4 shrink-0" />
-        </Button>
+        type={formId ? "submit" : "button"}
+        form={formId}
+        data-testid="bay-primary-action"
+        data-bay-primary=""
+        className="mt-2 min-h-12 w-full min-w-0 justify-start text-left touch-manipulation active:scale-100"
+        style={{ minHeight: Math.max(BAY_TAP_MIN_PX, 48) }}
+        onClick={onPrimaryClick}
+        disabled={live.disabled || live.busy}
+      >
+        <span className="pointer-events-none truncate">{live.label}</span>
+        <ChevronRight className="pointer-events-none size-4 shrink-0" />
+      </Button>
     </div>
   );
 }
