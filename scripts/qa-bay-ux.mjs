@@ -378,6 +378,7 @@ async function runStickySaveAdvance() {
     (await page.locator("[data-bay-primary]").count()) === 1 &&
       (await packSave.getAttribute("data-bay-primary")) !== null,
   );
+  check("advance pack Save is a button path", (await packSave.getAttribute("type")) === "button");
   await mouseClickPrimary(page);
   await page.getByRole("heading", { name: /Save a program file before you clear/i }).waitFor({ timeout: 10000 });
   check("advance pack sticky Save left pack", await page.getByRole("heading", { name: /Save a program file before you clear/i }).isVisible());
@@ -708,10 +709,122 @@ async function runHelperJumpFromNotFullyCharged() {
   await page.close();
 }
 
+async function startElectricPackJob(page, { brand, model, complaint, last, job, year, serial, who }) {
+  await page.goto(BASE, { waitUntil: "networkidle" });
+  await installLiveChrome(page);
+  const neu = page.getByRole("button", { name: /New job/i });
+  if (await neu.count()) await neu.click();
+  await page.getByRole("button", { name: brand }).click();
+  await page.getByRole("button", { name: model }).first().click();
+  await page.getByRole("button", { name: complaint }).first().click();
+  const headerBtn = page.getByRole("button", { name: /Job header/i });
+  if (await headerBtn.count()) await headerBtn.click();
+  await fillHeader(page, {
+    last,
+    job,
+    year,
+    battery: "Lead-acid",
+    serial,
+    who,
+    complaint: "Bay pack save.",
+  });
+  await mouseClickStart(page);
+  await page.waitForURL("**/bench/**", { timeout: 15000 });
+  await page.getByRole("heading", { name: /Check the pack before you blame other parts/i }).waitFor();
+}
+
+async function runLiveFailList() {
+  const yamaha = await browser.newPage({ viewport: { width: 1024, height: 768 }, hasTouch: true });
+  yamaha.on("pageerror", (e) => console.log("PAGEERROR", e.message));
+  await startElectricPackJob(yamaha, {
+    brand: /Yamaha/i,
+    model: /YDRE DC/i,
+    complaint: /Will not run either way/i,
+    last: "Ydre",
+    job: "HCP-5801",
+    year: "2012",
+    serial: "YDREDC01",
+    who: "Ryan",
+  });
+  await fillLeadAcidPack(yamaha, { count: 6, volts: "8.45", ir: "3.4", age: "03/2026" });
+  check("YDRE pack in shop range", await yamaha.getByText(/in the shop range/i).isVisible());
+  await mouseClickPrimary(yamaha);
+  await yamaha.getByRole("heading", { name: /Save a program file before you clear/i }).waitFor({ timeout: 10000 });
+  check(
+    "YDRE DC mouse Save left Battery Pack",
+    await yamaha.getByRole("heading", { name: /Save a program file before you clear/i }).isVisible(),
+  );
+  check(
+    "YDRE DC pack heading gone",
+    (await yamaha.getByRole("heading", { name: /Check the pack before you blame other parts/i }).count()) === 0,
+  );
+  await yamaha.close();
+
+  const precedent = await browser.newPage({ viewport: { width: 1024, height: 768 }, hasTouch: true });
+  precedent.on("pageerror", (e) => console.log("PAGEERROR", e.message));
+  await startElectricPackJob(precedent, {
+    brand: /Club Car/i,
+    model: /Precedent ERIC/i,
+    complaint: /Cart does not run/i,
+    last: "Eric",
+    job: "HCP-5802",
+    year: "2017",
+    serial: "ERIC01",
+    who: "Ryan",
+  });
+  await fillLeadAcidPack(precedent, { count: 6, volts: "8.45", ir: "3.4", age: "03/2026" });
+  check("Precedent ERIC pack in shop range", await precedent.getByText(/in the shop range/i).isVisible());
+  const ericBtn = precedent.getByTestId("bay-primary-action").filter({ visible: true });
+  await ericBtn.waitFor({ state: "visible" });
+  const ericBox = await ericBtn.boundingBox();
+  await precedent.touchscreen.tap(ericBox.x + ericBox.width * 0.85, ericBox.y + ericBox.height * 0.7);
+  await precedent.getByRole("heading", { name: /Save a program file before you clear/i }).waitFor({ timeout: 10000 });
+  check(
+    "Precedent ERIC touch Save left Battery Pack",
+    await precedent.getByRole("heading", { name: /Save a program file before you clear/i }).isVisible(),
+  );
+  await precedent.close();
+
+  const fe350 = await browser.newPage({ viewport: { width: 1024, height: 768 } });
+  fe350.on("pageerror", (e) => console.log("PAGEERROR", e.message));
+  await fe350.goto(BASE, { waitUntil: "networkidle" });
+  await installLiveChrome(fe350);
+  const neu = fe350.getByRole("button", { name: /New job/i });
+  if (await neu.count()) await neu.click();
+  await fe350.getByRole("button", { name: /Club Car/i }).click();
+  await fe350.getByRole("button", { name: /DS FE350/i }).click();
+  await fe350.getByRole("button", { name: /Engine will not crank/i }).click();
+  const feHeader = fe350.getByRole("button", { name: /Job header/i });
+  if (await feHeader.count()) await feHeader.click();
+  await fillHeader(fe350, {
+    last: "Fe350",
+    job: "HCP-5803",
+    year: "2010",
+    who: "Hayden",
+    complaint: "No crank.",
+  });
+  const yearNote = fe350.getByTestId("year-compat");
+  const yearText = await yearNote.innerText();
+  check("FE350 2010 names 1991–1996", /2010/.test(yearText) && /1991–1996|1991-1996/.test(yearText), yearText);
+  check("FE350 2010 does not show 1995–1996 as the range", !/1995–1996|1995-1996/.test(yearText), yearText);
+  check("FE350 2010 Start not ready", (await fe350.getByTestId("start-checks").getAttribute("data-start-ready")) === "false");
+  await mouseClickStart(fe350);
+  await fe350.waitForTimeout(400);
+  check("FE350 2010 Start stays on header", (await fe350.getByTestId("start-checks").count()) === 1);
+  await fe350.getByLabel(/^Year$/i).fill("1996");
+  check("FE350 1996 Start ready", (await fe350.getByTestId("start-checks").getAttribute("data-start-ready")) === "true");
+  await mouseClickStart(fe350);
+  await fe350.waitForURL("**/bench/**", { timeout: 15000 });
+  await fe350.getByText(/CHECK 1/i).first().waitFor({ timeout: 15000 });
+  check("FE350 1996 Start opened Check 1", await fe350.getByText(/CHECK 1/i).first().isVisible());
+  await fe350.close();
+}
+
 await runAt(1024, 768, "tablet");
 await runAt(390, 844, "phone");
 await runFactoryCheck();
 await runStickySaveAdvance();
+await runLiveFailList();
 await runHelperRedirect();
 await runHelperJumpFromPack();
 await runHelperJumpFromNotFullyCharged();

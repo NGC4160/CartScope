@@ -1,11 +1,12 @@
-import { useCallback, useLayoutEffect, useRef, useState, type PointerEvent } from "react";
+import { useCallback, useLayoutEffect, useRef, useState } from "react";
 import { ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   emptyBayChrome,
   bayChromeClear,
   bayChromePublish,
-  requestBayFormSubmit,
+  bayFormSubmitGate,
+  fireBaySave,
   type BayActionChrome,
   type BayChromeSnapshot,
 } from "@/lib/bay-chrome-action";
@@ -91,24 +92,25 @@ export function usePublishBayChrome(
 export function BayActionBar({
   chrome,
   formId,
+  fire,
 }: {
   chrome: BayActionChrome | null;
   formId?: string;
+  fire?: () => boolean;
 }) {
+  const [missed, setMissed] = useState<string | null>(null);
   if (!chrome) return null;
   const live = chrome;
 
-  function onPrimaryPointerDown(event: PointerEvent<HTMLButtonElement>) {
+  function activate() {
     if (live.disabled || live.busy) return;
-    event.currentTarget.setPointerCapture(event.pointerId);
-  }
-
-  function onPrimaryPointerUp(event: PointerEvent<HTMLButtonElement>) {
-    if (live.disabled || live.busy) return;
-    if (event.pointerType === "mouse" && event.button !== 0) return;
-    // Missed-click backup only. Do not preventDefault on click — that is
-    // what killed #bay-check-form after #15/#16. The form onSubmit is Save.
-    requestBayFormSubmit(typeof document !== "undefined" ? document : undefined, formId);
+    bayFormSubmitGate.run(() => {
+      const ran = fireBaySave({
+        fire,
+        fallback: () => live.onAction(),
+      });
+      setMissed(ran ? null : "Save did not run. Try Save again.");
+    }, formId ?? "default");
   }
 
   return (
@@ -116,6 +118,15 @@ export function BayActionBar({
       data-testid="bay-action-bar"
       className="no-print relative z-20 isolate shrink-0 border-t border-navy-deep bg-surface px-3 pt-2 pb-[max(4.5rem,calc(env(safe-area-inset-bottom)+3.5rem))]"
     >
+      {missed ? (
+        <p
+          data-testid="bay-save-missed"
+          className="mb-2 rounded-md bg-danger-bg px-3 py-2 text-lg font-semibold text-danger"
+          role="alert"
+        >
+          {missed}
+        </p>
+      ) : null}
       <div className="flex items-center gap-2">
         <p className="shrink-0 rounded-md bg-paper-sunken px-2.5 py-1 font-mono text-xs font-semibold tabular-nums text-navy">
           {live.chip}
@@ -140,14 +151,13 @@ export function BayActionBar({
           </Button>
         ) : null}
         <Button
-          type="submit"
+          type="button"
           form={formId}
           data-testid="bay-primary-action"
           data-bay-primary=""
           className="min-h-12 min-w-0 flex-1 touch-manipulation"
           style={{ minHeight: Math.max(BAY_TAP_MIN_PX, 48) }}
-          onPointerDown={onPrimaryPointerDown}
-          onPointerUp={onPrimaryPointerUp}
+          onClick={activate}
           disabled={live.disabled || live.busy}
         >
           <span className="pointer-events-none truncate">{live.label}</span>

@@ -6,7 +6,7 @@ export const clubCarDsGas = buildGas({
   manufacturerLabel: "Club Car",
   name: "DS FE350 gasoline",
   fullName: "Club Car DS gasoline (Kawasaki FE350)",
-  years: "Later 1990s–2000s DS FE350 (1995–96 DS gas/electric; 2000 Club Car Service Manual). FE290 DS/Villager is a separate pack.",
+  years: "1991–1996 Club Car DS gasoline (Kawasaki FE350; 1995–96 DS gas/electric; 2000 Club Car Service Manual). FE290 DS/Villager is a separate pack.",
   architecture: "Kawasaki FE350 · carburetor · starter-generator · low-oil spark cut",
   diagramTitle: "Starting and spark picture — DS FE350",
   diagramNotes: [
