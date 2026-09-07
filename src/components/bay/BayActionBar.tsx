@@ -13,7 +13,7 @@ import {
   type BaySaveOutcome,
 } from "@/lib/bay-chrome-action";
 import { BAY_TAP_MIN_PX } from "@/lib/bay-chrome";
-import { pointHitsBaySave } from "@/lib/bay-chrome-hit";
+import { isBaySaveStealTarget, pointHitsBaySave } from "@/lib/bay-chrome-hit";
 import { BaySaveNotice } from "@/components/bay/BaySaveNotice";
 
 export type { BayActionChrome } from "@/lib/bay-chrome-action";
@@ -130,7 +130,7 @@ export function BayActionBar({
 }) {
   const [missed, setMissed] = useState<string | null>(null);
   const barRef = useRef<HTMLDivElement>(null);
-  const gesture = useRef(createBayGesture(400)).current;
+  const gesture = useRef(createBayGesture(120)).current;
   const fireRef = useRef(fire);
   fireRef.current = fire;
   const chromeRef = useRef(chrome);
@@ -170,10 +170,9 @@ export function BayActionBar({
       if (!armedRef.current) return;
       const bar = barRef.current;
       if (!bar) return;
+      if (!isBaySaveStealTarget(event.target)) return;
       const rect = bar.getBoundingClientRect();
       const barBox = { x: rect.left, y: rect.top, width: rect.width, height: rect.height };
-      const hit = event.target;
-      if (hit instanceof Element && hit.closest("[data-bay-secondary]")) return;
       if (
         !pointHitsBaySave({ x: event.clientX, y: event.clientY }, barBox, {
           width: window.innerWidth,

@@ -64,6 +64,25 @@ export function pointHitsBaySave(
 }
 
 /**
+ * Steal a pointerup only when the event landed on the sticky bar or on
+ * overlay chrome (Grok pill). Observation picks / fields are buttons in
+ * the form — stealing those ran Save before the pick committed, then the
+ * lock ate the real Save tap.
+ */
+export function isBaySaveStealTarget(target: EventTarget | null): boolean {
+  const el = target as { closest?: (sel: string) => unknown } | null;
+  if (!el || typeof el.closest !== "function") return false;
+  if (el.closest("[data-bay-secondary]")) return false;
+  if (el.closest("[data-testid='bay-action-bar']")) return true;
+  if (el.closest("#grok-pill-sim, [data-testid='grok-pill-sim']")) return true;
+  if (el.closest("input, textarea, select, a, [role='tab'], [data-helper-jump], [data-testid='helper-redirect-list'], [data-bay-dock]")) {
+    return false;
+  }
+  if (el.closest("button")) return false;
+  return true;
+}
+
+/**
  * Inset a sticky bar so its primary button cannot occupy the chrome zone.
  * Used by unit tests to prove the CSS padding contract.
  */
