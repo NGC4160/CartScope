@@ -1,6 +1,7 @@
 import { useMemo, useRef, useState } from "react";
 import { AlertTriangle } from "lucide-react";
 import { usePublishBayChrome, type BayActionChrome } from "@/components/bay/BayActionBar";
+import { BaySaveNotice } from "@/components/bay/BaySaveNotice";
 import { Button } from "@/components/ui/button";
 import { Field, inputClass, IrUnitPicker, VoltageInput } from "@/components/case/fields";
 import type { JobRecord, ModelPack, PackCheckRecord, PackCellReading, PackDraft } from "@/data/types";
@@ -10,7 +11,6 @@ import { BAY_CHECK_FORM_ID, bayFormSubmitGate } from "@/lib/bay-chrome-action";
 import { packLayout, scaledLeadAcidLimits } from "@/lib/pack-layout";
 import {
   applyBulkAgeUnreadable,
-  groupPackBlockers,
   packPasteTemplate,
   packSaveBlockers,
   parseBulkPackPaste,
@@ -257,6 +257,7 @@ export function PackGate({
   return (
     <form
       id={BAY_CHECK_FORM_ID}
+      noValidate
       className="flex h-full min-h-0 flex-col bg-surface"
       onSubmit={(e) => {
         e.preventDefault();
@@ -563,23 +564,9 @@ export function PackGate({
           </div>
         ) : null}
 
-        <div ref={errorAnchor} className="mt-3">
-          {error ? <p className="text-sm text-danger">{error}</p> : null}
-        </div>
-        {blockers.length > 0 ? (
-          <div className="mt-2 space-y-2 text-sm text-danger" role="alert">
-            {groupPackBlockers(blockers).map((group) => (
-              <div key={group.heading}>
-                <p className="font-medium">{group.heading}</p>
-                <ul className="list-disc space-y-1 pl-5">
-                  {group.items.map((b) => (
-                    <li key={b.field}>{b.message}</li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
-        ) : null}
+      </div>
+      <div ref={errorAnchor}>
+        <BaySaveNotice title={error} details={blockers.map((b) => b.message)} />
       </div>
     </form>
   );

@@ -118,7 +118,11 @@ export function createBaySubmitGate(windowMs = 400): {
  */
 export const bayFormSubmitGate = createBaySubmitGate(400);
 
-/** Associated-form submit. Used as a missed-click backup — not a second save path. */
+/**
+ * Associated-form submit. Last-ditch only.
+ * requestSubmit can return without running onSubmit (constraint validation,
+ * lost click after pointer capture). A true here is NOT proof that Save ran.
+ */
 export function requestBayFormSubmit(doc: Document | undefined, formId: string | undefined): boolean {
   if (!doc || !formId) return false;
   const form = doc.getElementById(formId);
@@ -135,18 +139,24 @@ export function requestBayFormSubmit(doc: Document | undefined, formId: string |
   return false;
 }
 
+/**
+ * One Save path for pack, checks, and report.
+ * The bound handler (PackGate / StepPanel / CodeGate / CaseReport) runs first.
+ * Form requestSubmit is never treated as proof of save — that is what left
+ * Yamaha / Precedent pack and gas Check 1 stuck after a mouse tap.
+ */
 export function fireBaySave(opts: {
   fire?: () => boolean;
   fallback?: () => void;
   formId?: string;
   document?: Document;
 }): boolean {
-  if (requestBayFormSubmit(opts.document, opts.formId)) return true;
   if (opts.fire?.()) return true;
   if (typeof opts.fallback === "function") {
     opts.fallback();
     return true;
   }
+  requestBayFormSubmit(opts.document, opts.formId);
   console.warn("[CartScope] sticky Save tapped with no handler");
   return false;
 }
