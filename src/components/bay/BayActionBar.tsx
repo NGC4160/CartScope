@@ -127,18 +127,11 @@ export function BayActionBar({
   const [missed, setMissed] = useState<string | null>(null);
   const gesture = useRef(createBayGesture()).current;
   const suppressClick = useRef(false);
-  const sawPanelError = useRef(false);
+  const chip = chrome?.chip ?? "";
+  const label = chrome?.label ?? "";
   useEffect(() => {
-    const err = chrome?.error ?? null;
-    if (err) {
-      sawPanelError.current = true;
-      return;
-    }
-    if (sawPanelError.current) {
-      sawPanelError.current = false;
-      setMissed(null);
-    }
-  }, [chrome?.error]);
+    setMissed(null);
+  }, [chip, label]);
   if (!chrome) return null;
   const live = chrome;
   const noticeTitle = live.error || missed;
@@ -217,12 +210,13 @@ export function BayActionBar({
             {live.secondaryLabel}
           </Button>
         ) : null}
-        <Button
+      </div>
+      <Button
           type="button"
           form={formId}
           data-testid="bay-primary-action"
           data-bay-primary=""
-          className="min-h-12 min-w-0 flex-1 touch-manipulation active:scale-100"
+          className="mt-2 min-h-12 w-full min-w-0 touch-manipulation active:scale-100"
           style={{ minHeight: Math.max(BAY_TAP_MIN_PX, 48) }}
           onClick={onPrimaryClick}
           disabled={live.disabled || live.busy}
@@ -230,7 +224,6 @@ export function BayActionBar({
           <span className="pointer-events-none truncate">{live.label}</span>
           <ChevronRight className="pointer-events-none size-4 shrink-0" />
         </Button>
-      </div>
     </div>
   );
 }

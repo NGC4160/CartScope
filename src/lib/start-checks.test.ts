@@ -465,3 +465,25 @@ test("a missing first factory check is named, never a silent no-op", () => {
     assert.match(started.routeLabel, /EZ-GO/);
   }
 });
+
+test("empty FormData year does not wipe a live FE350 1996", () => {
+  const live: HeaderSnapshot = {
+    lastName: "Test",
+    hcpJobNumber: "M29011",
+    technician: "Hayden",
+    cartYear: "1996",
+    serialNumber: "",
+    batteryType: "",
+    complaintNote: "No crank.",
+    fuelNote: "",
+  };
+  const form = new FormData();
+  form.set("lastName", "Test");
+  form.set("hcpJobNumber", "M29011");
+  form.set("technician", "Hayden");
+  form.set("cartYear", "");
+  form.set("complaintNote", "No crank.");
+  const snap = readHeaderSnapshot(form, live);
+  assert.equal(snap.cartYear, "1996");
+  assert.equal(snap.lastName, "Test");
+});

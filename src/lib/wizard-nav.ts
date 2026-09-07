@@ -38,6 +38,13 @@ export function benchUrl(jobId: string): string {
   return `/bench/${encodeURIComponent(jobId)}`;
 }
 
+/** True when the browser is already on this job's Check 1 URL. */
+export function benchPathHasJob(pathname: string, jobId: string): boolean {
+  if (!pathname || !jobId) return false;
+  const encoded = encodeURIComponent(jobId);
+  return pathname.includes(`/bench/${encoded}`) || pathname.includes(`/bench/${jobId}`);
+}
+
 export type StartJobResolution =
   | { ok: true; symptomId: string; startStepId: string }
   | { ok: false };

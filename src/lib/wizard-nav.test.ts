@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { jobHeaderGaps } from "./job-header.ts";
 import {
+  benchPathHasJob,
   benchUrl,
   canStartChecks,
   canVisitWizardStep,
@@ -114,4 +115,11 @@ test("gas FE290 no-crank: header then Start reaches bench without battery type",
     assert.equal(started.startStepId, "g-setup");
     assert.equal(benchUrl("job_fe290"), "/bench/job_fe290");
   }
+});
+
+test("bench path helper recognizes the Check 1 URL after Start", () => {
+  assert.equal(benchPathHasJob("/bench/job_abc", "job_abc"), true);
+  assert.equal(benchPathHasJob("/bench/job_abc/extra", "job_abc"), true);
+  assert.equal(benchPathHasJob("/", "job_abc"), false);
+  assert.equal(benchPathHasJob("/bench/other", "job_abc"), false);
 });
