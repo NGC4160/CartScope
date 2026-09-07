@@ -1,4 +1,4 @@
-import { useCallback, useLayoutEffect, useRef, useState, type MouseEvent } from "react";
+import { useCallback, useLayoutEffect, useRef, useState } from "react";
 import { ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -151,8 +151,7 @@ export function BayActionBar({
     setMissed(null);
   }
 
-  function onPrimaryClick(event: MouseEvent<HTMLButtonElement>) {
-    event.preventDefault();
+  function onPrimaryClick() {
     activate();
   }
 
@@ -193,7 +192,7 @@ export function BayActionBar({
         ) : null}
       </div>
       <Button
-        type={formId ? "submit" : "button"}
+        type="button"
         form={formId}
         data-testid="bay-primary-action"
         data-bay-primary=""
