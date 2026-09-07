@@ -375,6 +375,61 @@ test("Marathon year 2010 blocks Start with a readable year error; 1996 starts", 
   }
 });
 
+test("DS FE350 year 1996 starts Check 1; year 2010 stays blocked with the 1991–1996 range", () => {
+  const fe350 = {
+    id: "club-car-ds-gas",
+    manufacturerLabel: "Club Car",
+    name: "DS FE350 gasoline",
+    fullName: "Club Car DS gasoline (Kawasaki FE350)",
+    powertrain: "gasoline",
+    years:
+      "1991–1996 Club Car DS gasoline (Kawasaki FE350; 1995–96 DS gas/electric; 2000 Club Car Service Manual). FE290 DS/Villager is a separate pack.",
+    symptoms: [
+      {
+        id: "no-crank",
+        label: "Engine will not crank",
+        summary: "Key START does nothing.",
+        startStepId: "g-setup",
+      },
+    ],
+    steps: { "g-setup": { id: "g-setup" } },
+  } as unknown as ModelPack;
+
+  const header1996: HeaderSnapshot = {
+    lastName: "Fe350",
+    hcpJobNumber: "HCP-5803",
+    technician: "Hayden",
+    cartYear: "1996",
+    serialNumber: "",
+    batteryType: "",
+    complaintNote: "No crank.",
+    fuelNote: "",
+  };
+  const started = attemptStartChecks({
+    pack: fe350,
+    symptomId: "no-crank",
+    header: header1996,
+  });
+  assert.equal(started.ok, true);
+  if (started.ok) {
+    assert.equal(started.startStepId, "g-setup");
+    assert.equal(started.benchPath("job_fe350"), "/bench/job_fe350");
+  }
+
+  const blocked = attemptStartChecks({
+    pack: fe350,
+    symptomId: "no-crank",
+    header: { ...header1996, cartYear: "2010" },
+  });
+  assert.equal(blocked.ok, false);
+  if (!blocked.ok) {
+    assert.equal(startIsReady(blocked.blockers), false);
+    assert.match(blocked.yearMessage ?? "", /2010/);
+    assert.match(blocked.yearMessage ?? "", /1991–1996|1991-1996/);
+    assert.doesNotMatch(blocked.yearMessage ?? "", /1995–1996|1995-1996/);
+  }
+});
+
 test("a missing first factory check is named, never a silent no-op", () => {
   const broken = {
     ...ezgoTxt,

@@ -4,6 +4,8 @@ import { Field, HeaderNoteInput, inputClass } from "@/components/case/fields";
 import { Button } from "@/components/ui/button";
 import { MANUFACTURERS, packsFor } from "@/data/index";
 import type { BatteryType, ManufacturerId, ModelPack } from "@/data/types";
+import { BAY_CHROME_CLEARANCE_CLASS } from "@/lib/bay-chrome-hit";
+import { createBayGesture } from "@/lib/bay-chrome-action";
 import { JOB_HEADER_MESSAGES, jobHeaderGaps, jobHeaderSummary } from "@/lib/job-header";
 import {
   attemptStartChecks,
@@ -48,7 +50,7 @@ export function NewJobWizard({
   const [fuelNote, setFuelNote] = useState("");
   const [startErrors, setStartErrors] = useState<string[]>([]);
   const [starting, setStarting] = useState(false);
-  const startLock = useRef(0);
+  const startGesture = useRef(createBayGesture(350)).current;
   const startReasonRef = useRef<HTMLDivElement>(null);
 
   const models = useMemo(() => (mfg ? packsFor(mfg) : []), [mfg]);
@@ -92,8 +94,11 @@ export function NewJobWizard({
   const complaintReady = complaintHasFirstStep(model, symptomId);
 
   useEffect(() => {
-    if (startReady) setStartErrors([]);
-  }, [startReady]);
+    if (startReady) {
+      setStartErrors([]);
+      startGesture.reset();
+    }
+  }, [startReady, startGesture]);
 
   function goToHeader() {
     const next = openJobHeader(symptomId);
@@ -149,10 +154,10 @@ export function NewJobWizard({
   }
 
   function requestStart(form?: HTMLFormElement | null) {
-    const now = Date.now();
-    if (starting || now - startLock.current < 400) return;
-    startLock.current = now;
-    void startFromForm(form);
+    if (starting) return;
+    startGesture.run(() => {
+      void startFromForm(form);
+    });
   }
 
   function onStartSubmit(e: FormEvent<HTMLFormElement>) {
@@ -160,19 +165,9 @@ export function NewJobWizard({
     requestStart(e.currentTarget);
   }
 
-  function onStartPointerDown(event: PointerEvent<HTMLButtonElement>) {
-    if (starting) return;
-    event.currentTarget.setPointerCapture(event.pointerId);
-  }
-
   function onStartPointerUp(event: PointerEvent<HTMLButtonElement>) {
     if (starting) return;
     if (event.pointerType === "mouse" && event.button !== 0) return;
-    requestStart(event.currentTarget.form ?? event.currentTarget.closest("form"));
-  }
-
-  function onStartClick(event: { preventDefault: () => void; currentTarget: HTMLButtonElement }) {
-    event.preventDefault();
     requestStart(event.currentTarget.form ?? event.currentTarget.closest("form"));
   }
 
@@ -322,7 +317,7 @@ export function NewJobWizard({
       ) : null}
 
       {step === 4 && model ? (
-        <form onSubmit={onStartSubmit}>
+        <form noValidate onSubmit={onStartSubmit}>
           <p className="mb-3 text-sm text-ink-muted">
             Every case needs the customer last name, the Housecall Pro job number, and who checked it
             {electricCart ? ", plus the battery type" : ""}. Then we can start checks.
@@ -459,7 +454,12 @@ export function NewJobWizard({
               {headerMessage}
             </p>
           ) : null}
-          <div className="sticky bottom-0 z-30 isolate mt-5 border-t border-navy-deep bg-paper px-1 pt-2 pb-[max(2.75rem,calc(env(safe-area-inset-bottom)+2.25rem))]">
+          <div
+            className={
+              "sticky bottom-0 z-30 isolate mt-5 border-t border-navy-deep bg-paper px-1 pt-2 " +
+              BAY_CHROME_CLEARANCE_CLASS
+            }
+          >
             {!startReady ? (
               <div
                 ref={startReasonRef}
@@ -497,17 +497,15 @@ export function NewJobWizard({
               </Button>
             ) : null}
             <Button
-              type="button"
+              type="submit"
               data-testid="start-checks"
               data-start-checks=""
               data-start-ready={startReady && !starting ? "true" : "false"}
-              className={"ml-auto min-w-44 touch-manipulation" + (startReady ? "" : " opacity-40")}
+              className={"ml-auto min-w-44 touch-manipulation active:scale-100" + (startReady ? "" : " opacity-40")}
               aria-disabled={!startReady || starting}
               aria-busy={starting}
               disabled={starting}
-              onPointerDown={onStartPointerDown}
               onPointerUp={onStartPointerUp}
-              onClick={onStartClick}
             >
               <span className="pointer-events-none truncate">
                 {starting ? "Starting checks…" : "Start checks"}

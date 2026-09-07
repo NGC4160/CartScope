@@ -1,16 +1,17 @@
-import { useCallback, useLayoutEffect, useRef, useState } from "react";
+import { useCallback, useLayoutEffect, useRef, useState, type PointerEvent } from "react";
 import { ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   emptyBayChrome,
   bayChromeClear,
   bayChromePublish,
-  bayFormSubmitGate,
+  createBayGesture,
   fireBaySave,
   type BayActionChrome,
   type BayChromeSnapshot,
 } from "@/lib/bay-chrome-action";
 import { BAY_TAP_MIN_PX } from "@/lib/bay-chrome";
+import { BAY_CHROME_CLEARANCE_CLASS } from "@/lib/bay-chrome-hit";
 
 export type { BayActionChrome } from "@/lib/bay-chrome-action";
 
@@ -99,24 +100,34 @@ export function BayActionBar({
   fire?: () => boolean;
 }) {
   const [missed, setMissed] = useState<string | null>(null);
+  const gesture = useRef(createBayGesture(350)).current;
   if (!chrome) return null;
   const live = chrome;
 
   function activate() {
     if (live.disabled || live.busy) return;
-    bayFormSubmitGate.run(() => {
+    gesture.run(() => {
       const ran = fireBaySave({
         fire,
         fallback: () => live.onAction(),
       });
       setMissed(ran ? null : "Save did not run. Try Save again.");
-    }, formId ?? "default");
+    });
+  }
+
+  function onPrimaryPointerUp(event: PointerEvent<HTMLButtonElement>) {
+    if (live.disabled || live.busy) return;
+    if (event.pointerType === "mouse" && event.button !== 0) return;
+    activate();
   }
 
   return (
     <div
       data-testid="bay-action-bar"
-      className="no-print relative z-20 isolate shrink-0 border-t border-navy-deep bg-surface px-3 pt-2 pb-[max(4.5rem,calc(env(safe-area-inset-bottom)+3.5rem))]"
+      className={
+        "no-print relative z-20 isolate shrink-0 border-t border-navy-deep bg-surface px-3 pt-2 " +
+        BAY_CHROME_CLEARANCE_CLASS
+      }
     >
       {missed ? (
         <p
@@ -155,8 +166,9 @@ export function BayActionBar({
           form={formId}
           data-testid="bay-primary-action"
           data-bay-primary=""
-          className="min-h-12 min-w-0 flex-1 touch-manipulation"
+          className="min-h-12 min-w-0 flex-1 touch-manipulation active:scale-100"
           style={{ minHeight: Math.max(BAY_TAP_MIN_PX, 48) }}
+          onPointerUp={onPrimaryPointerUp}
           onClick={activate}
           disabled={live.disabled || live.busy}
         >

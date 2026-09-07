@@ -59,8 +59,9 @@ async function installLiveChrome(page) {
     const el = document.createElement("div");
     el.id = "grok-pill-sim";
     el.setAttribute("data-testid", "grok-pill-sim");
+    // Match the reserved 11.5rem × 5rem zone testers actually hit.
     el.style.cssText =
-      "position:fixed;right:12px;bottom:12px;z-index:2147483647;width:180px;height:40px;background:rgba(20,20,20,0.55);pointer-events:auto;border-radius:999px;";
+      "position:fixed;right:0;bottom:0;z-index:2147483647;width:11.5rem;height:5rem;background:rgba(20,20,20,0.55);pointer-events:auto;border-radius:12px 0 0 0;";
     document.body.appendChild(el);
   });
 }
@@ -103,7 +104,25 @@ async function mouseClickStart(page) {
   await btn.scrollIntoViewIfNeeded();
   const box = await btn.boundingBox();
   if (!box) throw new Error("Start checks has no box");
-  await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2, { button: "left" });
+  // Same lower-right tap testers use on the enabled Start control.
+  const x = box.x + box.width * 0.85;
+  const y = box.y + box.height * 0.7;
+  const hit = await page.evaluate(
+    ({ x, y }) => {
+      const el = document.elementFromPoint(x, y);
+      return {
+        hitStart: Boolean(el?.closest?.("[data-testid='start-checks']")),
+        pill: Boolean(el?.closest?.("[data-testid='grok-pill-sim']")),
+        tag: el?.tagName ?? null,
+        testid: el?.getAttribute?.("data-testid") ?? null,
+      };
+    },
+    { x, y },
+  );
+  if (!hit.hitStart || hit.pill) {
+    throw new Error(`Start mouse target is not Start: ${JSON.stringify(hit)}`);
+  }
+  await page.mouse.click(x, y, { button: "left" });
 }
 
 async function mouseClickLocator(page, locator, label) {
