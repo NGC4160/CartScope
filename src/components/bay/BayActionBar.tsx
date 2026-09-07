@@ -144,6 +144,7 @@ export function BayActionBar({
     gesture.run(() => {
       if (live.disabled || live.busy) {
         setMissed(live.disabled ? "Save is not available on this check." : "Save is still working.");
+        gesture.reset();
         return;
       }
       const out = fireBaySaveOutcome({
@@ -152,10 +153,12 @@ export function BayActionBar({
       });
       if (!out.ran) {
         setMissed("Save did not run. Try Save again.");
+        gesture.reset();
         return;
       }
       if (out.blocked) {
         setMissed(out.blocked);
+        gesture.reset();
         return;
       }
       setMissed(null);
