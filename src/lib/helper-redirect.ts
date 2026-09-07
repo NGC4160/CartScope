@@ -1,7 +1,12 @@
 import type { DiagnosticStep, ModelPack } from "../data/types.ts";
 import { matchObservationToSteps, matchStepsFromReply } from "./manuals.ts";
 
-export const HELPER_AI_TIMEOUT_MS = 8000;
+export const HELPER_AI_TIMEOUT_MS = 45000;
+
+export const HELPER_TIMEOUT_MESSAGE =
+  "Helper’s still thinking — use a factory check below, or try again.";
+
+export const HELPER_OBSERVATION_HINT = "Saved under What the tech saw.";
 
 export function uniqueSteps(steps: DiagnosticStep[]): DiagnosticStep[] {
   const seen = new Set<string>();
@@ -73,7 +78,7 @@ export async function settleHelperAsk<T>(
       ok: false,
       timedOut,
       error: timedOut
-        ? "Helper is taking too long. Factory checks below still work."
+        ? HELPER_TIMEOUT_MESSAGE
         : "Could not reach the helper. Factory checks and manuals still work.",
     };
   } finally {

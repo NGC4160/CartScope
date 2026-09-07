@@ -38,7 +38,7 @@ export type AssistantResult =
 export type HelperStatus = { available: boolean; reason?: string };
 
 export const HELPER_OFFLINE_NO_KEY =
-  "The shop helper is offline. No AI key is set on the server. Factory checks and manuals still work. Type what you see — it stays under What the tech saw, not Who checked it.";
+  "The shop helper is offline. No AI key is set on the server. Factory checks and manuals still work. Type what you see — it stays under What the tech saw.";
 
 function helperApiKey(): string | undefined {
   const key = process.env.XAI_API_KEY?.trim();

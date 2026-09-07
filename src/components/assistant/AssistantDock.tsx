@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ChevronDown, ChevronUp, Send } from "lucide-react";
+import { ChevronDown, ChevronUp, Loader2, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { HelperThinking } from "@/components/case/HelperThinking";
 import { askBenchAssistant, getHelperStatus, type HelperStatus } from "@/lib/assistant";
 import { runJobAssistant } from "@/lib/run-assistant";
 import type { JobRecord } from "@/data/types";
@@ -148,7 +149,7 @@ export function AssistantDock({
                 </div>
               ))
             )}
-            {busy ? <p className="px-1 font-mono text-xs text-navy-fg/70">Looking in the factory book…</p> : null}
+            {busy ? <HelperThinking variant="dock" /> : null}
             {error ? <p className="px-1 text-sm text-warn-bg">{error}</p> : null}
           </div>
           {job ? (
@@ -178,7 +179,7 @@ export function AssistantDock({
               disabled={busy}
             />
             <Button type="submit" disabled={busy || !draft.trim()} className="min-w-12 shrink-0">
-              <Send className="size-4" />
+              {busy ? <Loader2 className="size-4 animate-spin" aria-hidden /> : <Send className="size-4" />}
               <span className="hidden sm:inline">Ask</span>
             </Button>
           </form>
@@ -200,7 +201,7 @@ export function AssistantDock({
             disabled={busy}
           />
           <Button type="submit" disabled={busy || !draft.trim()} className="min-w-12 shrink-0">
-            <Send className="size-4" />
+            {busy ? <Loader2 className="size-4 animate-spin" aria-hidden /> : <Send className="size-4" />}
             <span className="hidden sm:inline">Ask</span>
           </Button>
         </form>

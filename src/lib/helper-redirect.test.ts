@@ -1,7 +1,17 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import test from "node:test";
 import type { DiagnosticStep, ModelPack } from "../data/types.ts";
-import { fallbackHelperJumps, localHelperJumps, mergeHelperJumps, resolveHelperJumps, settleHelperAsk } from "./helper-redirect.ts";
+import {
+  fallbackHelperJumps,
+  HELPER_AI_TIMEOUT_MS,
+  HELPER_OBSERVATION_HINT,
+  HELPER_TIMEOUT_MESSAGE,
+  localHelperJumps,
+  mergeHelperJumps,
+  resolveHelperJumps,
+  settleHelperAsk,
+} from "./helper-redirect.ts";
 
 function step(id: string, title: string, instruction: string): DiagnosticStep {
   return {
@@ -111,13 +121,37 @@ test("empty keyword match still offers other factory checks after a timeout", ()
   );
 });
 
+test("helper AI wait window is 45 seconds", () => {
+  assert.equal(HELPER_AI_TIMEOUT_MS, 45000);
+});
+
+test("helper timeout copy is bay language, not QA meta", () => {
+  assert.match(HELPER_TIMEOUT_MESSAGE, /still thinking/i);
+  assert.doesNotMatch(HELPER_TIMEOUT_MESSAGE, /too long/i);
+  assert.doesNotMatch(HELPER_TIMEOUT_MESSAGE, /who checked it/i);
+});
+
+test("helper observation hint does not mention Who checked it", () => {
+  assert.match(HELPER_OBSERVATION_HINT, /What the tech saw/);
+  assert.doesNotMatch(HELPER_OBSERVATION_HINT, /who checked it/i);
+});
+
+test("helper-facing source copy does not mention Who checked it", () => {
+  const files = ["../components/case/InFlowGuidance.tsx", "./assistant.ts"];
+  for (const rel of files) {
+    const src = readFileSync(new URL(rel, import.meta.url), "utf8");
+    assert.doesNotMatch(src, /Who checked it/, rel);
+  }
+});
+
 test("helper ask finishes on timeout and keeps going", async () => {
   const started = Date.now();
   const settled = await settleHelperAsk(new Promise(() => {}), 40);
   assert.equal(settled.ok, false);
   if (!settled.ok) {
     assert.equal(settled.timedOut, true);
-    assert.match(settled.error, /too long/i);
+    assert.equal(settled.error, HELPER_TIMEOUT_MESSAGE);
+    assert.match(settled.error, /still thinking/i);
   }
   assert.ok(Date.now() - started < 500);
 });
