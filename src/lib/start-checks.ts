@@ -51,8 +51,16 @@ export function readHeaderSnapshot(
   for (const key of HEADER_KEYS) {
     if (key === "batteryType") continue;
     const raw = form.get(key);
-    if (typeof raw === "string") {
-      next[key] = key === "cartYear" ? sanitizeCartYearInput(raw) : raw;
+    if (typeof raw !== "string") continue;
+    if (key === "cartYear") {
+      const year = sanitizeCartYearInput(raw);
+      // Empty form year must not wipe a live typed year (Start from a
+      // disconnected control / overlay submit with a blank FormData year).
+      next.cartYear = year || fallback.cartYear;
+      continue;
+    }
+    if (raw.trim() !== "" || !String(fallback[key] ?? "").trim()) {
+      next[key] = raw;
     }
   }
   const battery = form.get("batteryType");

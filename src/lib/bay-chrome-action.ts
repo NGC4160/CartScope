@@ -118,40 +118,28 @@ export function createBaySubmitSlot(): BaySubmitSlot {
 }
 
 /**
- * Dedup pointerup + click from ONE tap. Unlock on the next macrotask
- * so a later Save (keyboard dismiss, then glove tap) is never swallowed.
- * The old 350ms window is what left Yamaha / Precedent / gas Check 1
- * stuck after a real tap.
+ * Dedup pointerdown + click from ONE physical tap (usually <50ms apart).
+ * Timestamp only — no sticky sameTurn flag. A same-turn flag is what
+ * swallowed FE350 Start (pointerup no-op, then click/Enter both skipped)
+ * and left Yamaha / Precedent Save silent when pointerdown and click
+ * landed in the same task.
  */
-export function createBayGesture(windowMs = 0): {
+export function createBayGesture(windowMs = 50): {
   run: (fn: () => void) => boolean;
   reset: () => void;
 } {
   let last = 0;
-  let sameTurn = false;
+  const gap = windowMs < 0 ? 0 : windowMs;
   return {
     run(fn) {
-      if (sameTurn) return false;
       const now = Date.now();
-      if (windowMs > 0 && last > 0 && now - last < windowMs) return false;
-      sameTurn = true;
+      if (gap > 0 && last > 0 && now - last < gap) return false;
       last = now;
-      try {
-        fn();
-      } finally {
-        if (typeof setTimeout === "function") {
-          setTimeout(() => {
-            sameTurn = false;
-          }, 0);
-        } else {
-          sameTurn = false;
-        }
-      }
+      fn();
       return true;
     },
     reset() {
       last = 0;
-      sameTurn = false;
     },
   };
 }

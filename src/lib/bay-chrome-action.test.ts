@@ -80,7 +80,7 @@ test("submit slot always fires the latest bind, even after a fake effect clear",
 });
 
 test("gesture gate only dedups the same Save tap, not a later tap", async () => {
-  const gesture = createBayGesture();
+  const gesture = createBayGesture(50);
   const calls: string[] = [];
   assert.equal(
     gesture.run(() => calls.push("pointerup")),
@@ -91,7 +91,7 @@ test("gesture gate only dedups the same Save tap, not a later tap", async () => 
     false,
   );
   assert.deepEqual(calls, ["pointerup"]);
-  await new Promise((resolve) => setTimeout(resolve, 0));
+  await new Promise((resolve) => setTimeout(resolve, 60));
   assert.equal(
     gesture.run(() => calls.push("later-tap")),
     true,

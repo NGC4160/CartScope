@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { getPack, getSymptom, MODEL_PACKS } from "@/data/index";
 import { WIRING_SHEETS } from "@/data/wiring";
 import { caseTitle, statusLabel } from "@/lib/case-flow";
-import { wizardStaysOpen } from "@/lib/wizard-nav";
+import { wizardStaysOpen, benchUrl, benchPathHasJob } from "@/lib/wizard-nav";
 import { formatTime } from "@/lib/utils";
 import { useJobStore, type CreateJobInput } from "@/store/jobs";
 
@@ -29,11 +29,13 @@ function Home() {
     holdOpen.current = true;
     setFresh(true);
     const job = createJob(input);
+    const path = benchUrl(job.id);
     try {
       await navigate({ to: "/bench/$jobId", params: { jobId: job.id } });
-      return { ok: true as const, jobId: job.id };
     } catch {
-      holdOpen.current = false;
+      if (typeof window !== "undefined") {
+        window.location.assign(path);
+      }
       return {
         ok: false as const,
         message:
@@ -41,6 +43,10 @@ function Home() {
           `The job is on this tablet — open it from recent cases, or try Start again.`,
       };
     }
+    if (typeof window !== "undefined" && !benchPathHasJob(window.location.pathname, job.id)) {
+      window.location.assign(path);
+    }
+    return { ok: true as const, jobId: job.id };
   }
 
   return (

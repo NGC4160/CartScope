@@ -64,15 +64,15 @@ async function installLiveChrome(page) {
   });
 }
 
-/** Tester tap: lower-right of the sticky bar (the control itself, not a padded dead zone). */
+/** Tester tap: on the Save control itself, left of the Grok chat pill. */
 async function mouseClickPrimary(page) {
   const bar = page.getByTestId("bay-action-bar");
   const btn = bar.getByTestId("bay-primary-action").filter({ visible: true });
   await btn.waitFor({ state: "visible" });
-  const box = await bar.boundingBox();
-  if (!box) throw new Error("sticky Save bar has no box");
-  const x = box.x + box.width * 0.85;
-  const y = box.y + box.height * 0.7;
+  const box = await btn.boundingBox();
+  if (!box) throw new Error("sticky Save button has no box");
+  const x = box.x + box.width * 0.4;
+  const y = box.y + box.height * 0.5;
   const hit = await page.evaluate(
     ({ x, y }) => {
       const el = document.elementFromPoint(x, y);
@@ -92,15 +92,15 @@ async function mouseClickPrimary(page) {
   await page.mouse.click(x, y, { button: "left" });
 }
 
-/** Real mouse click on Job header Start checks — same path the bay tech uses. */
+/** Real mouse click on Job header Start checks — center of the control (not the Grok pill). */
 async function mouseClickStart(page) {
   const btn = page.getByTestId("start-checks");
   await btn.waitFor({ state: "visible" });
   await btn.scrollIntoViewIfNeeded();
   const box = await btn.boundingBox();
   if (!box) throw new Error("Start checks has no box");
-  const x = box.x + box.width * 0.85;
-  const y = box.y + box.height * 0.7;
+  const x = box.x + box.width * 0.4;
+  const y = box.y + box.height * 0.5;
   const hit = await page.evaluate(
     ({ x, y }) => {
       const el = document.elementFromPoint(x, y);
@@ -844,7 +844,7 @@ async function runLiveFailList() {
   const ericBtn = precedent.getByTestId("bay-primary-action").filter({ visible: true });
   await ericBtn.waitFor({ state: "visible" });
   const ericBox = await ericBtn.boundingBox();
-  await precedent.touchscreen.tap(ericBox.x + ericBox.width * 0.85, ericBox.y + ericBox.height * 0.7);
+  await precedent.touchscreen.tap(ericBox.x + ericBox.width * 0.4, ericBox.y + ericBox.height * 0.5);
   await precedent.getByRole("heading", { name: /Save a program file before you clear/i }).waitFor({ timeout: 10000 });
   check(
     "Precedent ERIC touch Save left Battery Pack",

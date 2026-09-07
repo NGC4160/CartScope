@@ -1,10 +1,9 @@
-import { useEffect, useMemo, useRef, useState, type FormEvent, type PointerEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Field, HeaderNoteInput, inputClass } from "@/components/case/fields";
 import { Button } from "@/components/ui/button";
 import { MANUFACTURERS, packsFor } from "@/data/index";
 import type { BatteryType, ManufacturerId, ModelPack } from "@/data/types";
-import { createBayGesture } from "@/lib/bay-chrome-action";
 import { JOB_HEADER_MESSAGES, jobHeaderGaps, jobHeaderSummary } from "@/lib/job-header";
 import {
   attemptStartChecks,
@@ -59,7 +58,7 @@ export function NewJobWizard({
   const [fuelNote, setFuelNote] = useState("");
   const [startErrors, setStartErrors] = useState<string[]>([]);
   const [starting, setStarting] = useState(false);
-  const startGesture = useRef(createBayGesture()).current;
+  const formRef = useRef<HTMLFormElement>(null);
   const startReasonRef = useRef<HTMLDivElement>(null);
 
   const models = useMemo(() => (mfg ? packsFor(mfg) : []), [mfg]);
@@ -103,11 +102,8 @@ export function NewJobWizard({
   const complaintReady = complaintHasFirstStep(model, symptomId);
 
   useEffect(() => {
-    if (startReady) {
-      setStartErrors([]);
-      startGesture.reset();
-    }
-  }, [startReady, startGesture]);
+    if (startReady) setStartErrors([]);
+  }, [startReady]);
 
   function goToHeader() {
     const next = openJobHeader(symptomId);
@@ -164,9 +160,7 @@ export function NewJobWizard({
 
   function requestStart(form?: HTMLFormElement | null) {
     if (starting) return;
-    startGesture.run(() => {
-      void startFromForm(form);
-    });
+    void startFromForm(form ?? formRef.current);
   }
 
   function onStartSubmit(e: FormEvent<HTMLFormElement>) {
@@ -174,10 +168,8 @@ export function NewJobWizard({
     requestStart(e.currentTarget);
   }
 
-  function onStartPointerUp(event: PointerEvent<HTMLButtonElement>) {
-    if (starting) return;
-    if (event.pointerType === "mouse" && event.button !== 0) return;
-    requestStart(event.currentTarget.form ?? event.currentTarget.closest("form"));
+  function onStartClick() {
+    requestStart(formRef.current);
   }
 
   return (
@@ -326,7 +318,7 @@ export function NewJobWizard({
       ) : null}
 
       {step === 4 && model ? (
-        <form noValidate onSubmit={onStartSubmit}>
+        <form ref={formRef} noValidate onSubmit={onStartSubmit}>
           <p className="mb-3 text-sm text-ink-muted">
             Every case needs the customer last name, the Housecall Pro job number, and who checked it
             {electricCart ? ", plus the battery type" : ""}. Then we can start checks.
@@ -503,23 +495,23 @@ export function NewJobWizard({
                 Cancel
               </Button>
             ) : null}
+            </div>
             <Button
-              type="submit"
+              type="button"
               data-testid="start-checks"
               data-start-checks=""
               data-start-ready={startReady && !starting ? "true" : "false"}
-              className={"ml-auto min-w-44 touch-manipulation active:scale-100" + (startReady ? "" : " opacity-40")}
+              className={"mt-2 w-full min-w-44 touch-manipulation active:scale-100" + (startReady ? "" : " opacity-40")}
               aria-disabled={!startReady || starting}
               aria-busy={starting}
               disabled={starting}
-              onPointerUp={onStartPointerUp}
+              onClick={onStartClick}
             >
               <span className="pointer-events-none truncate">
                 {starting ? "Starting checks…" : "Start checks"}
               </span>
               {starting ? null : <ChevronRight className="pointer-events-none size-4" />}
             </Button>
-            </div>
           </div>
         </form>
       ) : null}
