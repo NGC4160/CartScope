@@ -1,10 +1,16 @@
 import { useEffect, useMemo, useRef, useState, type PointerEvent } from "react";
-import { BookOpen, ChevronRight, Send } from "lucide-react";
+import { BookOpen, ChevronRight, Loader2, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Field, inputClass } from "@/components/case/fields";
+import { HelperThinking } from "@/components/case/HelperThinking";
 import type { DiagnosticStep, JobRecord, ModelPack } from "@/data/types";
 import { getHelperStatus, type HelperStatus } from "@/lib/assistant";
-import { HELPER_AI_TIMEOUT_MS, resolveHelperJumps, settleHelperAsk } from "@/lib/helper-redirect";
+import {
+  HELPER_AI_TIMEOUT_MS,
+  HELPER_OBSERVATION_HINT,
+  resolveHelperJumps,
+  settleHelperAsk,
+} from "@/lib/helper-redirect";
 import { manualsOnFile } from "@/lib/manuals";
 import { sheetsForPack } from "@/data/wiring";
 import { evaluateProof } from "@/lib/proof";
@@ -268,11 +274,7 @@ export function InFlowGuidance({
           aria-label="What you see"
         />
       </label>
-      {observation.trim() ? (
-        <p className="mt-1 text-xs text-ink-muted">
-          Saved under What the tech saw. It does not fill Who checked it.
-        </p>
-      ) : null}
+      {observation.trim() ? <p className="mt-1 text-xs text-ink-muted">{HELPER_OBSERVATION_HINT}</p> : null}
       <div className="mt-2 flex flex-wrap items-center gap-2">
         <Button
           size="sm"
@@ -280,7 +282,7 @@ export function InFlowGuidance({
           onClick={() => void sendObservation()}
           disabled={busy || !observation.trim()}
         >
-          <Send className="size-4" />
+          {busy ? <Loader2 className="size-4 animate-spin" aria-hidden /> : <Send className="size-4" />}
           Use this to pick the next check
         </Button>
         <label className="flex min-h-10 items-center gap-2 text-xs text-ink-muted">
@@ -293,11 +295,7 @@ export function InFlowGuidance({
           Put helper notes on the report
         </label>
       </div>
-      {busy ? (
-        <p className="mt-2 font-mono text-xs text-ink-subtle" data-testid="helper-looking">
-          Looking in the factory book first…
-        </p>
-      ) : null}
+      {busy ? <HelperThinking testId="helper-looking" /> : null}
       {error && error !== helperStatus?.reason ? (
         <p className="mt-2 text-sm text-danger">{error}</p>
       ) : null}

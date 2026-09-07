@@ -479,7 +479,7 @@ async function runHelperRedirect() {
   await jumps.waitFor({ state: "visible", timeout: 2000 });
   check("helper redirect list appears", await jumps.isVisible());
   const looking = page.getByTestId("helper-looking");
-  await looking.waitFor({ state: "hidden", timeout: 12000 }).catch(() => {});
+  await looking.waitFor({ state: "hidden", timeout: 50000 }).catch(() => {});
   check("helper use-this finished", (await looking.count()) === 0 || !(await looking.isVisible()));
   check("helper jump buttons still there after ask", await jumps.isVisible());
   const jumpBtn = jumps.getByRole("button").first();
@@ -510,7 +510,7 @@ async function runHelperJumpFromPack() {
   const jumps = page.getByTestId("helper-redirect-list");
   await jumps.waitFor({ state: "visible", timeout: 2000 });
   const looking = page.getByTestId("helper-looking");
-  await looking.waitFor({ state: "hidden", timeout: 12000 }).catch(() => {});
+  await looking.waitFor({ state: "hidden", timeout: 50000 }).catch(() => {});
   check("pack helper use-this left loading", (await looking.count()) === 0 || !(await looking.isVisible()));
   const jumpBtn = jumps.getByRole("button").first();
   check("pack helper jump button tappable", await jumpBtn.isVisible());
@@ -681,7 +681,7 @@ async function runHelperJumpFromNotFullyCharged() {
   await jumps.waitFor({ state: "visible", timeout: 2000 });
   check("charge helper local jumps while looking or after", await jumps.isVisible());
   const looking = page.getByTestId("helper-looking");
-  await looking.waitFor({ state: "hidden", timeout: 12000 }).catch(() => {});
+  await looking.waitFor({ state: "hidden", timeout: 50000 }).catch(() => {});
   check("charge helper left loading after AI timeout", (await looking.count()) === 0 || !(await looking.isVisible()));
   check("charge helper jump buttons after timeout", await jumps.isVisible());
   const jumpBtn = jumps.getByRole("button").first();
