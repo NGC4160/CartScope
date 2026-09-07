@@ -4,6 +4,7 @@ import { readFileSync } from "node:fs";
 import {
   parseCartYear,
   parsePackYearRanges,
+  sanitizeCartYearInput,
   supportedYearsHint,
   yearCompatibility,
   yearInRanges,
@@ -94,6 +95,25 @@ test("V-Glide 1994–2000 and short 1995–96 both accept 1994", () => {
   }
 });
 
+test("cart year typing keeps 1996 and never rewrites it to 1990", () => {
+  assert.equal(sanitizeCartYearInput("1996"), "1996");
+  assert.equal(sanitizeCartYearInput("1996 "), "1996");
+  assert.equal(sanitizeCartYearInput("19-96"), "1996");
+  assert.equal(parseCartYear("1996"), 1996);
+  assert.notEqual(sanitizeCartYearInput("1996"), "1990");
+});
+
+test("FE350 year parse is stable across repeated calls (no shared /g lastIndex)", () => {
+  for (let i = 0; i < 5; i += 1) {
+    const ranges = parsePackYearRanges(FE350_YEARS);
+    const hint = supportedYearsHint(FE350_YEARS);
+    assert.ok(ranges.some((r) => r.min === 1991 && r.max === 1996), `pass ${i}`);
+    assert.match(hint ?? "", /1991–1996/);
+    assert.doesNotMatch(hint ?? "", /1991–1990/);
+    assert.doesNotMatch(hint ?? "", /1995–1996/);
+  }
+});
+
 test("DS FE350 pack years start at 1991–1996 and accept 1991 and 1996", () => {
   const src = readFileSync(new URL("../data/packs/club-car-ds-gas.ts", import.meta.url), "utf8");
   assert.match(src, /1991–1996 Club Car DS gasoline/);
@@ -104,6 +124,7 @@ test("DS FE350 pack years start at 1991–1996 and accept 1991 and 1996", () => 
   assert.equal(yearInRanges(2010, ranges), false);
   const hint = supportedYearsHint(FE350_YEARS);
   assert.match(hint ?? "", /1991–1996/);
+  assert.doesNotMatch(hint ?? "", /1991–1990/);
   assert.doesNotMatch(hint ?? "", /1995–1996/);
   const ok = yearCompatibility({
     cartYear: "1996",

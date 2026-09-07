@@ -5,6 +5,8 @@ export type BayChromeMeta = {
   busy?: boolean;
   secondaryLabel?: string;
   badge?: string | null;
+  error?: string | null;
+  errorDetails?: string[];
 };
 
 export type BayActionChrome = BayChromeMeta & {
@@ -35,6 +37,8 @@ export function bayChromePublish(prev: BayChromeSnapshot, chrome: BayActionChrom
       busy: chrome.busy,
       secondaryLabel: chrome.secondaryLabel,
       badge: chrome.badge ?? null,
+      error: chrome.error ?? null,
+      errorDetails: chrome.errorDetails ?? [],
     },
   };
 }
@@ -82,8 +86,13 @@ export function createBaySubmitSlot(): BaySubmitSlot {
         console.warn("[CartScope] sticky Save tapped with no handler");
         return false;
       }
-      handler();
-      return true;
+      try {
+        handler();
+        return true;
+      } catch (err) {
+        console.warn("[CartScope] sticky Save handler failed", err);
+        return false;
+      }
     },
     hasHandler() {
       return typeof handler === "function";
@@ -92,25 +101,40 @@ export function createBaySubmitSlot(): BaySubmitSlot {
 }
 
 /**
- * Pointer-up + click from ONE tap on the same sticky control.
- * Must not share state with form onSubmit — that is what swallowed
- * the real Save tap after a keyboard Done / leftover submit.
+ * Dedup pointerup + click from ONE tap. Unlock on the next macrotask
+ * so a later Save (keyboard dismiss, then glove tap) is never swallowed.
+ * The old 350ms window is what left Yamaha / Precedent / gas Check 1
+ * stuck after a real tap.
  */
-export function createBayGesture(windowMs = 350): {
+export function createBayGesture(windowMs = 0): {
   run: (fn: () => void) => boolean;
   reset: () => void;
 } {
   let last = 0;
+  let sameTurn = false;
   return {
     run(fn) {
+      if (sameTurn) return false;
       const now = Date.now();
-      if (last > 0 && now - last < windowMs) return false;
+      if (windowMs > 0 && last > 0 && now - last < windowMs) return false;
+      sameTurn = true;
       last = now;
-      fn();
+      try {
+        fn();
+      } finally {
+        if (typeof setTimeout === "function") {
+          setTimeout(() => {
+            sameTurn = false;
+          }, 0);
+        } else {
+          sameTurn = false;
+        }
+      }
       return true;
     },
     reset() {
       last = 0;
+      sameTurn = false;
     },
   };
 }
@@ -174,10 +198,15 @@ export function fireBaySave(opts: {
   formId?: string;
   document?: Document;
 }): boolean {
-  if (opts.fire?.()) return true;
-  if (typeof opts.fallback === "function") {
-    opts.fallback();
-    return true;
+  try {
+    if (opts.fire?.()) return true;
+    if (typeof opts.fallback === "function") {
+      opts.fallback();
+      return true;
+    }
+  } catch (err) {
+    console.warn("[CartScope] sticky Save handler failed", err);
+    return false;
   }
   requestBayFormSubmit(opts.document, opts.formId);
   console.warn("[CartScope] sticky Save tapped with no handler");

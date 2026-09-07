@@ -100,6 +100,8 @@ export function CodeGate({
     chip: bayProgressChip(job, pack),
     label: bayCodesActionLabel(),
     onAction: go,
+    error,
+    errorDetails: blockers,
   });
 
   return (
@@ -319,9 +321,11 @@ export function CodeGate({
         </label>
 
       </div>
-      <div ref={errorAnchor}>
-        <BaySaveNotice title={error} details={blockers} />
-      </div>
+      {onChrome ? <div ref={errorAnchor} /> : (
+        <div ref={errorAnchor}>
+          <BaySaveNotice title={error} details={blockers} />
+        </div>
+      )}
     </form>
   );
 }

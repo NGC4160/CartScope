@@ -11,34 +11,46 @@ export type YearCompatibility =
   | { status: "unknown"; message: string }
   | { status: "unsupported"; message: string; range: YearRange };
 
-const RANGE_RE = /(19|20)\d{2}\s*[–—-]\s*(19|20)\d{2}\+?/g;
-const SHORT_RANGE_RE = /((?:19|20)\d{2})\s*[–—-]\s*(\d{2})(?!\d)/g;
+const RANGE_RE_SRC = String.raw`(19|20)\d{2}\s*[–—-]\s*(19|20)\d{2}\+?`;
+const SHORT_RANGE_RE_SRC = String.raw`((?:19|20)\d{2})\s*[–—-]\s*(\d{2})(?!\d)`;
 const STARTING_RE = /starting model year\s+((?:19|20)\d{2})/i;
 
+/** Digits only, max four. Never clamp to a pack max (that is what turned 1996 into 1990). */
+export function sanitizeCartYearInput(raw: string): string {
+  return raw.replace(/\D/g, "").slice(0, 4);
+}
+
 export function parseCartYear(raw: string): number | null {
-  const t = raw.trim();
+  const t = sanitizeCartYearInput(raw);
   if (!/^(19|20)\d{2}$/.test(t)) return null;
   return Number(t);
 }
 
+/**
+ * Fresh `/g` regexes each call. A module-level `/g` lastIndex is what left
+ * FE350 looking like 1991–1990 after an earlier parse on another pack.
+ */
 export function parsePackYearRanges(years: string): YearRange[] {
   const ranges: YearRange[] = [];
   const seen = new Set<string>();
+  const rangeRe = new RegExp(RANGE_RE_SRC, "g");
+  const shortRe = new RegExp(SHORT_RANGE_RE_SRC, "g");
 
-  for (const match of years.matchAll(RANGE_RE)) {
+  for (const match of years.matchAll(rangeRe)) {
     const chunk = match[0];
     const nums = chunk.match(/(19|20)\d{2}/g);
     if (!nums || nums.length < 2) continue;
     const min = Number(nums[0]);
     const max = Number(nums[1]);
     const openEnded = /\+$/.test(chunk.trim());
+    if (!openEnded && max < min) continue;
     const key = `${min}-${max}-${openEnded}`;
     if (seen.has(key)) continue;
     seen.add(key);
     ranges.push({ min, max, openEnded });
   }
 
-  for (const match of years.matchAll(SHORT_RANGE_RE)) {
+  for (const match of years.matchAll(shortRe)) {
     const min = Number(match[1]);
     const tail = Number(match[2]);
     if (!Number.isFinite(min) || !Number.isFinite(tail)) continue;
@@ -90,7 +102,7 @@ export function mergeYearRanges(ranges: readonly YearRange[]): YearRange[] {
 }
 
 export function formatPackYears(ranges: readonly YearRange[]): string {
-  return mergeYearRanges(ranges)
+  return mergeYearRanges(ranges.filter((r) => r.openEnded || r.max >= r.min))
     .map((r) => (r.openEnded ? `${r.min}–${r.max}+` : `${r.min}–${r.max}`))
     .join(", ");
 }

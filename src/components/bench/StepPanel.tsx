@@ -117,7 +117,10 @@ export function StepPanel({
   }
 
   function onSubmit() {
-    if (!step || !spec) return;
+    if (!step || !spec) {
+      failContinue("This check is missing. Start a new job.", []);
+      return;
+    }
     setError(null);
     setMissing([]);
     if (motorStep && !motorReady) {
@@ -192,6 +195,8 @@ export function StepPanel({
     onAction: primarySubmit,
     disabled: !diagnosedView && motorStep && !motorReady,
     badge: packNaBadge(pack),
+    error,
+    errorDetails: missing.length > 0 ? [`Still needed: ${missing.join(", ")}.`] : [],
   });
 
   if (diagnosedView && diagnosis) {
@@ -240,12 +245,14 @@ export function StepPanel({
           ))}
           <LogList job={job} />
         </div>
-        <div ref={errorAnchor}>
-          <BaySaveNotice
-            title={error}
-            details={missing.length > 0 ? [`Still needed: ${missing.join(", ")}.`] : undefined}
-          />
-        </div>
+        {onChrome ? <div ref={errorAnchor} /> : (
+          <div ref={errorAnchor}>
+            <BaySaveNotice
+              title={error}
+              details={missing.length > 0 ? [`Still needed: ${missing.join(", ")}.`] : undefined}
+            />
+          </div>
+        )}
       </form>
     );
   }
@@ -493,12 +500,14 @@ export function StepPanel({
 
         <LogList job={job} />
       </div>
-      <div ref={errorAnchor}>
-        <BaySaveNotice
-          title={error}
-          details={missing.length > 0 ? [`Still needed: ${missing.join(", ")}.`] : undefined}
-        />
-      </div>
+      {onChrome ? <div ref={errorAnchor} /> : (
+        <div ref={errorAnchor}>
+          <BaySaveNotice
+            title={error}
+            details={missing.length > 0 ? [`Still needed: ${missing.join(", ")}.`] : undefined}
+          />
+        </div>
+      )}
     </form>
   );
 }

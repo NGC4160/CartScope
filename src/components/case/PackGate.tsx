@@ -252,6 +252,8 @@ export function PackGate({
     label: bayPackActionLabel(packAction),
     onAction: submit,
     disabled: false,
+    error,
+    errorDetails: blockers.map((b) => b.message),
   });
 
   return (
@@ -565,9 +567,11 @@ export function PackGate({
         ) : null}
 
       </div>
-      <div ref={errorAnchor}>
-        <BaySaveNotice title={error} details={blockers.map((b) => b.message)} />
-      </div>
+      {onChrome ? <div ref={errorAnchor} /> : (
+        <div ref={errorAnchor}>
+          <BaySaveNotice title={error} details={blockers.map((b) => b.message)} />
+        </div>
+      )}
     </form>
   );
 }

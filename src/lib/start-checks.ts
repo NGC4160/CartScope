@@ -1,7 +1,7 @@
 import type { BatteryType, ModelPack } from "../data/types.ts";
 import { JOB_HEADER_MESSAGES, jobHeaderGaps, type JobHeaderGap } from "./job-header.ts";
 import { benchUrl, canStartChecks, resolveStartJob } from "./wizard-nav.ts";
-import { yearCompatibility, yearStatusNote } from "./year-compat.ts";
+import { sanitizeCartYearInput, yearCompatibility, yearStatusNote } from "./year-compat.ts";
 import type { CreateJobInput } from "../store/jobs.ts";
 
 export type HeaderSnapshot = {
@@ -46,7 +46,9 @@ export function readHeaderSnapshot(
   for (const key of HEADER_KEYS) {
     if (key === "batteryType") continue;
     const raw = form.get(key);
-    if (typeof raw === "string") next[key] = raw;
+    if (typeof raw === "string") {
+      next[key] = key === "cartYear" ? sanitizeCartYearInput(raw) : raw;
+    }
   }
   const battery = form.get("batteryType");
   if (battery === "" || battery === "lead-acid" || battery === "lithium") {
