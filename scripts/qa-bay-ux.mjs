@@ -73,9 +73,8 @@ async function mouseClickPrimary(page) {
   await btn.waitFor({ state: "visible" });
   const box = await btn.boundingBox();
   if (!box) throw new Error("sticky Save has no box");
-  // Click the labeled Save control itself, not the chrome-avoidance inset.
-  const x = box.x + box.width * 0.5;
-  const y = box.y + box.height * 0.5;
+  const x = box.x + box.width * 0.85;
+  const y = box.y + box.height * 0.7;
   const hit = await page.evaluate(
     ({ x, y }) => {
       const el = document.elementFromPoint(x, y);
@@ -104,8 +103,8 @@ async function mouseClickStart(page) {
   await btn.scrollIntoViewIfNeeded();
   const box = await btn.boundingBox();
   if (!box) throw new Error("Start checks has no box");
-  const x = box.x + box.width * 0.5;
-  const y = box.y + box.height * 0.5;
+  const x = box.x + box.width * 0.85;
+  const y = box.y + box.height * 0.7;
   const hit = await page.evaluate(
     ({ x, y }) => {
       const el = document.elementFromPoint(x, y);
@@ -795,7 +794,7 @@ async function runLiveFailList() {
   const ericBtn = precedent.getByTestId("bay-primary-action").filter({ visible: true });
   await ericBtn.waitFor({ state: "visible" });
   const ericBox = await ericBtn.boundingBox();
-  await precedent.touchscreen.tap(ericBox.x + ericBox.width * 0.5, ericBox.y + ericBox.height * 0.5);
+  await precedent.touchscreen.tap(ericBox.x + ericBox.width * 0.85, ericBox.y + ericBox.height * 0.7);
   await precedent.getByRole("heading", { name: /Save a program file before you clear/i }).waitFor({ timeout: 10000 });
   check(
     "Precedent ERIC touch Save left Battery Pack",

@@ -4,6 +4,7 @@ import { Field, HeaderNoteInput, inputClass } from "@/components/case/fields";
 import { Button } from "@/components/ui/button";
 import { MANUFACTURERS, packsFor } from "@/data/index";
 import type { BatteryType, ManufacturerId, ModelPack } from "@/data/types";
+import { BAY_CHROME_CLEARANCE_CLASS } from "@/lib/bay-chrome-hit";
 import { createBayGesture } from "@/lib/bay-chrome-action";
 import { JOB_HEADER_MESSAGES, jobHeaderGaps, jobHeaderSummary } from "@/lib/job-header";
 import {
@@ -453,7 +454,12 @@ export function NewJobWizard({
               {headerMessage}
             </p>
           ) : null}
-          <div className="sticky bottom-0 z-30 isolate mt-5 border-t border-navy-deep bg-paper px-1 pt-2 pb-[max(0.6rem,env(safe-area-inset-bottom))]">
+          <div
+            className={
+              "sticky bottom-0 z-30 isolate mt-5 border-t border-navy-deep bg-paper px-1 pt-2 " +
+              BAY_CHROME_CLEARANCE_CLASS
+            }
+          >
             {!startReady ? (
               <div
                 ref={startReasonRef}

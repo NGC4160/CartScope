@@ -11,6 +11,7 @@ import {
   type BayChromeSnapshot,
 } from "@/lib/bay-chrome-action";
 import { BAY_TAP_MIN_PX } from "@/lib/bay-chrome";
+import { BAY_CHROME_CLEARANCE_CLASS } from "@/lib/bay-chrome-hit";
 import { BaySaveNotice } from "@/components/bay/BaySaveNotice";
 
 export type { BayActionChrome } from "@/lib/bay-chrome-action";
@@ -149,7 +150,10 @@ export function BayActionBar({
   return (
     <div
       data-testid="bay-action-bar"
-      className="no-print relative z-20 isolate shrink-0 border-t border-navy-deep bg-surface px-3 pt-2 pb-[max(0.6rem,env(safe-area-inset-bottom))]"
+      className={
+        "no-print relative z-20 isolate shrink-0 border-t border-navy-deep bg-surface px-3 pt-2 " +
+        BAY_CHROME_CLEARANCE_CLASS
+      }
     >
       {noticeTitle ? (
         <div className="mb-2" data-testid={missed && !live.error ? "bay-save-missed" : undefined}>
