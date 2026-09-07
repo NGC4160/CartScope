@@ -11,6 +11,7 @@ export const ezgoPds36 = buildEzgoDc({
     "36 V PDS: six 6 V batteries. Do not use 48 V ITS windows. Scale pack limits to 36 V.",
     "The solenoid is the main power switch. It sends big power to the motor. The controller is the PDS unit on the 16-pin plug. PDS 16-pin: red = logic power in RUN; yellow = ITS; black = ITS reference (typically 14–16 V on 36/48 V PDS).",
     "The Run/Tow switch is a safety switch. Towing in Run will take out a PDS controller.",
+    "Factory PDS troubleshooting tree sheets (Fig. 10–19 / F-10–F-19) from the 2001+ 36 V book are in the wire library after the Fig. 9 map.",
   ],
   voltage: 36,
   controllerName: "PDS 36 V controller",
