@@ -25,8 +25,9 @@ test("full-width Save puts the tester tap on the control, not a padded dead zone
   assert.ok(tap.x > bar.x + bar.width * 0.2);
 });
 
-test("Save button and bay form are never overlay chrome", () => {
+test("Save button, Start, and bay form are never overlay chrome", () => {
   assert.equal(isOverlayChrome(fakeEl(["[data-bay-primary]"]) as unknown as EventTarget), false);
+  assert.equal(isOverlayChrome(fakeEl(["[data-start-checks]"]) as unknown as EventTarget), false);
   assert.equal(isOverlayChrome(fakeEl(["[data-bay-chrome]"]) as unknown as EventTarget), false);
   assert.equal(isOverlayChrome(fakeEl(["[data-bay-form]"]) as unknown as EventTarget), false);
   assert.equal(isOverlayChrome(fakeEl(["[data-bay-helper]"]) as unknown as EventTarget), false);

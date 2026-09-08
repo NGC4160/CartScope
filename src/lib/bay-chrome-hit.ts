@@ -92,14 +92,28 @@ export function isOverlayChrome(target: EventTarget | null): boolean {
   const el = elementFromTarget(target);
   if (!el) return false;
   if (el.closest("#grok-pill-sim")) return true;
-  if (el.closest("[data-bay-primary], [data-bay-chrome], [data-bay-form], [data-bay-helper]")) {
+  if (
+    el.closest(
+      "[data-bay-primary], [data-bay-chrome], [data-bay-form], [data-bay-helper], [data-start-checks]",
+    )
+  ) {
     return false;
   }
   return true;
 }
 
+/** Point is on Job header Start — never treat that as a Save steal. */
+export function pointHitsBayStart(clientX: number, clientY: number): boolean {
+  if (typeof document === "undefined") return false;
+  const start = document.querySelector("[data-start-checks]");
+  if (!(start instanceof Element)) return false;
+  const r = start.getBoundingClientRect();
+  return clientX >= r.left && clientX <= r.right && clientY >= r.top && clientY <= r.bottom;
+}
+
 /** Point overlaps the Save row, or the reserved bottom-right pill slot. */
 export function pointHitsBaySave(clientX: number, clientY: number): boolean {
+  if (pointHitsBayStart(clientX, clientY)) return false;
   if (typeof document === "undefined") return false;
   const save = document.querySelector("[data-bay-primary]");
   if (save instanceof Element) {

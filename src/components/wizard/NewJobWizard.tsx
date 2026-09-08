@@ -167,6 +167,11 @@ export function NewJobWizard({
   function requestStart(form?: HTMLFormElement | null) {
     if (startLockRef.current || starting) return;
     startLockRef.current = true;
+    if (typeof window !== "undefined") {
+      window.setTimeout(() => {
+        startLockRef.current = false;
+      }, 800);
+    }
     void startFromForm(form ?? formRef.current);
   }
 
@@ -519,10 +524,6 @@ export function NewJobWizard({
               aria-busy={starting}
               disabled={starting}
               onClick={onStartClick}
-              onPointerUp={(event) => {
-                if (event.pointerType === "mouse" && event.button !== 0) return;
-                onStartClick();
-              }}
             >
               <span className="pointer-events-none truncate">
                 {starting ? "Starting checks…" : "Start checks"}

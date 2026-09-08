@@ -3,6 +3,7 @@ import { FileText, Plus } from "lucide-react";
 import { useRef, useState } from "react";
 import { AppShell } from "@/components/layout/AppShell";
 import { NewJobWizard } from "@/components/wizard/NewJobWizard";
+import { StartOverlayCatch } from "@/components/wizard/StartOverlayCatch";
 import { Button } from "@/components/ui/button";
 import { getPack, getSymptom, MODEL_PACKS } from "@/data/index";
 import { WIRING_SHEETS } from "@/data/wiring";
@@ -33,15 +34,7 @@ function Home() {
     try {
       await navigate({ to: "/bench/$jobId", params: { jobId: job.id } });
     } catch {
-      if (typeof window !== "undefined") {
-        window.location.assign(path);
-      }
-      return {
-        ok: false as const,
-        message:
-          `Could not open checks for ${input.cartMake} ${input.cartModel} year ${input.cartYear || "(none)"}. ` +
-          `The job is on this tablet — open it from recent cases, or try Start again.`,
-      };
+      /* hard jump below */
     }
     if (typeof window !== "undefined" && !benchPathHasJob(window.location.pathname, job.id)) {
       window.location.assign(path);
@@ -79,10 +72,13 @@ function Home() {
         </div>
 
         {showWizard ? (
-          <NewJobWizard
-            onStartJob={startJob}
-            onCancel={jobs.length > 0 ? () => setFresh(false) : undefined}
-          />
+          <>
+            <StartOverlayCatch />
+            <NewJobWizard
+              onStartJob={startJob}
+              onCancel={jobs.length > 0 ? () => setFresh(false) : undefined}
+            />
+          </>
         ) : (
           <section>
             <h2 className="font-display text-lg font-semibold text-ink">Recent cases</h2>

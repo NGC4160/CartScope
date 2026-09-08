@@ -155,8 +155,9 @@ export function BayActionBar({
     setMissed(null);
   }, []);
 
+  const hasChrome = Boolean(chrome);
   useLayoutEffect(() => {
-    if (!armed) return;
+    if (!armed || !hasChrome) return;
     function onPointerUp(event: PointerEvent) {
       if (!isOverlayChrome(event.target)) return;
       if (!pointHitsBaySave(event.clientX, event.clientY)) return;
@@ -166,7 +167,7 @@ export function BayActionBar({
     }
     document.addEventListener("pointerup", onPointerUp, true);
     return () => document.removeEventListener("pointerup", onPointerUp, true);
-  }, [activate, armed]);
+  }, [activate, armed, hasChrome]);
 
   if (!chrome) return null;
   const live = chrome;
@@ -219,7 +220,7 @@ export function BayActionBar({
         form={formId}
         data-testid="bay-primary-action"
         data-bay-primary=""
-        className="mt-2 min-h-12 w-full min-w-0 justify-start text-left touch-manipulation active:scale-100"
+        className="mt-2 min-h-12 w-full min-w-0 max-w-[calc(100%-11.5rem)] justify-start text-left touch-manipulation active:scale-100"
         style={{ minHeight: Math.max(BAY_TAP_MIN_PX, 48) }}
         onClick={onPrimaryClick}
         disabled={live.disabled || live.busy}
