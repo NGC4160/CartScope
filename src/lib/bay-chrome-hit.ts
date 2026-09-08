@@ -74,11 +74,11 @@ export function bayClearanceBox(
 
 function elementFromTarget(target: EventTarget | null): { closest: (sel: string) => unknown } | null {
   if (target && typeof (target as { closest?: unknown }).closest === "function") {
-    return target as { closest: (sel: string) => unknown };
+    return target as unknown as { closest: (sel: string) => unknown };
   }
-  const parent = target && (target as { parentElement?: unknown }).parentElement;
-  if (parent && typeof (parent as { closest?: unknown }).closest === "function") {
-    return parent as { closest: (sel: string) => unknown };
+  const parent = target && (target as { parentElement?: { closest?: unknown } }).parentElement;
+  if (parent && typeof parent.closest === "function") {
+    return parent as unknown as { closest: (sel: string) => unknown };
   }
   return null;
 }
