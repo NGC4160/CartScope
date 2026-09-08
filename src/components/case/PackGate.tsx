@@ -80,8 +80,7 @@ export function PackGate({
   const [testPath, setTestPath] = useState(false);
   const [testNote, setTestNote] = useState(draft?.testNote ?? job.testBattery?.measuredProblem ?? "");
   const [paste, setPaste] = useState("");
-  const pasteRef = useRef(paste);
-  pasteRef.current = paste;
+  const pasteRef = useRef("");
   const [pasteNote, setPasteNote] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [blockers, setBlockers] = useState<PackBlocker[]>([]);
@@ -232,18 +231,27 @@ export function PackGate({
 
   function readPasteRaw(): string {
     if (typeof document !== "undefined") {
-      const el = document.querySelector<HTMLTextAreaElement>("[data-pack-paste]");
-      if (el?.value.trim()) return el.value;
+      const el = document.querySelector<HTMLTextAreaElement>("[data-testid='pack-paste'], [data-pack-paste]");
+      if (el?.value.trim()) {
+        pasteRef.current = el.value;
+        return el.value;
+      }
     }
     return pasteRef.current;
   }
 
   function submitLive(): string | void {
-    const cells = cellsForPackSave(readPasteRaw(), liveRef.current.cells, layout.count);
-    const appliedPaste = cells !== liveRef.current.cells;
+    const pasteRaw = readPasteRaw();
+    const parsed = pasteRaw.trim() ? parseBulkPackPaste(pasteRaw, liveRef.current.cells, layout.count) : null;
+    if (parsed && parsed.applied === 0) {
+      return showBlockers([], `Cannot save yet. ${parsed.message}`);
+    }
+    const cells = parsed && parsed.applied > 0 ? parsed.cells : liveRef.current.cells;
+    const appliedPaste = Boolean(parsed && parsed.applied > 0);
     liveRef.current = { ...liveRef.current, cells };
     if (appliedPaste) {
       setCells(cells);
+      setPasteNote(parsed!.message);
     }
     const snap = liveRef.current;
     const decision = decidePackSave({
