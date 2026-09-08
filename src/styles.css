@@ -86,7 +86,7 @@
      whole bar so w-full Save cannot occupy that slot even if max-width
      loses to a utility width. */
   [data-bay-chrome] {
-    padding-right: 11.5rem;
+    padding-right: 11.5rem !important;
   }
   [data-bay-chrome] [data-bay-primary] {
     margin-right: 0;

@@ -194,7 +194,7 @@ export function BayActionBar({
       data-testid="bay-action-bar"
       data-bay-chrome=""
       data-save-blocked={noticeTitle ? "true" : "false"}
-      className="no-print relative z-30 isolate shrink-0 overflow-visible border-t border-navy-deep bg-surface px-3 pt-2 pb-[max(0.6rem,env(safe-area-inset-bottom))]"
+      className="no-print relative z-30 isolate shrink-0 overflow-visible border-t border-navy-deep bg-surface pl-3 pr-[11.5rem] pt-2 pb-[max(0.6rem,env(safe-area-inset-bottom))]"
     >
       {noticeTitle ? (
         <div className="relative z-40 mb-2" data-testid={missed && !live.error ? "bay-save-missed" : undefined}>
