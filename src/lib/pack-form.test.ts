@@ -4,6 +4,7 @@ import {
   applyBulkAgeUnreadable,
   emptyPackCells,
   groupPackBlockers,
+  packSaveBlockedReason,
   packSaveBlockers,
   parseBulkPackPaste,
   typedVoltage,
@@ -127,6 +128,61 @@ test("paste reads an IR unit suffix and keeps the typed number", () => {
   const mega = parseBulkPackPaste("8.50\t0.5 MΩ\t09/2024", emptyPackCells(1), 1);
   assert.equal(mega.cells[0]?.ir, "0.5");
   assert.equal(mega.cells[0]?.irUnit, "megohm");
+});
+
+test("empty pack sticky reason names resting volts and age", () => {
+  const blockers = packSaveBlockers({
+    lithium: false,
+    cellCount: 6,
+    cells: emptyPackCells(6),
+    irSkip: false,
+    irSkipReason: "",
+    monitorV: "",
+    noMonitor: false,
+  });
+  const reason = packSaveBlockedReason(blockers);
+  assert.match(reason, /resting volts/i);
+  assert.match(reason, /age/i);
+  assert.match(reason, /Battery 1 resting volts/);
+});
+
+test("short-load is optional and never a pack Save blocker", () => {
+  const cells = Array.from({ length: 6 }, () => ({
+    volts: "8.50",
+    ir: "12.1",
+    age: "09/2024",
+    ageSkip: false,
+  }));
+  const blockers = packSaveBlockers({
+    lithium: false,
+    cellCount: 6,
+    cells,
+    irSkip: false,
+    irSkipReason: "",
+    monitorV: "",
+    noMonitor: false,
+  });
+  assert.deepEqual(blockers, []);
+  assert.equal(
+    blockers.some((b) => /short load|load drop/i.test(b.field) || /short load|load drop/i.test(b.message)),
+    false,
+  );
+});
+
+test("shop-range volts with missing IR and age still name those fields", () => {
+  const blockers = packSaveBlockers({
+    lithium: false,
+    cellCount: 6,
+    cells: sixAt("8.50"),
+    irSkip: false,
+    irSkipReason: "",
+    monitorV: "",
+    noMonitor: false,
+  });
+  const reason = packSaveBlockedReason(blockers);
+  assert.match(reason, /internal resistance/i);
+  assert.match(reason, /age/i);
+  assert.doesNotMatch(reason, /short load|load drop/i);
 });
 
 test("paste of eight values onto a six-battery pack keeps the first six", () => {

@@ -108,6 +108,7 @@ export function CaseReport({
   return (
     <form
       id={printMode ? undefined : BAY_REPORT_FORM_ID}
+      data-bay-form=""
       noValidate
       className={"flex h-full min-h-0 flex-col " + (printMode ? "bg-white" : "bg-surface")}
       onSubmit={(e) => {

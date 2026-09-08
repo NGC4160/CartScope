@@ -64,6 +64,39 @@ async function installLiveChrome(page) {
   });
 }
 
+/**
+ * Tester tap on the right of Save, through the Grok chat pill.
+ * Live #32 failed here: click-only Save never ran, so filled pack
+ * did not advance and empty pack never showed the sticky reason.
+ */
+async function gloveClickPrimary(page) {
+  await installLiveChrome(page);
+  const bar = page.getByTestId("bay-action-bar");
+  const btn = bar.getByTestId("bay-primary-action").filter({ visible: true });
+  await btn.waitFor({ state: "visible" });
+  const box = await btn.boundingBox();
+  if (!box) throw new Error("sticky Save button has no box");
+  const x = box.x + box.width * 0.86;
+  const y = box.y + box.height * 0.55;
+  const hit = await page.evaluate(
+    ({ x, y }) => {
+      const el = document.elementFromPoint(x, y);
+      return {
+        pill: Boolean(el?.closest?.("#grok-pill-sim, [data-testid='grok-pill-sim']")),
+        save: Boolean(el?.closest?.("[data-bay-primary], [data-testid='bay-primary-action']")),
+        form: Boolean(el?.closest?.("[data-bay-form]")),
+        tag: el?.tagName ?? null,
+        testid: el?.getAttribute?.("data-testid") ?? null,
+      };
+    },
+    { x, y },
+  );
+  if (!hit.pill && !hit.save) {
+    throw new Error(`glove Save target is not pill or Save: ${JSON.stringify(hit)}`);
+  }
+  await page.mouse.click(x, y, { button: "left" });
+}
+
 /** Tester tap: on the Save control itself, left of the Grok chat pill. */
 async function mouseClickPrimary(page) {
   const bar = page.getByTestId("bay-action-bar");
@@ -394,6 +427,12 @@ async function fillLeadAcidPack(page, { count, volts, ir, age }) {
     await page.getByRole("textbox", { name: new RegExp(`^Battery ${i} resting volts`, "i") }).fill(String(volts));
     await page.getByRole("textbox", { name: new RegExp(`^Battery ${i} internal resistance`, "i") }).fill(String(ir));
     await page.getByRole("textbox", { name: new RegExp(`^Battery ${i} age`, "i") }).fill(age);
+  }
+}
+
+async function fillLeadAcidVolts(page, { count, volts }) {
+  for (let i = 1; i <= count; i++) {
+    await page.getByRole("textbox", { name: new RegExp(`^Battery ${i} resting volts`, "i") }).fill(String(volts));
   }
 }
 
@@ -793,12 +832,31 @@ async function runLiveFailList() {
     serial: "YDREDC01",
     who: "Ryan",
   });
+  await fillLeadAcidVolts(yamaha, { count: 6, volts: "8.45" });
+  check("YDRE volts-only shop range", await yamaha.getByText(/in the shop range/i).isVisible());
+  check(
+    "YDRE volts-only hint says IR and age still needed",
+    await yamaha.getByTestId("pack-shop-range-save-hint").isVisible(),
+  );
+  await gloveClickPrimary(yamaha);
+  const yamahaPartial = yamaha.getByTestId("bay-save-notice");
+  check("YDRE volts-only Save shows a reason", await yamahaPartial.isVisible());
+  const yamahaPartialText = await yamahaPartial.innerText();
+  check(
+    "YDRE volts-only names missing IR or age",
+    /internal resistance|age/i.test(yamahaPartialText),
+    yamahaPartialText,
+  );
+  check(
+    "YDRE volts-only still on pack after blocked Save",
+    await yamaha.getByRole("heading", { name: /Check the pack before you blame other parts/i }).isVisible(),
+  );
   await fillLeadAcidPack(yamaha, { count: 6, volts: "8.45", ir: "3.4", age: "03/2026" });
   check("YDRE pack in shop range", await yamaha.getByText(/in the shop range/i).isVisible());
-  await mouseClickPrimary(yamaha);
+  await gloveClickPrimary(yamaha);
   await yamaha.getByRole("heading", { name: /Save a program file before you clear/i }).waitFor({ timeout: 10000 });
   check(
-    "YDRE DC mouse Save left Battery Pack",
+    "YDRE DC glove Save left Battery Pack",
     await yamaha.getByRole("heading", { name: /Save a program file before you clear/i }).isVisible(),
   );
   check(
@@ -826,13 +884,13 @@ async function runLiveFailList() {
     serial: "ERIC01",
     who: "Ryan",
   });
-  await mouseClickPrimary(precedent);
+  await gloveClickPrimary(precedent);
   const emptyPackNotice = precedent.getByTestId("bay-save-notice");
   check("Precedent empty pack Save shows a reason", await emptyPackNotice.isVisible());
   const emptyPackText = await emptyPackNotice.innerText();
   check(
     "Precedent empty pack names missing volts or age",
-    /resting volts|age|Battery 1/i.test(emptyPackText),
+    /resting volts/i.test(emptyPackText) && /age/i.test(emptyPackText),
     emptyPackText,
   );
   check(

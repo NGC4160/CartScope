@@ -12,6 +12,7 @@ import {
   type BaySaveOutcome,
 } from "@/lib/bay-chrome-action";
 import { BAY_TAP_MIN_PX } from "@/lib/bay-chrome";
+import { isOverlayChrome, pointHitsBaySave } from "@/lib/bay-chrome-hit";
 import { BaySaveNotice } from "@/components/bay/BaySaveNotice";
 
 export type { BayActionChrome } from "@/lib/bay-chrome-action";
@@ -118,24 +119,29 @@ export function BayActionBar({
   chrome,
   formId,
   fire,
+  armed = true,
 }: {
   chrome: BayActionChrome | null;
   formId?: string;
   fire?: () => boolean | BaySaveOutcome;
+  /** Off while Helper covers Checks so a pill tap cannot Save underneath. */
+  armed?: boolean;
 }) {
   const [missed, setMissed] = useState<string | null>(null);
-  if (!chrome) return null;
-  const live = chrome;
-  const noticeTitle = live.error || missed;
-  const noticeDetails = live.error ? live.errorDetails : undefined;
+  const chromeRef = useRef(chrome);
+  chromeRef.current = chrome;
+  const fireRef = useRef(fire);
+  fireRef.current = fire;
 
-  function activate() {
+  const activate = useCallback(() => {
+    const live = chromeRef.current;
+    if (!live) return;
     if (live.disabled || live.busy) {
       setMissed(live.disabled ? "Save is not available on this check." : "Save is still working.");
       return;
     }
     const out = fireBaySaveOutcome({
-      fire,
+      fire: fireRef.current,
       fallback: () => live.onAction(),
     });
     if (!out.ran) {
@@ -147,7 +153,25 @@ export function BayActionBar({
       return;
     }
     setMissed(null);
-  }
+  }, []);
+
+  useLayoutEffect(() => {
+    if (!armed) return;
+    function onPointerUp(event: PointerEvent) {
+      if (!isOverlayChrome(event.target)) return;
+      if (!pointHitsBaySave(event.clientX, event.clientY)) return;
+      event.preventDefault();
+      event.stopPropagation();
+      activate();
+    }
+    document.addEventListener("pointerup", onPointerUp, true);
+    return () => document.removeEventListener("pointerup", onPointerUp, true);
+  }, [activate, armed]);
+
+  if (!chrome) return null;
+  const live = chrome;
+  const noticeTitle = live.error || missed;
+  const noticeDetails = live.error ? live.errorDetails : undefined;
 
   function onPrimaryClick() {
     activate();
@@ -156,6 +180,7 @@ export function BayActionBar({
   return (
     <div
       data-testid="bay-action-bar"
+      data-bay-chrome=""
       data-save-blocked={noticeTitle ? "true" : "false"}
       className="no-print relative z-30 isolate shrink-0 overflow-visible border-t border-navy-deep bg-surface px-3 pt-2 pb-[max(0.6rem,env(safe-area-inset-bottom))]"
     >
