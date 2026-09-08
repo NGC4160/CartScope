@@ -156,6 +156,8 @@ function yearCoverSpan(text) {
 
 async function fillHandheldAndSave(page) {
   await page.getByRole("heading", { name: /Save a program file before you clear/i }).waitFor({ timeout: 10000 });
+  // Pack Save holds a leftover-click lock (~400ms). Testers fill codes slower than that.
+  await page.waitForTimeout(450);
   const present = page.getByPlaceholder(/write each code/i);
   if (await present.count()) await present.fill("None");
   const history = page.getByPlaceholder(/stored code/i);
