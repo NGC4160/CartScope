@@ -221,8 +221,8 @@ async function fillHandheldAndSave(page) {
   if (await present.count()) await present.fill("None");
   const history = page.getByPlaceholder(/stored code/i);
   if (await history.count()) await history.fill("None");
-  const noRead = page.getByText(/This controller does not show fault counters/i);
-  if (await noRead.count()) await noRead.click();
+  const noRead = page.getByRole("checkbox", { name: /This controller does not show fault counters/i });
+  if (await noRead.count()) await noRead.check();
   await mouseClickPrimary(page);
   await page.getByText(/CHECK 1/i).first().waitFor({ timeout: 15000 });
 }
