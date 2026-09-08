@@ -125,6 +125,38 @@ async function mouseClickPrimary(page) {
   await page.mouse.click(x, y, { button: "left" });
 }
 
+/**
+ * Tester tap on the right of Start, through the Grok chat pill.
+ * After #34, Yamaha / FE350 Start stayed on Job header when the pill
+ * ate pointerup+click and the Start lock dropped the real click.
+ */
+async function gloveClickStart(page) {
+  await installLiveChrome(page);
+  const btn = page.getByTestId("start-checks");
+  await btn.waitFor({ state: "visible" });
+  await btn.scrollIntoViewIfNeeded();
+  const box = await btn.boundingBox();
+  if (!box) throw new Error("Start checks has no box");
+  const x = box.x + box.width * 0.86;
+  const y = box.y + box.height * 0.55;
+  const hit = await page.evaluate(
+    ({ x, y }) => {
+      const el = document.elementFromPoint(x, y);
+      return {
+        pill: Boolean(el?.closest?.("#grok-pill-sim, [data-testid='grok-pill-sim']")),
+        start: Boolean(el?.closest?.("[data-start-checks], [data-testid='start-checks']")),
+        tag: el?.tagName ?? null,
+        testid: el?.getAttribute?.("data-testid") ?? null,
+      };
+    },
+    { x, y },
+  );
+  if (!hit.pill && !hit.start) {
+    throw new Error(`glove Start target is not pill or Start: ${JSON.stringify(hit)}`);
+  }
+  await page.mouse.click(x, y, { button: "left" });
+}
+
 /** Real mouse click on Job header Start checks — center of the control (not the Grok pill). */
 async function mouseClickStart(page) {
   const btn = page.getByTestId("start-checks");
@@ -814,7 +846,7 @@ async function startElectricPackJob(page, { brand, model, complaint, last, job, 
     who,
     complaint: "Bay pack save.",
   });
-  await mouseClickStart(page);
+  await gloveClickStart(page);
   await page.waitForURL("**/bench/**", { timeout: 15000 });
   await page.getByRole("heading", { name: /Check the pack before you blame other parts/i }).waitFor();
 }
@@ -832,6 +864,10 @@ async function runLiveFailList() {
     serial: "YDREDC01",
     who: "Ryan",
   });
+  check(
+    "YDRE DC glove Start left Job header",
+    await yamaha.getByRole("heading", { name: /Check the pack before you blame other parts/i }).isVisible(),
+  );
   await fillLeadAcidVolts(yamaha, { count: 6, volts: "8.45" });
   check("YDRE volts-only shop range", await yamaha.getByText(/in the shop range/i).isVisible());
   check(
@@ -959,7 +995,7 @@ async function runLiveFailList() {
   check("FE350 1996 hint is not 1991–1990", !/1991–1990|1991-1990/.test(okHint), okHint);
   check("FE350 1996 hint names 1991–1996", /1991–1996|1991-1996/.test(okHint), okHint);
   check("FE350 1996 Start ready", (await fe350.getByTestId("start-checks").getAttribute("data-start-ready")) === "true");
-  await mouseClickStart(fe350);
+  await gloveClickStart(fe350);
   await fe350.waitForURL("**/bench/**", { timeout: 15000 });
   await fe350.getByText(/CHECK 1/i).first().waitFor({ timeout: 15000 });
   check("FE350 1996 Start opened Check 1", await fe350.getByText(/CHECK 1/i).first().isVisible());

@@ -74,6 +74,15 @@
     touch-action: manipulation;
   }
 
+  /* Grok / Remix pill sits on the lower-right. Full-width Start and Save
+     put their right end under that pill. Testers tap the words — keep the
+     hit box left of the reserved chrome slot. */
+  [data-start-checks],
+  [data-bay-primary] {
+    margin-right: 11.5rem;
+    max-width: calc(100% - 11.5rem);
+  }
+
   /* Live testers tap the lower-right of a Helper jump, next to the Grok
      chat pill. The pill is position:fixed at max z-index — stacking
      Helper above Save cannot win. Keep the jump hit box out of that zone. */
