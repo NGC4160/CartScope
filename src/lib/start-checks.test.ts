@@ -505,13 +505,12 @@ test("Job header wizard must not import yearIssueLine (that minify rebound broke
   assert.doesNotMatch(src, /onPointerUp/);
 });
 
-test("sticky Save fires the save row (pointerdown + click) and still steals only overlay chrome", () => {
+test("sticky Save fires pointerdown and click on the button and still steals only overlay chrome", () => {
   const src = readFileSync(new URL("../components/bay/BayActionBar.tsx", import.meta.url), "utf8");
   assert.match(src, /createBayGesture/);
   assert.match(src, /isOverlayChrome/);
-  assert.match(src, /onPointerDown=\{onSaveRowPointerDown\}/);
-  assert.match(src, /onClick=\{onSaveRowClick\}/);
-  assert.match(src, /data-bay-save-row/);
+  assert.match(src, /onPointerDown=\{onPrimaryPointerDown\}/);
+  assert.match(src, /onClick=\{onPrimaryClick\}/);
   assert.doesNotMatch(src, /pointHitsBayStart|data-start-checks/);
 });
 
