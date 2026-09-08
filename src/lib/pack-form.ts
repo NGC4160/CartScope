@@ -259,8 +259,15 @@ export function parseBulkPackPaste(raw: string, existing: PackCellDraft[], count
   return { cells, applied, extraIgnored, message };
 }
 
+function stripBatteryLabel(tokens: string[]): string[] {
+  if (/^battery$/i.test(tokens[0] ?? "") && /^\d+$/.test(tokens[1] ?? "")) {
+    return tokens.slice(2);
+  }
+  return tokens.filter((t) => !/^battery\s*\d+$/i.test(t));
+}
+
 function rowFromTokens(tokens: string[]): Partial<PackCellDraft> {
-  const useful = tokens.filter((t) => !/^battery\s*\d+$/i.test(t));
+  const useful = stripBatteryLabel(tokens);
   if (useful.length === 0) return {};
   if (useful.length === 1) return { volts: useful[0] };
   if (useful.length === 2) {

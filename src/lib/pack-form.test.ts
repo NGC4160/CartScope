@@ -166,6 +166,33 @@ test("empty pack Save decision is a sticky volts/age block, not a silent miss", 
   assert.ok(decision.blockers.length > 0);
 });
 
+test("space-separated Battery N volts IR YYYY-MM paste fills a YDRE 6-pack", () => {
+  const pasted = [
+    "Battery 1 8.5 10 2022-01",
+    "Battery 2 8.5 10 2022-01",
+    "Battery 3 8.5 10 2022-01",
+    "Battery 4 8.5 10 2022-01",
+    "Battery 5 8.5 10 2022-01",
+    "Battery 6 8.5 10 2022-01",
+  ].join("\n");
+  const result = parseBulkPackPaste(pasted, emptyPackCells(6), 6);
+  assert.equal(result.applied, 6);
+  assert.equal(result.cells[0]?.volts, "8.5");
+  assert.equal(result.cells[0]?.ir, "10");
+  assert.equal(result.cells[0]?.age, "2022-01");
+  const decision = decidePackSave({
+    lithium: false,
+    cellCount: 6,
+    cells: result.cells,
+    irSkip: false,
+    irSkipReason: "",
+    monitorV: "",
+    noMonitor: false,
+    nominalV: 8,
+  });
+  assert.equal(decision.action, "save-pass");
+});
+
 test("Yamaha YDRE filled pack 8.48 V / 12 mΩ / 09/2024 is a valid Save", () => {
   const cells = Array.from({ length: 6 }, () => ({
     volts: "8.48",

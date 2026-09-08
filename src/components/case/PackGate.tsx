@@ -79,6 +79,8 @@ export function PackGate({
   const [testPath, setTestPath] = useState(false);
   const [testNote, setTestNote] = useState(draft?.testNote ?? job.testBattery?.measuredProblem ?? "");
   const [paste, setPaste] = useState("");
+  const pasteRef = useRef(paste);
+  pasteRef.current = paste;
   const [pasteNote, setPasteNote] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [blockers, setBlockers] = useState<PackBlocker[]>([]);
@@ -225,7 +227,20 @@ export function PackGate({
     setTestPath(false);
   }
 
+  function applyPasteIfNeeded(): PackCellDraft[] {
+    const raw = pasteRef.current;
+    if (!raw.trim()) return liveRef.current.cells;
+    const result = parseBulkPackPaste(raw, liveRef.current.cells, layout.count);
+    if (result.applied === 0) return liveRef.current.cells;
+    liveRef.current = { ...liveRef.current, cells: result.cells };
+    setCells(result.cells);
+    persistDraft({ cells: result.cells });
+    setPasteNote(result.message);
+    return result.cells;
+  }
+
   function submitLive(): string | void {
+    applyPasteIfNeeded();
     const snap = liveRef.current;
     const decision = decidePackSave({
       lithium,

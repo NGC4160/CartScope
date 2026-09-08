@@ -231,7 +231,7 @@ export function BayActionBar({
         form={formId}
         data-testid="bay-primary-action"
         data-bay-primary=""
-        className="mt-2 min-h-12 w-full min-w-0 max-w-[calc(100%-11.5rem)] justify-start text-left touch-manipulation active:scale-100"
+        className="mt-2 min-h-12 w-full min-w-0 justify-start text-left touch-manipulation active:scale-100"
         style={{ minHeight: Math.max(BAY_TAP_MIN_PX, 48) }}
         onPointerDown={onPrimaryPointerDown}
         onClick={onPrimaryClick}

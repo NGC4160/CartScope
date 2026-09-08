@@ -77,10 +77,20 @@
   /* Grok / Remix pill sits on the lower-right. Full-width Start and Save
      put their right end under that pill. Testers tap the words — keep the
      hit box left of the reserved chrome slot. */
-  [data-start-checks],
-  [data-bay-primary] {
+  [data-start-checks] {
     margin-right: 11.5rem;
     max-width: calc(100% - 11.5rem);
+  }
+
+  /* Save lives in the right bay pane, which is the pill corner. Pad the
+     whole bar so w-full Save cannot occupy that slot even if max-width
+     loses to a utility width. */
+  [data-bay-chrome] {
+    padding-right: 11.5rem;
+  }
+  [data-bay-chrome] [data-bay-primary] {
+    margin-right: 0;
+    max-width: none;
   }
 
   /* Live testers tap the lower-right of a Helper jump, next to the Grok

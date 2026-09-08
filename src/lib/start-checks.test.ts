@@ -505,6 +505,12 @@ test("Job header wizard must not import yearIssueLine (that minify rebound broke
   assert.doesNotMatch(src, /onPointerUp/);
 });
 
+test("Save bar is padded off the Grok pill; Start stays inset without overlay imports", () => {
+  const css = readFileSync(new URL("../styles.css", import.meta.url), "utf8");
+  assert.match(css, /\[data-bay-chrome\]\s*\{[^}]*padding-right:\s*11\.5rem/s);
+  assert.match(css, /\[data-start-checks\]\s*\{[^}]*margin-right:\s*11\.5rem/s);
+});
+
 test("sticky Save fires pointerdown and click on the button and still steals only overlay chrome", () => {
   const src = readFileSync(new URL("../components/bay/BayActionBar.tsx", import.meta.url), "utf8");
   assert.match(src, /createBayGesture/);

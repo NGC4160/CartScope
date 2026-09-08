@@ -224,7 +224,21 @@ async function fillHandheldAndSave(page) {
   const noRead = page.getByRole("checkbox", { name: /This controller does not show fault counters/i });
   if (await noRead.count()) await noRead.check();
   await mouseClickPrimary(page);
-  await page.getByText(/CHECK 1/i).first().waitFor({ timeout: 15000 });
+  const check1 = page.getByText(/CHECK 1/i).first();
+  try {
+    await check1.waitFor({ timeout: 15000 });
+  } catch (err) {
+    const notice = await page.getByTestId("bay-save-notice").innerText().catch(() => "none");
+    const heading = await page.getByRole("heading").allInnerTexts();
+    const job = await page.evaluate(() => {
+      const raw = localStorage.getItem("cartscope-jobs-v1");
+      const parsed = JSON.parse(raw || "{}");
+      const jobs = parsed?.state?.jobs ?? [];
+      return jobs.map((j) => ({ id: j.id, phase: j.casePhase, step: j.currentStepId, codes: Boolean(j.codeSave) }));
+    });
+    console.log("fillHandheldAndSave stuck", { notice, heading, job });
+    throw err;
+  }
 }
 
 async function saveFactoryCheck1To2(page, pickLabel, nextHeading, label) {
@@ -914,8 +928,17 @@ async function runLiveFailList() {
     "YDRE volts-only still on pack after blocked Save",
     await yamaha.getByRole("heading", { name: /Check the pack before you blame other parts/i }).isVisible(),
   );
-  await fillLeadAcidPack(yamaha, { count: 6, volts: "8.48", ir: "12", age: "09/2024" });
-  check("YDRE pack in shop range", await yamaha.getByText(/in the shop range/i).isVisible());
+  const pasteBox = yamaha.getByLabel(/Paste 6 battery rows/i);
+  await pasteBox.fill(
+    [
+      "Battery 1 8.5 10 2022-01",
+      "Battery 2 8.5 10 2022-01",
+      "Battery 3 8.5 10 2022-01",
+      "Battery 4 8.5 10 2022-01",
+      "Battery 5 8.5 10 2022-01",
+      "Battery 6 8.5 10 2022-01",
+    ].join("\n"),
+  );
   await mouseClickPrimaryRight(yamaha);
   await yamaha.getByRole("heading", { name: /Save a program file before you clear/i }).waitFor({ timeout: 10000 });
   check(
@@ -1043,15 +1066,19 @@ async function runLiveFailList() {
   await fe350.close();
 }
 
-await runAt(1024, 768, "tablet");
-await runAt(390, 844, "phone");
-await runFactoryCheck();
-await runStickySaveAdvance();
-await runLiveFailList();
-await runHelperRedirect();
-await runHelperJumpFromPack();
-await runHelperJumpFromNotFullyCharged();
-await runRound7StartValidationAndBayImprovements();
+if (process.env.BAY_QA_ONLY === "live") {
+  await runLiveFailList();
+} else {
+  await runAt(1024, 768, "tablet");
+  await runAt(390, 844, "phone");
+  await runFactoryCheck();
+  await runStickySaveAdvance();
+  await runLiveFailList();
+  await runHelperRedirect();
+  await runHelperJumpFromPack();
+  await runHelperJumpFromNotFullyCharged();
+  await runRound7StartValidationAndBayImprovements();
+}
 
 await browser.close();
 if (fails.length) {
