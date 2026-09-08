@@ -163,7 +163,7 @@ export function BayActionBar({
 
   function isSecondaryTarget(target: EventTarget | null): boolean {
     if (!target || typeof (target as { closest?: unknown }).closest !== "function") return false;
-    return Boolean((target as { closest: (sel: string) => unknown }).closest("[data-bay-secondary]"));
+    return Boolean((target as unknown as { closest: (sel: string) => unknown }).closest("[data-bay-secondary]"));
   }
 
   function onSaveRowPointerDown(event: { button?: number; target: EventTarget | null }) {
