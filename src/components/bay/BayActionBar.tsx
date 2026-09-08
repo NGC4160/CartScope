@@ -5,6 +5,7 @@ import {
   emptyBayChrome,
   bayChromeClear,
   bayChromePublish,
+  createBayGesture,
   fireBaySaveOutcome,
   type BayActionChrome,
   type BayChromeSnapshot,
@@ -132,6 +133,7 @@ export function BayActionBar({
   chromeRef.current = chrome;
   const fireRef = useRef(fire);
   fireRef.current = fire;
+  const tapGate = useRef(createBayGesture(80)).current;
 
   const activate = useCallback(() => {
     const live = chromeRef.current;
@@ -155,6 +157,26 @@ export function BayActionBar({
     setMissed(null);
   }, []);
 
+  const tryActivate = useCallback(() => {
+    tapGate.run(activate);
+  }, [activate, tapGate]);
+
+  function isSecondaryTarget(target: EventTarget | null): boolean {
+    if (!target || typeof (target as { closest?: unknown }).closest !== "function") return false;
+    return Boolean((target as { closest: (sel: string) => unknown }).closest("[data-bay-secondary]"));
+  }
+
+  function onSaveRowPointerDown(event: { button?: number; target: EventTarget | null }) {
+    if (event.button != null && event.button !== 0) return;
+    if (isSecondaryTarget(event.target)) return;
+    tryActivate();
+  }
+
+  function onSaveRowClick(event: { target: EventTarget | null }) {
+    if (isSecondaryTarget(event.target)) return;
+    tryActivate();
+  }
+
   const hasChrome = Boolean(chrome);
   useLayoutEffect(() => {
     if (!armed || !hasChrome) return;
@@ -163,27 +185,26 @@ export function BayActionBar({
       if (!pointHitsBaySave(event.clientX, event.clientY)) return;
       event.preventDefault();
       event.stopPropagation();
-      activate();
+      tryActivate();
     }
     document.addEventListener("pointerup", onPointerUp, true);
     return () => document.removeEventListener("pointerup", onPointerUp, true);
-  }, [activate, armed, hasChrome]);
+  }, [tryActivate, armed, hasChrome]);
 
   if (!chrome) return null;
   const live = chrome;
   const noticeTitle = live.error || missed;
   const noticeDetails = live.error ? live.errorDetails : undefined;
 
-  function onPrimaryClick() {
-    activate();
-  }
-
   return (
     <div
       data-testid="bay-action-bar"
       data-bay-chrome=""
+      data-bay-save-row=""
       data-save-blocked={noticeTitle ? "true" : "false"}
       className="no-print relative z-30 isolate shrink-0 overflow-visible border-t border-navy-deep bg-surface px-3 pt-2 pb-[max(0.6rem,env(safe-area-inset-bottom))]"
+      onPointerDown={onSaveRowPointerDown}
+      onClick={onSaveRowClick}
     >
       {noticeTitle ? (
         <div className="relative z-40 mb-2" data-testid={missed && !live.error ? "bay-save-missed" : undefined}>
@@ -222,7 +243,8 @@ export function BayActionBar({
         data-bay-primary=""
         className="mt-2 min-h-12 w-full min-w-0 max-w-[calc(100%-11.5rem)] justify-start text-left touch-manipulation active:scale-100"
         style={{ minHeight: Math.max(BAY_TAP_MIN_PX, 48) }}
-        onClick={onPrimaryClick}
+        onPointerDown={onSaveRowPointerDown}
+        onClick={onSaveRowClick}
         disabled={live.disabled || live.busy}
       >
         <span className="pointer-events-none truncate">{live.label}</span>

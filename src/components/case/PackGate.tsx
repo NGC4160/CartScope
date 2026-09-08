@@ -11,6 +11,7 @@ import { BAY_CHECK_FORM_ID, bayFormSubmitGate, type BaySaveHandler } from "@/lib
 import { packLayout, scaledLeadAcidLimits } from "@/lib/pack-layout";
 import {
   applyBulkAgeUnreadable,
+  decidePackSave,
   packPasteTemplate,
   packSaveBlockedReason,
   packSaveBlockers,
@@ -151,9 +152,9 @@ export function PackGate({
     });
   }
 
-  function showBlockers(list: ReturnType<typeof packSaveBlockers>): string {
+  function showBlockers(list: ReturnType<typeof packSaveBlockers>, reason?: string): string {
     setBlockers(list);
-    const message = packSaveBlockedReason(list);
+    const message = reason ?? packSaveBlockedReason(list);
     setError(message);
     queueMicrotask(() => errorAnchor.current?.scrollIntoView({ block: "nearest" }));
     return message;
@@ -212,23 +213,6 @@ export function PackGate({
     };
   }
 
-  function continuePass(): string | void {
-    const missing = currentBlockers();
-    if (missing.length) {
-      return showBlockers(missing);
-    }
-    setBlockers([]);
-    setError(null);
-    const verdict = liveEval();
-    if (!lithium && !verdict.pass) {
-      const message = "This pack does not pass. Charge or fix it first, or continue on a test battery.";
-      setError(message);
-      queueMicrotask(() => errorAnchor.current?.scrollIntoView({ block: "nearest" }));
-      return message;
-    }
-    save(job.id, buildRecord("pass", irNote ? [irNote] : []));
-  }
-
   function stayAndCharge() {
     const missing = currentBlockers();
     if (missing.length) {
@@ -241,29 +225,33 @@ export function PackGate({
     setTestPath(false);
   }
 
-  function continueTestBattery(): string | void {
-    const missing = currentBlockers();
-    if (missing.length) {
-      return showBlockers(missing);
-    }
-    const note = liveRef.current.testNote.trim();
-    if (!note || note.length < 8) {
-      const message = "Write what you measured on the pack, and that later steps used a known-good test battery.";
-      setError(message);
-      queueMicrotask(() => errorAnchor.current?.scrollIntoView({ block: "nearest" }));
-      return message;
-    }
-    save(job.id, buildRecord("fail", liveEval().issues), { used: true, measuredProblem: note });
-  }
-
   function submitLive(): string | void {
     const snap = liveRef.current;
-    const numeric = snap.cells.map((c) => typedVoltage(c.volts)).filter((n): n is number => n != null);
-    const verdict = liveEval();
-    if (lithium || verdict.pass || numeric.length < layout.count) {
-      return continuePass();
+    const decision = decidePackSave({
+      lithium,
+      cellCount: layout.count,
+      cells: snap.cells,
+      irSkip: snap.irSkip,
+      irSkipReason: snap.irSkipReason,
+      monitorV: snap.monitorV,
+      noMonitor: snap.noMonitor,
+      loadDrop: snap.loadDrop,
+      testNote: snap.testNote,
+      nominalV: layout.nominalV,
+    });
+    if (decision.action === "block") {
+      return showBlockers(decision.blockers, decision.reason);
     }
-    return continueTestBattery();
+    setBlockers([]);
+    setError(null);
+    if (decision.action === "save-pass") {
+      save(job.id, buildRecord("pass", irNote ? [irNote] : []));
+      return;
+    }
+    save(job.id, buildRecord("fail", decision.issues), {
+      used: true,
+      measuredProblem: snap.testNote.trim(),
+    });
   }
 
   const canOfferFailPath = !lithium && !evalr.pass && numericCells.length >= layout.count;

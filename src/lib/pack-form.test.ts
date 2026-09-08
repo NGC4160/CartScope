@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   applyBulkAgeUnreadable,
+  decidePackSave,
   emptyPackCells,
   groupPackBlockers,
   packSaveBlockedReason,
@@ -144,6 +145,46 @@ test("empty pack sticky reason names resting volts and age", () => {
   assert.match(reason, /resting volts/i);
   assert.match(reason, /age/i);
   assert.match(reason, /Battery 1 resting volts/);
+});
+
+test("empty pack Save decision is a sticky volts/age block, not a silent miss", () => {
+  const decision = decidePackSave({
+    lithium: false,
+    cellCount: 6,
+    cells: emptyPackCells(6),
+    irSkip: false,
+    irSkipReason: "",
+    monitorV: "",
+    noMonitor: false,
+    nominalV: 8,
+  });
+  assert.equal(decision.action, "block");
+  if (decision.action !== "block") return;
+  assert.match(decision.reason, /resting volts/i);
+  assert.match(decision.reason, /age/i);
+  assert.match(decision.reason, /Battery 1 resting volts/);
+  assert.ok(decision.blockers.length > 0);
+});
+
+test("Yamaha YDRE filled pack 8.48 V / 12 mΩ / 09/2024 is a valid Save", () => {
+  const cells = Array.from({ length: 6 }, () => ({
+    volts: "8.48",
+    ir: "12",
+    irUnit: "mohm" as const,
+    age: "09/2024",
+    ageSkip: false,
+  }));
+  const decision = decidePackSave({
+    lithium: false,
+    cellCount: 6,
+    cells,
+    irSkip: false,
+    irSkipReason: "",
+    monitorV: "",
+    noMonitor: false,
+    nominalV: 8,
+  });
+  assert.equal(decision.action, "save-pass");
 });
 
 test("short-load is optional and never a pack Save blocker", () => {

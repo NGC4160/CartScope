@@ -97,6 +97,37 @@ async function gloveClickPrimary(page) {
   await page.mouse.click(x, y, { button: "left" });
 }
 
+/**
+ * Tap the Save row just past the inset button. Testers treat the whole
+ * footer as Save; that gap used to be a silent miss after the pill inset.
+ */
+async function mouseClickSaveRow(page) {
+  const bar = page.getByTestId("bay-action-bar");
+  const btn = bar.getByTestId("bay-primary-action").filter({ visible: true });
+  await btn.waitFor({ state: "visible" });
+  const barBox = await bar.boundingBox();
+  const btnBox = await btn.boundingBox();
+  if (!barBox || !btnBox) throw new Error("sticky Save row has no box");
+  const x = Math.min(btnBox.x + btnBox.width + 16, barBox.x + barBox.width - 200);
+  const y = btnBox.y + btnBox.height * 0.5;
+  const hit = await page.evaluate(
+    ({ x, y }) => {
+      const el = document.elementFromPoint(x, y);
+      return {
+        bar: Boolean(el?.closest?.("[data-bay-chrome], [data-testid='bay-action-bar']")),
+        start: Boolean(el?.closest?.("[data-start-checks], [data-testid='start-checks']")),
+        tag: el?.tagName ?? null,
+        testid: el?.getAttribute?.("data-testid") ?? null,
+      };
+    },
+    { x, y },
+  );
+  if (!hit.bar || hit.start) {
+    throw new Error(`Save row mouse target is not the Save bar: ${JSON.stringify(hit)}`);
+  }
+  await page.mouse.click(x, y, { button: "left" });
+}
+
 /** Tester tap: on the Save control itself, left of the Grok chat pill. */
 async function mouseClickPrimary(page) {
   const bar = page.getByTestId("bay-action-bar");
@@ -887,9 +918,9 @@ async function runLiveFailList() {
     "YDRE volts-only still on pack after blocked Save",
     await yamaha.getByRole("heading", { name: /Check the pack before you blame other parts/i }).isVisible(),
   );
-  await fillLeadAcidPack(yamaha, { count: 6, volts: "8.45", ir: "3.4", age: "03/2026" });
+  await fillLeadAcidPack(yamaha, { count: 6, volts: "8.48", ir: "12", age: "09/2024" });
   check("YDRE pack in shop range", await yamaha.getByText(/in the shop range/i).isVisible());
-  await gloveClickPrimary(yamaha);
+  await mouseClickSaveRow(yamaha);
   await yamaha.getByRole("heading", { name: /Save a program file before you clear/i }).waitFor({ timeout: 10000 });
   check(
     "YDRE DC glove Save left Battery Pack",
@@ -920,7 +951,7 @@ async function runLiveFailList() {
     serial: "ERIC01",
     who: "Ryan",
   });
-  await gloveClickPrimary(precedent);
+  await mouseClickSaveRow(precedent);
   const emptyPackNotice = precedent.getByTestId("bay-save-notice");
   check("Precedent empty pack Save shows a reason", await emptyPackNotice.isVisible());
   const emptyPackText = await emptyPackNotice.innerText();

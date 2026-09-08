@@ -1,5 +1,5 @@
 import { DEFAULT_IR_UNIT, parseIrReading, parseIrUnitToken, type IrUnit } from "./ir-unit.ts";
-import { parseAgeMonthYear, parseVolts } from "./pack-rules.ts";
+import { evaluateLeadAcid, monthsOld, parseAgeMonthYear, parseVolts } from "./pack-rules.ts";
 
 export type PackCellDraft = {
   volts: string;
@@ -71,6 +71,61 @@ export function packSaveBlockers(input: {
   }
 
   return blockers;
+}
+
+export const PACK_FAIL_BLOCK_REASON =
+  "This pack does not pass. Charge or fix it first, or continue on a test battery.";
+
+export const PACK_TEST_BATTERY_BLOCK_REASON =
+  "Write what you measured on the pack, and that later steps used a known-good test battery.";
+
+export type PackSaveDecision =
+  | { action: "save-pass" }
+  | { action: "save-test-battery"; issues: string[] }
+  | { action: "block"; reason: string; blockers: PackBlocker[] };
+
+/**
+ * One pack Save decision. Empty / incomplete packs always name resting volts
+ * and age. A valid filled pack is save-pass. Do not silently no-op.
+ */
+export function decidePackSave(input: {
+  lithium: boolean;
+  cellCount: number;
+  cells: PackCellDraft[];
+  irSkip: boolean;
+  irSkipReason: string;
+  monitorV: string;
+  noMonitor: boolean;
+  loadDrop?: string;
+  testNote?: string;
+  nominalV: number;
+}): PackSaveDecision {
+  const blockers = packSaveBlockers(input);
+  if (blockers.length) {
+    return { action: "block", reason: packSaveBlockedReason(blockers), blockers };
+  }
+  if (input.lithium) return { action: "save-pass" };
+
+  const numeric = input.cells.map((c) => typedVoltage(c.volts)).filter((n): n is number => n != null);
+  const ages = input.cells.map((c) => {
+    if (c.ageSkip) return null;
+    const parsed = parseAgeMonthYear(c.age);
+    return parsed ? monthsOld(parsed) : null;
+  });
+  const verdict = evaluateLeadAcid(numeric, input.nominalV, parseVolts(input.loadDrop ?? ""), ages);
+
+  if (verdict.pass || numeric.length < input.cellCount) {
+    if (!verdict.pass) {
+      return { action: "block", reason: PACK_FAIL_BLOCK_REASON, blockers: [] };
+    }
+    return { action: "save-pass" };
+  }
+
+  const note = (input.testNote ?? "").trim();
+  if (note.length < 8) {
+    return { action: "block", reason: PACK_TEST_BATTERY_BLOCK_REASON, blockers: [] };
+  }
+  return { action: "save-test-battery", issues: verdict.issues };
 }
 
 /** Large sticky title. Empty pack must name resting volts and age. */
