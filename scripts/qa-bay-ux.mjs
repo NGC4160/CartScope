@@ -966,7 +966,13 @@ async function runLiveFailList() {
     })),
   );
   console.log("paste boxes before Save", pasteBoxes);
+  await yamaha.evaluate(() => {
+    window.__packSaveDebug = null;
+  });
   await mouseClickPrimaryRight(yamaha);
+  if ((await yamaha.evaluate(() => window.__packSaveDebug)) == null) {
+    await yamaha.getByTestId("bay-primary-action").filter({ visible: true }).click({ force: true, timeout: 5000 });
+  }
   const packSaveDebug = await yamaha.evaluate(() => window.__packSaveDebug ?? null);
   console.log("pack Save debug", packSaveDebug);
   try {
