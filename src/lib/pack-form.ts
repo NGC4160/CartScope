@@ -204,17 +204,27 @@ export type BulkPasteResult = {
   message: string;
 };
 
-const rememberedPaste = new Map<string, string>();
+const rememberedPaste: Record<string, string> = {};
 
-/** Survives a remount that wipes the uncontrolled paste box before Save. */
+function pasteStore(): Record<string, string> {
+  if (typeof window !== "undefined") {
+    const w = window as Window & { __cartscopePackPaste?: Record<string, string> };
+    w.__cartscopePackPaste ??= {};
+    return w.__cartscopePackPaste;
+  }
+  return rememberedPaste;
+}
+
+/** Survives a remount or HMR that wipes the paste box before Save. */
 export function rememberPackPaste(jobId: string, raw: string): void {
   if (!jobId) return;
-  if (raw.trim()) rememberedPaste.set(jobId, raw);
-  else rememberedPaste.delete(jobId);
+  const store = pasteStore();
+  if (raw.trim()) store[jobId] = raw;
+  else delete store[jobId];
 }
 
 export function readRememberedPackPaste(jobId: string): string {
-  return rememberedPaste.get(jobId) ?? "";
+  return pasteStore()[jobId] ?? "";
 }
 
 /**

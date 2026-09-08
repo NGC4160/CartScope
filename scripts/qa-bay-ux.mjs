@@ -939,11 +939,36 @@ async function runLiveFailList() {
     "Battery 6 8.5 10 2022-01",
   ].join("\n");
   await pasteBox.fill(pastedRows);
+  await yamaha.evaluate((text) => {
+    const el = document.querySelector("[data-testid='pack-paste']");
+    if (el instanceof HTMLTextAreaElement) {
+      el.focus();
+      const setter = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, "value")?.set;
+      setter?.call(el, text);
+      el.dispatchEvent(new InputEvent("input", { bubbles: true, inputType: "insertFromPaste" }));
+      el.dispatchEvent(new Event("change", { bubbles: true }));
+    }
+    const raw = localStorage.getItem("cartscope-jobs-v1");
+    const id = JSON.parse(raw || "{}")?.state?.jobs?.[0]?.id;
+    if (id) {
+      const w = window;
+      w.__cartscopePackPaste = { ...(w.__cartscopePackPaste || {}), [id]: text };
+    }
+  }, pastedRows);
   const pastedValue = await pasteBox.inputValue();
   if (!/Battery 1 8\.5 10 2022-01/.test(pastedValue) || !/Battery 6 8\.5 10 2022-01/.test(pastedValue)) {
     throw new Error(`pack paste box lost rows before Save: ${JSON.stringify(pastedValue)}`);
   }
+  const pasteBoxes = await yamaha.evaluate(() =>
+    [...document.querySelectorAll("[data-testid='pack-paste'], [data-pack-paste]")].map((el) => ({
+      value: "value" in el ? String(el.value).slice(0, 80) : "",
+      testid: el.getAttribute("data-testid"),
+    })),
+  );
+  console.log("paste boxes before Save", pasteBoxes);
   await mouseClickPrimaryRight(yamaha);
+  const packSaveDebug = await yamaha.evaluate(() => window.__packSaveDebug ?? null);
+  console.log("pack Save debug", packSaveDebug);
   try {
     await yamaha.getByRole("heading", { name: /Save a program file before you clear/i }).waitFor({ timeout: 8000 });
   } catch {

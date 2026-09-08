@@ -327,4 +327,5 @@ export interface PackDraft {
   irSkipReason?: string;
   agePhoto?: string;
   testNote?: string;
+  paste?: string;
 }

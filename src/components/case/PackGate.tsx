@@ -81,8 +81,11 @@ export function PackGate({
   const [agePhoto, setAgePhoto] = useState(draft?.agePhoto ?? prior?.ageLabelPhotoNote ?? "");
   const [testPath, setTestPath] = useState(false);
   const [testNote, setTestNote] = useState(draft?.testNote ?? job.testBattery?.measuredProblem ?? "");
-  const [paste, setPaste] = useState("");
-  const pasteRef = useRef("");
+  const [paste, setPaste] = useState(
+    () => draft?.paste || readRememberedPackPaste(job.id) || "",
+  );
+  const pasteRef = useRef(paste);
+  if (paste && pasteRef.current !== paste) pasteRef.current = paste;
   const [pasteNote, setPasteNote] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [blockers, setBlockers] = useState<PackBlocker[]>([]);
@@ -108,6 +111,7 @@ export function PackGate({
         irSkipReason: snap.irSkipReason,
         agePhoto: snap.agePhoto,
         testNote: snap.testNote,
+        paste: pasteRef.current,
       },
     });
   }
@@ -240,7 +244,7 @@ export function PackGate({
         return el.value;
       }
     }
-    const remembered = readRememberedPackPaste(job.id);
+    const remembered = readRememberedPackPaste(job.id) || job.packDraft?.paste || pasteRef.current;
     if (remembered.trim()) {
       pasteRef.current = remembered;
       return remembered;
@@ -265,6 +269,7 @@ export function PackGate({
     if (typeof window !== "undefined") {
       (window as Window & { __packSaveDebug?: unknown }).__packSaveDebug = {
         pasteLen: pasteRaw.length,
+        rememberedLen: readRememberedPackPaste(job.id).length,
         applied: parsed?.applied ?? 0,
         cell0: cells[0] ?? null,
         live0: snap.cells[0] ?? null,
@@ -423,20 +428,12 @@ export function PackGate({
               hint="One battery per line: volts, IR, age. Or a single line of voltages. Tab, comma, or spaces. Values stay after you leave a field."
             >
               <textarea
-                defaultValue=""
-                ref={(el) => {
-                  if (!el || el.dataset.packPasteBound === "1") return;
-                  el.dataset.packPasteBound = "1";
-                  el.addEventListener("input", () => {
-                    pasteRef.current = el.value;
-                    rememberPackPaste(job.id, el.value);
-                    setPaste(el.value);
-                  });
-                }}
+                value={paste}
                 onChange={(e) => {
                   pasteRef.current = e.target.value;
                   rememberPackPaste(job.id, e.target.value);
                   setPaste(e.target.value);
+                  persistDraft();
                 }}
                 className={inputClass + " min-h-28 py-2 font-mono text-sm"}
                 placeholder={packPasteTemplate(layout.count)}
