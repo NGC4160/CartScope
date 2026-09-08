@@ -75,10 +75,13 @@ export function isBaySaveStealTarget(target: EventTarget | null): boolean {
   if (el.closest("[data-bay-secondary]")) return false;
   if (el.closest("[data-testid='bay-action-bar']")) return true;
   if (el.closest("#grok-pill-sim, [data-testid='grok-pill-sim']")) return true;
-  if (el.closest("input, textarea, select, a, [role='tab'], [data-helper-jump], [data-testid='helper-redirect-list'], [data-bay-dock]")) {
+  if (
+    el.closest(
+      "input, textarea, select, button, a, label, [role='tab'], [role='checkbox'], [data-helper-jump], [data-testid='helper-redirect-list'], [data-bay-dock]",
+    )
+  ) {
     return false;
   }
-  if (el.closest("button")) return false;
   return true;
 }
 

@@ -29,13 +29,15 @@ test("steal Save from the bar or Grok pill, never from an observation pick", () 
   const bar = { closest: (sel: string) => (sel.includes("bay-action-bar") ? {} : null) };
   const pill = { closest: (sel: string) => (sel.includes("grok-pill") ? {} : null) };
   const pick = {
-    closest: (sel: string) => (sel === "button" ? {} : null),
+    closest: (sel: string) => (sel.includes("button") ? {} : null),
   };
   const field = { closest: (sel: string) => (sel.includes("input") ? {} : null) };
+  const label = { closest: (sel: string) => (sel.includes("label") ? {} : null) };
   assert.equal(isBaySaveStealTarget(bar as unknown as Element), true);
   assert.equal(isBaySaveStealTarget(pill as unknown as Element), true);
   assert.equal(isBaySaveStealTarget(pick as unknown as Element), false);
   assert.equal(isBaySaveStealTarget(field as unknown as Element), false);
+  assert.equal(isBaySaveStealTarget(label as unknown as Element), false);
 });
 
 test("a Grok-pill tap well above the Save row is not Save (Helper jump zone)", () => {
