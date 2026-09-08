@@ -66,14 +66,32 @@ export function CodeGate({
     cleared,
   };
   const liveRef = useRef(live);
-  liveRef.current = live;
+  // Do not assign liveRef from state on every render. A checkbox/store write
+  // mid-Save would throw away present/history/no-readings before go() runs.
 
   function patchLive(patch: Partial<typeof live>) {
     liveRef.current = { ...liveRef.current, ...patch };
   }
 
+  function readCodesLive(): typeof live {
+    const snap = { ...liveRef.current };
+    if (typeof document === "undefined") return snap;
+    const presentEl = document.querySelector<HTMLTextAreaElement>("[data-codes-present]");
+    const historyEl = document.querySelector<HTMLTextAreaElement>("[data-codes-history]");
+    const programEl = document.querySelector<HTMLInputElement>("[data-codes-program]");
+    const noRead = document.querySelector<HTMLInputElement>("[data-codes-no-readings]");
+    const noLog = document.querySelector<HTMLInputElement>("[data-codes-logger-unused]");
+    if (presentEl?.value) snap.present = presentEl.value;
+    if (historyEl?.value) snap.history = historyEl.value;
+    if (programEl?.value) snap.programFile = programEl.value;
+    if (noRead) snap.noReadings = noRead.checked;
+    if (noLog) snap.loggerNotUsed = noLog.checked;
+    liveRef.current = snap;
+    return snap;
+  }
+
   function currentHandheldBlockers() {
-    const snap = liveRef.current;
+    const snap = readCodesLive();
     return handheldSaveBlockers({
       noConnect: snap.noConnect,
       connectReason: snap.connectReason,
@@ -94,7 +112,7 @@ export function CodeGate({
   const captured = missing.length === 0;
 
   function go(): string | void {
-    const snap = liveRef.current;
+    const snap = readCodesLive();
     const liveMissing = currentHandheldBlockers();
     setError(null);
     if (liveMissing.length) {
@@ -210,6 +228,7 @@ export function CodeGate({
               }}
               className={inputClass + " font-mono"}
               disabled={noConnect}
+              data-codes-program=""
             />
           </Field>
           <Field label="Present codes" hint="Write them from the program file or the handheld screen.">
@@ -222,6 +241,7 @@ export function CodeGate({
               className={inputClass + " min-h-20 py-2"}
               disabled={noConnect}
               placeholder="None, or write each code."
+              data-codes-present=""
             />
           </Field>
           <Field label="History codes" hint="Same program file. Look at history before you clear.">
@@ -234,6 +254,7 @@ export function CodeGate({
               className={inputClass + " min-h-20 py-2"}
               disabled={noConnect}
               placeholder="None, or write each stored code."
+              data-codes-history=""
             />
           </Field>
         </div>
@@ -253,6 +274,7 @@ export function CodeGate({
               }}
               disabled={noConnect}
               className="mt-1 size-4 accent-navy"
+              data-codes-logger-unused=""
             />
             No log file — logger not used
           </label>
@@ -286,6 +308,7 @@ export function CodeGate({
               }}
               disabled={noConnect}
               className="mt-1 size-4 accent-navy"
+              data-codes-no-readings=""
             />
             This controller does not show fault counters / odometer / fault odometer
           </label>

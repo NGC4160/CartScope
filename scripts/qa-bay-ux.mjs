@@ -223,6 +223,7 @@ async function fillHandheldAndSave(page) {
   if (await history.count()) await history.fill("None");
   const noRead = page.getByRole("checkbox", { name: /This controller does not show fault counters/i });
   if (await noRead.count()) await noRead.check();
+  await page.waitForTimeout(150);
   await mouseClickPrimary(page);
   const check1 = page.getByText(/CHECK 1/i).first();
   try {
