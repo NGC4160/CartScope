@@ -204,6 +204,19 @@ export type BulkPasteResult = {
   message: string;
 };
 
+const rememberedPaste = new Map<string, string>();
+
+/** Survives a remount that wipes the uncontrolled paste box before Save. */
+export function rememberPackPaste(jobId: string, raw: string): void {
+  if (!jobId) return;
+  if (raw.trim()) rememberedPaste.set(jobId, raw);
+  else rememberedPaste.delete(jobId);
+}
+
+export function readRememberedPackPaste(jobId: string): string {
+  return rememberedPaste.get(jobId) ?? "";
+}
+
 /**
  * Save uses the paste box when it has rows, even if the tech never tapped
  * Fill. A store write mid-Save must not throw those rows away.

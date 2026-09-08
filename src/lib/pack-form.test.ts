@@ -4,6 +4,8 @@ import {
   applyBulkAgeUnreadable,
   cellsForPackSave,
   decidePackSave,
+  readRememberedPackPaste,
+  rememberPackPaste,
   emptyPackCells,
   groupPackBlockers,
   packSaveBlockedReason,
@@ -285,6 +287,33 @@ test("Save applies Battery N paste over volts-only cells without Fill", () => {
     nominalV: 8,
   });
   assert.equal(decision.action, "save-pass");
+});
+
+test("remembered paste survives an empty box remount for the same job", () => {
+  const pasted = [
+    "Battery 1 8.5 10 2022-01",
+    "Battery 2 8.5 10 2022-01",
+    "Battery 3 8.5 10 2022-01",
+    "Battery 4 8.5 10 2022-01",
+    "Battery 5 8.5 10 2022-01",
+    "Battery 6 8.5 10 2022-01",
+  ].join("\n");
+  rememberPackPaste("job_paste_cache", pasted);
+  assert.equal(readRememberedPackPaste("job_paste_cache"), pasted);
+  const cells = cellsForPackSave(readRememberedPackPaste("job_paste_cache"), sixAt("8.45"), 6);
+  const decision = decidePackSave({
+    lithium: false,
+    cellCount: 6,
+    cells,
+    irSkip: false,
+    irSkipReason: "",
+    monitorV: "",
+    noMonitor: false,
+    nominalV: 8,
+  });
+  assert.equal(decision.action, "save-pass");
+  rememberPackPaste("job_paste_cache", "");
+  assert.equal(readRememberedPackPaste("job_paste_cache"), "");
 });
 
 test("empty paste on Save keeps the live cells (empty pack still names volts/age)", () => {

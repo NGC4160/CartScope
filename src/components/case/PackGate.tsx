@@ -14,6 +14,8 @@ import {
   cellsForPackSave,
   decidePackSave,
   packPasteTemplate,
+  readRememberedPackPaste,
+  rememberPackPaste,
   packSaveBlockedReason,
   packSaveBlockers,
   parseBulkPackPaste,
@@ -234,8 +236,14 @@ export function PackGate({
       const el = document.querySelector<HTMLTextAreaElement>("[data-testid='pack-paste'], [data-pack-paste]");
       if (el?.value.trim()) {
         pasteRef.current = el.value;
+        rememberPackPaste(job.id, el.value);
         return el.value;
       }
+    }
+    const remembered = readRememberedPackPaste(job.id);
+    if (remembered.trim()) {
+      pasteRef.current = remembered;
+      return remembered;
     }
     return pasteRef.current;
   }
@@ -254,6 +262,14 @@ export function PackGate({
       setPasteNote(parsed!.message);
     }
     const snap = liveRef.current;
+    if (typeof window !== "undefined") {
+      (window as Window & { __packSaveDebug?: unknown }).__packSaveDebug = {
+        pasteLen: pasteRaw.length,
+        applied: parsed?.applied ?? 0,
+        cell0: cells[0] ?? null,
+        live0: snap.cells[0] ?? null,
+      };
+    }
     const decision = decidePackSave({
       lithium,
       cellCount: layout.count,
@@ -408,8 +424,18 @@ export function PackGate({
             >
               <textarea
                 defaultValue=""
+                ref={(el) => {
+                  if (!el || el.dataset.packPasteBound === "1") return;
+                  el.dataset.packPasteBound = "1";
+                  el.addEventListener("input", () => {
+                    pasteRef.current = el.value;
+                    rememberPackPaste(job.id, el.value);
+                    setPaste(el.value);
+                  });
+                }}
                 onChange={(e) => {
                   pasteRef.current = e.target.value;
+                  rememberPackPaste(job.id, e.target.value);
                   setPaste(e.target.value);
                 }}
                 className={inputClass + " min-h-28 py-2 font-mono text-sm"}
