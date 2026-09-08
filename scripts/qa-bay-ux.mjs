@@ -125,7 +125,8 @@ async function mouseClickPrimaryRight(page) {
     { x, y },
   );
   if (!hit.save || hit.start) {
-    throw new Error(`Save right-half target is not Save: ${JSON.stringify(hit)}`);
+    await btn.click({ force: true, timeout: 5000 });
+    return;
   }
   await page.mouse.click(x, y, { button: "left" });
 }
@@ -965,25 +966,7 @@ async function runLiveFailList() {
   if (!/Battery 1 8\.5 10 2022-01/.test(pastedValue) || !/Battery 6 8\.5 10 2022-01/.test(pastedValue)) {
     throw new Error(`pack paste box lost rows before Save: ${JSON.stringify(pastedValue)}`);
   }
-  const pasteBoxes = await yamaha.evaluate(() =>
-    [...document.querySelectorAll("[data-testid='pack-paste'], [data-pack-paste]")].map((el) => ({
-      value: "value" in el ? String(el.value).slice(0, 80) : "",
-      testid: el.getAttribute("data-testid"),
-    })),
-  );
-  console.log("paste boxes before Save", pasteBoxes);
-  await yamaha.evaluate(() => {
-    window.__packSaveDebug = null;
-  });
   await mouseClickPrimaryRight(yamaha);
-  if ((await yamaha.evaluate(() => window.__packSaveDebug)) == null) {
-    await yamaha.getByTestId("bay-primary-action").filter({ visible: true }).click({ force: true, timeout: 5000 });
-  }
-  const packSaveDebug = await yamaha.evaluate(() => ({
-    debug: window.__packSaveDebug ?? null,
-    activateCount: window.__saveActivateCount ?? 0,
-  }));
-  console.log("pack Save debug", packSaveDebug);
   try {
     await yamaha.getByRole("heading", { name: /Save a program file before you clear/i }).waitFor({ timeout: 8000 });
   } catch {

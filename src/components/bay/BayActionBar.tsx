@@ -136,10 +136,6 @@ export function BayActionBar({
   const tapGate = useRef(createBayGesture(80)).current;
 
   const activate = useCallback(() => {
-    if (typeof window !== "undefined") {
-      const w = window as Window & { __saveActivateCount?: number };
-      w.__saveActivateCount = (w.__saveActivateCount ?? 0) + 1;
-    }
     const live = chromeRef.current;
     if (!live) return;
     if (live.disabled || live.busy) {

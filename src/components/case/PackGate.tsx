@@ -266,15 +266,6 @@ export function PackGate({
       setPasteNote(parsed!.message);
     }
     const snap = liveRef.current;
-    if (typeof window !== "undefined") {
-      (window as Window & { __packSaveDebug?: unknown }).__packSaveDebug = {
-        pasteLen: pasteRaw.length,
-        rememberedLen: readRememberedPackPaste(job.id).length,
-        applied: parsed?.applied ?? 0,
-        cell0: cells[0] ?? null,
-        live0: snap.cells[0] ?? null,
-      };
-    }
     const decision = decidePackSave({
       lithium,
       cellCount: layout.count,
