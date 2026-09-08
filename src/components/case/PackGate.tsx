@@ -178,7 +178,7 @@ export function PackGate({
   }
 
   function applyPaste() {
-    const result = parseBulkPackPaste(paste, cells, layout.count);
+    const result = parseBulkPackPaste(readPasteRaw(), liveRef.current.cells, layout.count);
     setCells(result.cells);
     liveRef.current = { ...liveRef.current, cells: result.cells };
     persistDraft({ cells: result.cells });
@@ -399,8 +399,11 @@ export function PackGate({
               hint="One battery per line: volts, IR, age. Or a single line of voltages. Tab, comma, or spaces. Values stay after you leave a field."
             >
               <textarea
-                value={paste}
-                onChange={(e) => setPaste(e.target.value)}
+                defaultValue=""
+                onChange={(e) => {
+                  pasteRef.current = e.target.value;
+                  setPaste(e.target.value);
+                }}
                 className={inputClass + " min-h-28 py-2 font-mono text-sm"}
                 placeholder={packPasteTemplate(layout.count)}
                 aria-label={`Paste ${layout.count} battery rows`}

@@ -930,16 +930,19 @@ async function runLiveFailList() {
     await yamaha.getByRole("heading", { name: /Check the pack before you blame other parts/i }).isVisible(),
   );
   const pasteBox = yamaha.getByTestId("pack-paste");
-  await pasteBox.fill(
-    [
-      "Battery 1 8.5 10 2022-01",
-      "Battery 2 8.5 10 2022-01",
-      "Battery 3 8.5 10 2022-01",
-      "Battery 4 8.5 10 2022-01",
-      "Battery 5 8.5 10 2022-01",
-      "Battery 6 8.5 10 2022-01",
-    ].join("\n"),
-  );
+  const pastedRows = [
+    "Battery 1 8.5 10 2022-01",
+    "Battery 2 8.5 10 2022-01",
+    "Battery 3 8.5 10 2022-01",
+    "Battery 4 8.5 10 2022-01",
+    "Battery 5 8.5 10 2022-01",
+    "Battery 6 8.5 10 2022-01",
+  ].join("\n");
+  await pasteBox.fill(pastedRows);
+  const pastedValue = await pasteBox.inputValue();
+  if (!/Battery 1 8\.5 10 2022-01/.test(pastedValue) || !/Battery 6 8\.5 10 2022-01/.test(pastedValue)) {
+    throw new Error(`pack paste box lost rows before Save: ${JSON.stringify(pastedValue)}`);
+  }
   await mouseClickPrimaryRight(yamaha);
   try {
     await yamaha.getByRole("heading", { name: /Save a program file before you clear/i }).waitFor({ timeout: 8000 });
