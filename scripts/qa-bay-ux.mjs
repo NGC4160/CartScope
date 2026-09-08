@@ -170,6 +170,7 @@ async function fillHandheldAndSave(page) {
 
 async function saveFactoryCheck1To2(page, pickLabel, nextHeading, label) {
   await page.getByText(/CHECK 1/i).first().waitFor({ timeout: 15000 });
+  await page.waitForTimeout(450);
   const pick = page.getByRole("button", { name: pickLabel });
   await pick.waitFor({ state: "visible" });
   await pick.click();
