@@ -102,6 +102,19 @@ export type SaveContinueOk = {
 
 export type SaveContinueResult = SaveContinueOk | SaveContinueFail;
 
+/** First non-empty pick wins. Save must not depend on one React state slot. */
+export function resolveObservationPick(input: {
+  live?: string | null;
+  state?: string | null;
+  draft?: string | null;
+  pressed?: string | null;
+}): string | null {
+  for (const value of [input.live, input.state, input.draft, input.pressed]) {
+    if (typeof value === "string" && value.trim()) return value.trim();
+  }
+  return null;
+}
+
 export function observationSaveBlock(spec: Pick<MeasurementSpec, "kind" | "options">): {
   message: string;
   missingFields: string[];

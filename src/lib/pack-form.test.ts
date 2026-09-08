@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   applyBulkAgeUnreadable,
+  cellsForPackSave,
   decidePackSave,
   emptyPackCells,
   groupPackBlockers,
@@ -258,4 +259,50 @@ test("paste of eight values onto a six-battery pack keeps the first six", () => 
   assert.equal(result.applied, 6);
   assert.equal(result.extraIgnored, 2);
   assert.equal(result.cells[5]?.volts, "8.6");
+});
+
+test("Save applies Battery N paste over volts-only cells without Fill", () => {
+  const pasted = [
+    "Battery 1 8.5 10 2022-01",
+    "Battery 2 8.5 10 2022-01",
+    "Battery 3 8.5 10 2022-01",
+    "Battery 4 8.5 10 2022-01",
+    "Battery 5 8.5 10 2022-01",
+    "Battery 6 8.5 10 2022-01",
+  ].join("\n");
+  const cells = cellsForPackSave(pasted, sixAt("8.45"), 6);
+  assert.equal(cells[0]?.volts, "8.5");
+  assert.equal(cells[0]?.ir, "10");
+  assert.equal(cells[0]?.age, "2022-01");
+  const decision = decidePackSave({
+    lithium: false,
+    cellCount: 6,
+    cells,
+    irSkip: false,
+    irSkipReason: "",
+    monitorV: "",
+    noMonitor: false,
+    nominalV: 8,
+  });
+  assert.equal(decision.action, "save-pass");
+});
+
+test("empty paste on Save keeps the live cells (empty pack still names volts/age)", () => {
+  const empty = emptyPackCells(6);
+  assert.equal(cellsForPackSave("", empty, 6), empty);
+  const decision = decidePackSave({
+    lithium: false,
+    cellCount: 6,
+    cells: cellsForPackSave("   ", empty, 6),
+    irSkip: false,
+    irSkipReason: "",
+    monitorV: "",
+    noMonitor: false,
+    nominalV: 8,
+  });
+  assert.equal(decision.action, "block");
+  if (decision.action === "block") {
+    assert.match(decision.reason, /resting volts/i);
+    assert.match(decision.reason, /age/i);
+  }
 });

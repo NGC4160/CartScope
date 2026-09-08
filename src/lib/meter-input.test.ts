@@ -5,6 +5,7 @@ import {
   commitMeterReading,
   meterExampleHint,
   meterPlaceholderText,
+  resolveObservationPick,
   sanitizeMeterInput,
   saveAndContinueMeasurement,
   savedContinueNote,
@@ -128,4 +129,9 @@ test("resistance OL commits and a missing observation names the field", () => {
     assert.equal(failPick.result, "fail");
     assert.deepEqual(failPick.next, { kind: "diagnosis", id: "gdx-setup" });
   }
+
+  assert.equal(resolveObservationPick({ live: null, state: null, draft: "yes", pressed: null }), "yes");
+  assert.equal(resolveObservationPick({ live: null, state: null, draft: null, pressed: "no" }), "no");
+  assert.equal(resolveObservationPick({ live: "yes", state: null, draft: "no", pressed: null }), "yes");
+  assert.equal(resolveObservationPick({ live: "", state: "", draft: null, pressed: null }), null);
 });

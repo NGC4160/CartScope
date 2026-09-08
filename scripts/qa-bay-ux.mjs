@@ -928,7 +928,7 @@ async function runLiveFailList() {
     "YDRE volts-only still on pack after blocked Save",
     await yamaha.getByRole("heading", { name: /Check the pack before you blame other parts/i }).isVisible(),
   );
-  const pasteBox = yamaha.getByLabel(/Paste 6 battery rows/i);
+  const pasteBox = yamaha.getByTestId("pack-paste");
   await pasteBox.fill(
     [
       "Battery 1 8.5 10 2022-01",
@@ -940,7 +940,20 @@ async function runLiveFailList() {
     ].join("\n"),
   );
   await mouseClickPrimaryRight(yamaha);
-  await yamaha.getByRole("heading", { name: /Save a program file before you clear/i }).waitFor({ timeout: 10000 });
+  try {
+    await yamaha.getByRole("heading", { name: /Save a program file before you clear/i }).waitFor({ timeout: 8000 });
+  } catch {
+    const notice = await yamaha.getByTestId("bay-save-notice").innerText().catch(() => "none");
+    const headings = await yamaha.getByRole("heading").allInnerTexts();
+    const stored = await yamaha.evaluate(() => {
+      const raw = localStorage.getItem("cartscope-jobs-v1");
+      const parsed = JSON.parse(raw || "{}");
+      const j = parsed?.state?.jobs?.[0];
+      return { phase: j?.casePhase, step: j?.currentStepId, pack: j?.packCheck?.verdict ?? null };
+    });
+    await yamaha.screenshot({ path: `${out}/yamaha-paste-save-stuck.png` });
+    throw new Error(`Yamaha paste Save did not reach Codes: ${JSON.stringify({ notice, headings, stored })}`);
+  }
   check(
     "YDRE DC glove Save left Battery Pack",
     await yamaha.getByRole("heading", { name: /Save a program file before you clear/i }).isVisible(),

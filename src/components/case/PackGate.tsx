@@ -11,6 +11,7 @@ import { BAY_CHECK_FORM_ID, bayFormSubmitGate, type BaySaveHandler } from "@/lib
 import { packLayout, scaledLeadAcidLimits } from "@/lib/pack-layout";
 import {
   applyBulkAgeUnreadable,
+  cellsForPackSave,
   decidePackSave,
   packPasteTemplate,
   packSaveBlockedReason,
@@ -88,10 +89,12 @@ export function PackGate({
 
   const live = { cells, loadDrop, monitorV, minCell, faults, noMonitor, irSkip, irSkipReason, agePhoto, testNote };
   const liveRef = useRef(live);
-  liveRef.current = live;
+  // Do not assign liveRef from state on every render. A store write mid-Save
+  // re-renders with stale cells and would throw away paste rows.
 
   function persistDraft(next?: Partial<typeof live>) {
-    const snap = { ...liveRef.current, ...next };
+    liveRef.current = { ...liveRef.current, ...next };
+    const snap = liveRef.current;
     patchJob(job.id, {
       packDraft: {
         cells: snap.cells,
@@ -227,20 +230,21 @@ export function PackGate({
     setTestPath(false);
   }
 
-  function applyPasteIfNeeded(): PackCellDraft[] {
-    const raw = pasteRef.current;
-    if (!raw.trim()) return liveRef.current.cells;
-    const result = parseBulkPackPaste(raw, liveRef.current.cells, layout.count);
-    if (result.applied === 0) return liveRef.current.cells;
-    liveRef.current = { ...liveRef.current, cells: result.cells };
-    setCells(result.cells);
-    persistDraft({ cells: result.cells });
-    setPasteNote(result.message);
-    return result.cells;
+  function readPasteRaw(): string {
+    if (typeof document !== "undefined") {
+      const el = document.querySelector<HTMLTextAreaElement>("[data-pack-paste]");
+      if (el?.value.trim()) return el.value;
+    }
+    return pasteRef.current;
   }
 
   function submitLive(): string | void {
-    applyPasteIfNeeded();
+    const cells = cellsForPackSave(readPasteRaw(), liveRef.current.cells, layout.count);
+    const appliedPaste = cells !== liveRef.current.cells;
+    liveRef.current = { ...liveRef.current, cells };
+    if (appliedPaste) {
+      setCells(cells);
+    }
     const snap = liveRef.current;
     const decision = decidePackSave({
       lithium,
@@ -400,6 +404,8 @@ export function PackGate({
                 className={inputClass + " min-h-28 py-2 font-mono text-sm"}
                 placeholder={packPasteTemplate(layout.count)}
                 aria-label={`Paste ${layout.count} battery rows`}
+                data-pack-paste=""
+                data-testid="pack-paste"
               />
             </Field>
             <Button type="button" variant="secondary" size="sm" onClick={applyPaste} disabled={!paste.trim()}>

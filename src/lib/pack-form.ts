@@ -204,6 +204,16 @@ export type BulkPasteResult = {
   message: string;
 };
 
+/**
+ * Save uses the paste box when it has rows, even if the tech never tapped
+ * Fill. A store write mid-Save must not throw those rows away.
+ */
+export function cellsForPackSave(pasteRaw: string, existing: PackCellDraft[], count: number): PackCellDraft[] {
+  if (!pasteRaw.trim()) return existing;
+  const result = parseBulkPackPaste(pasteRaw, existing, count);
+  return result.applied > 0 ? result.cells : existing;
+}
+
 /** Fill 6–8 (or the cart's count) battery rows from a pasted template or meter list. */
 export function parseBulkPackPaste(raw: string, existing: PackCellDraft[], count: number): BulkPasteResult {
   const cells = existing.length === count ? existing.map((c) => ({ ...c })) : emptyPackCells(count);
