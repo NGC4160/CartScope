@@ -102,10 +102,16 @@ async function mouseClickPrimaryRight(page) {
   const bar = page.getByTestId("bay-action-bar");
   const btn = bar.getByTestId("bay-primary-action").filter({ visible: true });
   await btn.waitFor({ state: "visible" });
+  await btn.scrollIntoViewIfNeeded();
   const box = await btn.boundingBox();
   if (!box) throw new Error("sticky Save button has no box");
-  const x = box.x + box.width * 0.75;
-  const y = box.y + box.height * 0.5;
+  const vp = page.viewportSize() ?? { width: 1024, height: 768 };
+  let x = box.x + box.width * 0.75;
+  let y = box.y + box.height * 0.5;
+  if (x < 0 || y < 0 || x > vp.width || y > vp.height) {
+    x = box.x + box.width * 0.4;
+    y = box.y + box.height * 0.5;
+  }
   const hit = await page.evaluate(
     ({ x, y }) => {
       const el = document.elementFromPoint(x, y);
@@ -973,7 +979,10 @@ async function runLiveFailList() {
   if ((await yamaha.evaluate(() => window.__packSaveDebug)) == null) {
     await yamaha.getByTestId("bay-primary-action").filter({ visible: true }).click({ force: true, timeout: 5000 });
   }
-  const packSaveDebug = await yamaha.evaluate(() => window.__packSaveDebug ?? null);
+  const packSaveDebug = await yamaha.evaluate(() => ({
+    debug: window.__packSaveDebug ?? null,
+    activateCount: window.__saveActivateCount ?? 0,
+  }));
   console.log("pack Save debug", packSaveDebug);
   try {
     await yamaha.getByRole("heading", { name: /Save a program file before you clear/i }).waitFor({ timeout: 8000 });
