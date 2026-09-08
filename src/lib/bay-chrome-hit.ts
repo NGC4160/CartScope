@@ -2,6 +2,13 @@
  * Helper jump keeps a reserved lower-right pad. Sticky Save and Start do
  * not inset for that pad. Testers aim at the Save label, which is left-
  * aligned so the tap lands left of the Grok chat pill (PR #30 bay miss).
+ *
+ * After #32, click-only Save still failed on pack: testers tap the right
+ * end of "Save pack and go on" after a long scroll. The Grok / Remix pill
+ * sits on that corner (`pointer-events: auto`, max z-index) and eats the
+ * click. Playwright at 40% width never hit it, so QA passed while the bay
+ * did not. Overlay-only capture steals that tap. The Save button itself
+ * stays click-only so a real button tap is never double-fired.
  */
 
 export const BAY_CHROME_CLEARANCE = {
@@ -63,4 +70,54 @@ export function bayClearanceBox(
     width: Math.max(0, right - bar.x),
     height: Math.max(0, bottom - bar.y),
   };
+}
+
+function elementFromTarget(target: EventTarget | null): { closest: (sel: string) => unknown } | null {
+  if (target && typeof (target as { closest?: unknown }).closest === "function") {
+    return target as unknown as { closest: (sel: string) => unknown };
+  }
+  const parent = target && (target as { parentElement?: { closest?: unknown } }).parentElement;
+  if (parent && typeof parent.closest === "function") {
+    return parent as unknown as { closest: (sel: string) => unknown };
+  }
+  return null;
+}
+
+/**
+ * True when the event started on platform overlay chrome — the Grok / Remix
+ * pill, or any other fixed layer that is not CartScope's bay bar, form, or
+ * Helper. Never true for the Save button itself (`[data-bay-primary]`).
+ */
+export function isOverlayChrome(target: EventTarget | null): boolean {
+  const el = elementFromTarget(target);
+  if (!el) return false;
+  if (el.closest("#grok-pill-sim")) return true;
+  if (el.closest("[data-bay-primary], [data-bay-chrome], [data-bay-form], [data-bay-helper]")) {
+    return false;
+  }
+  return true;
+}
+
+/** Point overlaps the Save row, or the reserved bottom-right pill slot. */
+export function pointHitsBaySave(clientX: number, clientY: number): boolean {
+  if (typeof document === "undefined") return false;
+  const save = document.querySelector("[data-bay-primary]");
+  if (save instanceof Element) {
+    const r = save.getBoundingClientRect();
+    if (clientX >= r.left && clientX <= r.right && clientY >= r.top && clientY <= r.bottom) {
+      return true;
+    }
+  }
+  const bar = document.querySelector("[data-bay-chrome]");
+  if (bar instanceof Element) {
+    const r = bar.getBoundingClientRect();
+    if (clientX >= r.left && clientX <= r.right && clientY >= r.top && clientY <= r.bottom) {
+      return true;
+    }
+  }
+  if (typeof window === "undefined") return false;
+  return pointInRect({ x: clientX, y: clientY }, bayChromeReservedRect({
+    width: window.innerWidth,
+    height: window.innerHeight,
+  }));
 }

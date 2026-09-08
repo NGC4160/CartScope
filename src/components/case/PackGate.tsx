@@ -12,6 +12,7 @@ import { packLayout, scaledLeadAcidLimits } from "@/lib/pack-layout";
 import {
   applyBulkAgeUnreadable,
   packPasteTemplate,
+  packSaveBlockedReason,
   packSaveBlockers,
   parseBulkPackPaste,
   typedVoltage,
@@ -152,14 +153,22 @@ export function PackGate({
 
   function showBlockers(list: ReturnType<typeof packSaveBlockers>): string {
     setBlockers(list);
-    const named = list.slice(0, 6).map((b) => b.field);
-    const extra = list.length > named.length ? ` and ${list.length - named.length} more` : "";
-    const message = list.length
-      ? `Cannot save yet. Still needed: ${named.join(", ")}${extra}. Type resting volts and age, or mark IR/age not readable.`
-      : "Cannot save yet.";
+    const message = packSaveBlockedReason(list);
     setError(message);
     queueMicrotask(() => errorAnchor.current?.scrollIntoView({ block: "nearest" }));
     return message;
+  }
+
+  function liveEval() {
+    const snap = liveRef.current;
+    if (lithium) return { pass: true, issues: [] as string[] };
+    const numeric = snap.cells.map((c) => typedVoltage(c.volts)).filter((n): n is number => n != null);
+    const ages = snap.cells.map((c) => {
+      if (c.ageSkip) return null;
+      const parsed = parseAgeMonthYear(c.age);
+      return parsed ? monthsOld(parsed) : null;
+    });
+    return evaluateLeadAcid(numeric, layout.nominalV, parseVolts(snap.loadDrop), ages);
   }
 
   function applyPaste() {
@@ -171,13 +180,14 @@ export function PackGate({
   }
 
   function buildRecord(verdict: PackCheckRecord["verdict"], issues: string[]): PackCheckRecord {
-    const mapped: PackCellReading[] = cells.map((c, index) => ({
+    const snap = liveRef.current;
+    const mapped: PackCellReading[] = snap.cells.map((c, index) => ({
       index,
       volts: c.volts,
-      ir: irSkip || lithium ? undefined : c.ir.trim() || undefined,
-      irUnit: irSkip || lithium ? undefined : resolveIrUnit(c.irUnit),
-      irCouldNot: !lithium && irSkip ? true : undefined,
-      irSkipReason: !lithium && irSkip ? irSkipReason.trim() : undefined,
+      ir: snap.irSkip || lithium ? undefined : c.ir.trim() || undefined,
+      irUnit: snap.irSkip || lithium ? undefined : resolveIrUnit(c.irUnit),
+      irCouldNot: !lithium && snap.irSkip ? true : undefined,
+      irSkipReason: !lithium && snap.irSkip ? snap.irSkipReason.trim() : undefined,
       ageMonthYear: lithium || c.ageSkip ? undefined : c.age.trim() || undefined,
       ageNotReadable: !lithium && c.ageSkip ? true : undefined,
     }));
@@ -188,17 +198,17 @@ export function PackGate({
       cellCount: layout.count,
       nominalV: layout.nominalV,
       cells: mapped,
-      loadDropPct: loadDrop.trim() || undefined,
-      irCouldNotMeasure: lithium ? undefined : irSkip,
-      irSkipReason: lithium || !irSkip ? undefined : irSkipReason.trim(),
-      ageLabelPhotoNote: lithium ? undefined : agePhoto.trim() || undefined,
+      loadDropPct: snap.loadDrop.trim() || undefined,
+      irCouldNotMeasure: lithium ? undefined : snap.irSkip,
+      irSkipReason: lithium || !snap.irSkip ? undefined : snap.irSkipReason.trim(),
+      ageLabelPhotoNote: lithium ? undefined : snap.agePhoto.trim() || undefined,
       irSpreadNote: irNote || undefined,
       verdict,
       issues: allIssues,
-      lithiumMonitorV: monitorV.trim() || undefined,
-      lithiumMinCell: minCell.trim() || undefined,
-      lithiumFaults: faults.trim() || undefined,
-      lithiumNoMonitor: noMonitor,
+      lithiumMonitorV: snap.monitorV.trim() || undefined,
+      lithiumMinCell: snap.minCell.trim() || undefined,
+      lithiumFaults: snap.faults.trim() || undefined,
+      lithiumNoMonitor: snap.noMonitor,
     };
   }
 
@@ -209,7 +219,8 @@ export function PackGate({
     }
     setBlockers([]);
     setError(null);
-    if (!lithium && !evalr.pass) {
+    const verdict = liveEval();
+    if (!lithium && !verdict.pass) {
       const message = "This pack does not pass. Charge or fix it first, or continue on a test battery.";
       setError(message);
       queueMicrotask(() => errorAnchor.current?.scrollIntoView({ block: "nearest" }));
@@ -224,7 +235,7 @@ export function PackGate({
       showBlockers(missing);
       return;
     }
-    save(job.id, buildRecord("fail", evalr.issues));
+    save(job.id, buildRecord("fail", liveEval().issues));
     setBlockers([]);
     setError(null);
     setTestPath(false);
@@ -235,13 +246,24 @@ export function PackGate({
     if (missing.length) {
       return showBlockers(missing);
     }
-    if (!testNote.trim() || testNote.trim().length < 8) {
+    const note = liveRef.current.testNote.trim();
+    if (!note || note.length < 8) {
       const message = "Write what you measured on the pack, and that later steps used a known-good test battery.";
       setError(message);
       queueMicrotask(() => errorAnchor.current?.scrollIntoView({ block: "nearest" }));
       return message;
     }
-    save(job.id, buildRecord("fail", evalr.issues), { used: true, measuredProblem: testNote.trim() });
+    save(job.id, buildRecord("fail", liveEval().issues), { used: true, measuredProblem: note });
+  }
+
+  function submitLive(): string | void {
+    const snap = liveRef.current;
+    const numeric = snap.cells.map((c) => typedVoltage(c.volts)).filter((n): n is number => n != null);
+    const verdict = liveEval();
+    if (lithium || verdict.pass || numeric.length < layout.count) {
+      return continuePass();
+    }
+    return continueTestBattery();
   }
 
   const canOfferFailPath = !lithium && !evalr.pass && numericCells.length >= layout.count;
@@ -252,13 +274,12 @@ export function PackGate({
     cellsReady: numericCells.length >= layout.count,
   };
 
-  const submit = lithium || evalr.pass || numericCells.length < layout.count ? continuePass : continueTestBattery;
-  bindSubmit?.(submit);
+  bindSubmit?.(submitLive);
 
   usePublishBayChrome(onChrome, {
     chip: bayProgressChip(job, pack),
     label: bayPackActionLabel(packAction),
-    onAction: submit,
+    onAction: submitLive,
     disabled: false,
     error: error,
     errorDetails: blockers.slice(0, 4).map((b) => b.message),
@@ -267,11 +288,12 @@ export function PackGate({
   return (
     <form
       id={BAY_CHECK_FORM_ID}
+      data-bay-form=""
       noValidate
       className="flex h-full min-h-0 flex-col bg-surface"
       onSubmit={(e) => {
         e.preventDefault();
-        submitGate.run(submit, BAY_CHECK_FORM_ID);
+        submitGate.run(submitLive, BAY_CHECK_FORM_ID);
       }}
     >
       <div className="min-h-0 flex-1 overflow-auto p-4 pb-36">
@@ -533,6 +555,11 @@ export function PackGate({
                 ? "These resting numbers are in the shop range."
                 : "These batteries are too low or uneven to trust."}
             </p>
+            {evalr.pass && currentBlockers().length > 0 ? (
+              <p className="mt-1 text-ink" data-testid="pack-shop-range-save-hint">
+                Volts look shop-range. Type IR and age, then Save. Short load is optional.
+              </p>
+            ) : null}
             {evalr.issues.map((i) => (
               <p key={i} className="mt-1 text-ink">
                 {i}

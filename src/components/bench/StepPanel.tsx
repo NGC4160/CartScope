@@ -205,6 +205,7 @@ export function StepPanel({
     return (
       <form
         id={BAY_CHECK_FORM_ID}
+        data-bay-form=""
         noValidate
         className="flex h-full min-h-0 flex-col"
         onSubmit={(e) => {
@@ -266,6 +267,7 @@ export function StepPanel({
   return (
     <form
       id={BAY_CHECK_FORM_ID}
+      data-bay-form=""
       noValidate
       className="flex h-full min-h-0 flex-col"
       onSubmit={(e) => {

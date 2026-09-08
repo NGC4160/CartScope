@@ -502,3 +502,10 @@ test("Job header wizard must not import yearIssueLine (that minify rebound broke
   assert.doesNotMatch(imports, /startBlockedReason/);
   assert.match(src, /onClick=\{onStartClick\}/);
 });
+
+test("sticky Save bar steals only overlay chrome and keeps a click-only button (no leftover lock)", () => {
+  const src = readFileSync(new URL("../components/bay/BayActionBar.tsx", import.meta.url), "utf8");
+  assert.doesNotMatch(src, /createBayGesture/);
+  assert.match(src, /isOverlayChrome/);
+  assert.match(src, /onClick=\{onPrimaryClick\}/);
+});

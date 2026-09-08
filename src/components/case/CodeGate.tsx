@@ -49,8 +49,7 @@ export function CodeGate({
   const [blockers, setBlockers] = useState<string[]>([]);
   const errorAnchor = useRef<HTMLDivElement>(null);
 
-  const hasCounter = counters.some((r) => r.fault.trim() && r.count.trim());
-  const missing = handheldSaveBlockers({
+  const live = {
     noConnect,
     connectReason,
     programFile,
@@ -62,15 +61,41 @@ export function CodeGate({
     odometer,
     faultOdo,
     counterNotes,
-    hasCounter,
-  });
+    counters,
+    photo,
+    cleared,
+  };
+  const liveRef = useRef(live);
+  liveRef.current = live;
+
+  function currentHandheldBlockers() {
+    const snap = liveRef.current;
+    return handheldSaveBlockers({
+      noConnect: snap.noConnect,
+      connectReason: snap.connectReason,
+      programFile: snap.programFile,
+      present: snap.present,
+      history: snap.history,
+      loggerNotUsed: snap.loggerNotUsed,
+      logFile: snap.logFile,
+      noReadings: snap.noReadings,
+      odometer: snap.odometer,
+      faultOdo: snap.faultOdo,
+      counterNotes: snap.counterNotes,
+      hasCounter: snap.counters.some((r) => r.fault.trim() && r.count.trim()),
+    });
+  }
+
+  const missing = currentHandheldBlockers();
   const captured = missing.length === 0;
 
   function go(): string | void {
+    const snap = liveRef.current;
+    const liveMissing = currentHandheldBlockers();
     setError(null);
-    if (!captured) {
-      setBlockers(missing.map((b) => b.message));
-      const message = `Cannot save yet. ${missing.length} field${missing.length === 1 ? "" : "s"} still need a value.`;
+    if (liveMissing.length) {
+      setBlockers(liveMissing.map((b) => b.message));
+      const message = `Cannot save yet. ${liveMissing.length} field${liveMissing.length === 1 ? "" : "s"} still need a value.`;
       setError(message);
       queueMicrotask(() => errorAnchor.current?.scrollIntoView({ block: "nearest" }));
       return message;
@@ -78,20 +103,20 @@ export function CodeGate({
     setBlockers([]);
     save(job.id, {
       at: new Date().toISOString(),
-      present: present.trim(),
-      history: history.trim(),
-      photoNote: photo.trim(),
-      couldNotConnect: noConnect,
-      connectReason: noConnect ? connectReason.trim() : "",
-      cleared: captured && cleared && !noConnect,
-      programFileName: noConnect ? "" : programFile.trim(),
-      logFileName: noConnect || loggerNotUsed ? "" : logFile.trim(),
-      loggerNotUsed: noConnect ? true : loggerNotUsed,
-      faultCounters: noConnect || noReadings ? [] : counters.filter((r) => r.fault.trim() || r.count.trim()),
-      faultCounterNotes: noConnect || noReadings ? "" : counterNotes.trim(),
-      odometer: noConnect || noReadings ? "" : odometer.trim(),
-      faultOdometer: noConnect || noReadings ? "" : faultOdo.trim(),
-      noControllerReadings: noConnect ? true : noReadings,
+      present: snap.present.trim(),
+      history: snap.history.trim(),
+      photoNote: snap.photo.trim(),
+      couldNotConnect: snap.noConnect,
+      connectReason: snap.noConnect ? snap.connectReason.trim() : "",
+      cleared: snap.cleared && !snap.noConnect,
+      programFileName: snap.noConnect ? "" : snap.programFile.trim(),
+      logFileName: snap.noConnect || snap.loggerNotUsed ? "" : snap.logFile.trim(),
+      loggerNotUsed: snap.noConnect ? true : snap.loggerNotUsed,
+      faultCounters: snap.noConnect || snap.noReadings ? [] : snap.counters.filter((r) => r.fault.trim() || r.count.trim()),
+      faultCounterNotes: snap.noConnect || snap.noReadings ? "" : snap.counterNotes.trim(),
+      odometer: snap.noConnect || snap.noReadings ? "" : snap.odometer.trim(),
+      faultOdometer: snap.noConnect || snap.noReadings ? "" : snap.faultOdo.trim(),
+      noControllerReadings: snap.noConnect ? true : snap.noReadings,
     });
   }
 
@@ -108,6 +133,7 @@ export function CodeGate({
   return (
     <form
       id={BAY_CHECK_FORM_ID}
+      data-bay-form=""
       noValidate
       className="flex h-full min-h-0 flex-col bg-surface"
       onSubmit={(e) => {

@@ -73,6 +73,27 @@ export function packSaveBlockers(input: {
   return blockers;
 }
 
+/** Large sticky title. Empty pack must name resting volts and age. */
+export function packSaveBlockedReason(blockers: PackBlocker[]): string {
+  if (blockers.length === 0) return "Cannot save yet.";
+  const named = blockers.slice(0, 6).map((b) => b.field);
+  const extra = blockers.length > named.length ? ` and ${blockers.length - named.length} more` : "";
+  const needsVolts = blockers.some((b) => /resting volts/i.test(b.field) || /resting volts/i.test(b.message));
+  const needsAge = blockers.some((b) => /\bage\b/i.test(b.field) || /\bage\b/i.test(b.message));
+  const needsIr = blockers.some((b) => /internal resistance|IR skip/i.test(b.field));
+  const hint =
+    needsVolts && needsAge
+      ? " Type resting volts and age, or mark IR/age not readable."
+      : needsVolts
+        ? " Type resting volts, or mark IR/age not readable."
+        : needsAge
+          ? " Type age, or mark age not readable."
+          : needsIr
+            ? " Type IR, or mark that the IR meter could not be used."
+            : "";
+  return `Cannot save yet. Still needed: ${named.join(", ")}${extra}.${hint}`;
+}
+
 export function applyBulkAgeUnreadable(cells: PackCellDraft[], unread: boolean): PackCellDraft[] {
   return cells.map((c) => ({
     ...c,
