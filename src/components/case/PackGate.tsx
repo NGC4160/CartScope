@@ -11,7 +11,11 @@ import { BAY_CHECK_FORM_ID, bayFormSubmitGate, type BaySaveHandler } from "@/lib
 import { packLayout, scaledLeadAcidLimits } from "@/lib/pack-layout";
 import {
   applyBulkAgeUnreadable,
+  cellsForPackSave,
+  decidePackSave,
   packPasteTemplate,
+  readRememberedPackPaste,
+  rememberPackPaste,
   packSaveBlockedReason,
   packSaveBlockers,
   parseBulkPackPaste,
@@ -77,7 +81,11 @@ export function PackGate({
   const [agePhoto, setAgePhoto] = useState(draft?.agePhoto ?? prior?.ageLabelPhotoNote ?? "");
   const [testPath, setTestPath] = useState(false);
   const [testNote, setTestNote] = useState(draft?.testNote ?? job.testBattery?.measuredProblem ?? "");
-  const [paste, setPaste] = useState("");
+  const [paste, setPaste] = useState(
+    () => draft?.paste || readRememberedPackPaste(job.id) || "",
+  );
+  const pasteRef = useRef(paste);
+  if (paste && pasteRef.current !== paste) pasteRef.current = paste;
   const [pasteNote, setPasteNote] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [blockers, setBlockers] = useState<PackBlocker[]>([]);
@@ -85,10 +93,12 @@ export function PackGate({
 
   const live = { cells, loadDrop, monitorV, minCell, faults, noMonitor, irSkip, irSkipReason, agePhoto, testNote };
   const liveRef = useRef(live);
-  liveRef.current = live;
+  // Do not assign liveRef from state on every render. A store write mid-Save
+  // re-renders with stale cells and would throw away paste rows.
 
   function persistDraft(next?: Partial<typeof live>) {
-    const snap = { ...liveRef.current, ...next };
+    liveRef.current = { ...liveRef.current, ...next };
+    const snap = liveRef.current;
     patchJob(job.id, {
       packDraft: {
         cells: snap.cells,
@@ -101,6 +111,7 @@ export function PackGate({
         irSkipReason: snap.irSkipReason,
         agePhoto: snap.agePhoto,
         testNote: snap.testNote,
+        paste: pasteRef.current,
       },
     });
   }
@@ -151,9 +162,9 @@ export function PackGate({
     });
   }
 
-  function showBlockers(list: ReturnType<typeof packSaveBlockers>): string {
+  function showBlockers(list: ReturnType<typeof packSaveBlockers>, reason?: string): string {
     setBlockers(list);
-    const message = packSaveBlockedReason(list);
+    const message = reason ?? packSaveBlockedReason(list);
     setError(message);
     queueMicrotask(() => errorAnchor.current?.scrollIntoView({ block: "nearest" }));
     return message;
@@ -172,7 +183,7 @@ export function PackGate({
   }
 
   function applyPaste() {
-    const result = parseBulkPackPaste(paste, cells, layout.count);
+    const result = parseBulkPackPaste(readPasteRaw(), liveRef.current.cells, layout.count);
     setCells(result.cells);
     liveRef.current = { ...liveRef.current, cells: result.cells };
     persistDraft({ cells: result.cells });
@@ -212,23 +223,6 @@ export function PackGate({
     };
   }
 
-  function continuePass(): string | void {
-    const missing = currentBlockers();
-    if (missing.length) {
-      return showBlockers(missing);
-    }
-    setBlockers([]);
-    setError(null);
-    const verdict = liveEval();
-    if (!lithium && !verdict.pass) {
-      const message = "This pack does not pass. Charge or fix it first, or continue on a test battery.";
-      setError(message);
-      queueMicrotask(() => errorAnchor.current?.scrollIntoView({ block: "nearest" }));
-      return message;
-    }
-    save(job.id, buildRecord("pass", irNote ? [irNote] : []));
-  }
-
   function stayAndCharge() {
     const missing = currentBlockers();
     if (missing.length) {
@@ -241,29 +235,62 @@ export function PackGate({
     setTestPath(false);
   }
 
-  function continueTestBattery(): string | void {
-    const missing = currentBlockers();
-    if (missing.length) {
-      return showBlockers(missing);
+  function readPasteRaw(): string {
+    if (typeof document !== "undefined") {
+      const el = document.querySelector<HTMLTextAreaElement>("[data-testid='pack-paste'], [data-pack-paste]");
+      if (el?.value.trim()) {
+        pasteRef.current = el.value;
+        rememberPackPaste(job.id, el.value);
+        return el.value;
+      }
     }
-    const note = liveRef.current.testNote.trim();
-    if (!note || note.length < 8) {
-      const message = "Write what you measured on the pack, and that later steps used a known-good test battery.";
-      setError(message);
-      queueMicrotask(() => errorAnchor.current?.scrollIntoView({ block: "nearest" }));
-      return message;
+    const remembered = readRememberedPackPaste(job.id) || job.packDraft?.paste || pasteRef.current;
+    if (remembered.trim()) {
+      pasteRef.current = remembered;
+      return remembered;
     }
-    save(job.id, buildRecord("fail", liveEval().issues), { used: true, measuredProblem: note });
+    return pasteRef.current;
   }
 
   function submitLive(): string | void {
-    const snap = liveRef.current;
-    const numeric = snap.cells.map((c) => typedVoltage(c.volts)).filter((n): n is number => n != null);
-    const verdict = liveEval();
-    if (lithium || verdict.pass || numeric.length < layout.count) {
-      return continuePass();
+    const pasteRaw = readPasteRaw();
+    const parsed = pasteRaw.trim() ? parseBulkPackPaste(pasteRaw, liveRef.current.cells, layout.count) : null;
+    if (parsed && parsed.applied === 0) {
+      return showBlockers([], `Cannot save yet. ${parsed.message}`);
     }
-    return continueTestBattery();
+    const cells = parsed && parsed.applied > 0 ? parsed.cells : liveRef.current.cells;
+    const appliedPaste = Boolean(parsed && parsed.applied > 0);
+    liveRef.current = { ...liveRef.current, cells };
+    if (appliedPaste) {
+      setCells(cells);
+      setPasteNote(parsed!.message);
+    }
+    const snap = liveRef.current;
+    const decision = decidePackSave({
+      lithium,
+      cellCount: layout.count,
+      cells: snap.cells,
+      irSkip: snap.irSkip,
+      irSkipReason: snap.irSkipReason,
+      monitorV: snap.monitorV,
+      noMonitor: snap.noMonitor,
+      loadDrop: snap.loadDrop,
+      testNote: snap.testNote,
+      nominalV: layout.nominalV,
+    });
+    if (decision.action === "block") {
+      return showBlockers(decision.blockers, decision.reason);
+    }
+    setBlockers([]);
+    setError(null);
+    if (decision.action === "save-pass") {
+      save(job.id, buildRecord("pass", irNote ? [irNote] : []));
+      return;
+    }
+    save(job.id, buildRecord("fail", decision.issues), {
+      used: true,
+      measuredProblem: snap.testNote.trim(),
+    });
   }
 
   const canOfferFailPath = !lithium && !evalr.pass && numericCells.length >= layout.count;
@@ -393,10 +420,17 @@ export function PackGate({
             >
               <textarea
                 value={paste}
-                onChange={(e) => setPaste(e.target.value)}
+                onChange={(e) => {
+                  pasteRef.current = e.target.value;
+                  rememberPackPaste(job.id, e.target.value);
+                  setPaste(e.target.value);
+                  persistDraft();
+                }}
                 className={inputClass + " min-h-28 py-2 font-mono text-sm"}
                 placeholder={packPasteTemplate(layout.count)}
                 aria-label={`Paste ${layout.count} battery rows`}
+                data-pack-paste=""
+                data-testid="pack-paste"
               />
             </Field>
             <Button type="button" variant="secondary" size="sm" onClick={applyPaste} disabled={!paste.trim()}>

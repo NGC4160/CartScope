@@ -505,11 +505,20 @@ test("Job header wizard must not import yearIssueLine (that minify rebound broke
   assert.doesNotMatch(src, /onPointerUp/);
 });
 
-test("sticky Save bar steals only overlay chrome and keeps a click-only button (no leftover lock)", () => {
+test("Save bar is padded off the Grok pill; Start stays inset without overlay imports", () => {
+  const css = readFileSync(new URL("../styles.css", import.meta.url), "utf8");
+  assert.match(css, /\[data-bay-chrome\]\s*\{[^}]*padding-right:\s*11\.5rem\s*!important/s);
+  assert.match(css, /\[data-start-checks\]\s*\{[^}]*margin-right:\s*11\.5rem/s);
+});
+
+test("sticky Save fires pointerdown and click on the button and still steals only overlay chrome", () => {
   const src = readFileSync(new URL("../components/bay/BayActionBar.tsx", import.meta.url), "utf8");
-  assert.doesNotMatch(src, /createBayGesture/);
+  assert.match(src, /createBayGesture/);
   assert.match(src, /isOverlayChrome/);
+  assert.match(src, /onPointerDown=\{onPrimaryPointerDown\}/);
   assert.match(src, /onClick=\{onPrimaryClick\}/);
+  assert.match(src, /pr-\[11\.5rem\]/);
+  assert.doesNotMatch(src, /pointHitsBayStart|data-start-checks/);
 });
 
 test("Start overlay catch lives outside the wizard and clicks the Start control", () => {

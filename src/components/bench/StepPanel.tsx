@@ -25,6 +25,7 @@ import {
   meterFieldLabel,
   meterPlaceholderText,
   observationSaveBlock,
+  resolveObservationPick,
   savedContinueNote,
 } from "@/lib/meter-input";
 import { evaluateProof } from "@/lib/proof";
@@ -134,7 +135,17 @@ export function StepPanel({
       ].filter((f): f is string => Boolean(f));
       return failContinue("Unlock this motor check first. The controller must be unplugged from the motor.", fields);
     }
-    const pick = selectedRef.current ?? selected;
+    const stored = useJobStore.getState().getJob(job.id);
+    const pressed =
+      typeof document === "undefined"
+        ? null
+        : document.querySelector("[data-check-option][aria-pressed='true']")?.getAttribute("data-check-option");
+    const pick = resolveObservationPick({
+      live: selectedRef.current,
+      state: selected,
+      draft: stored ? readMeterDraft(stored.meterDraft, job.currentStepId).selected : null,
+      pressed,
+    });
     let payload = numeric ? raw : (pick ?? raw);
     if (numeric) {
       const live = meterRef.current?.value ?? raw;
@@ -425,6 +436,8 @@ export function StepPanel({
                 <button
                   key={opt.id}
                   type="button"
+                  data-check-option={opt.id}
+                  aria-pressed={selected === opt.id}
                   onClick={() => {
                     selectedRef.current = opt.id;
                     setSelected(opt.id);

@@ -5,6 +5,7 @@ import {
   emptyBayChrome,
   bayChromeClear,
   bayChromePublish,
+  createBayGesture,
   fireBaySaveOutcome,
   type BayActionChrome,
   type BayChromeSnapshot,
@@ -132,6 +133,7 @@ export function BayActionBar({
   chromeRef.current = chrome;
   const fireRef = useRef(fire);
   fireRef.current = fire;
+  const tapGate = useRef(createBayGesture(80)).current;
 
   const activate = useCallback(() => {
     const live = chromeRef.current;
@@ -145,15 +147,31 @@ export function BayActionBar({
       fallback: () => live.onAction(),
     });
     if (!out.ran) {
+      tapGate.reset();
       setMissed("Save did not run. Try Save again.");
       return;
     }
     if (out.blocked) {
+      tapGate.reset();
       setMissed(out.blocked);
       return;
     }
+    tapGate.reset();
     setMissed(null);
-  }, []);
+  }, [tapGate]);
+
+  const tryActivate = useCallback(() => {
+    tapGate.run(activate);
+  }, [activate, tapGate]);
+
+  function onPrimaryPointerDown(event: { button?: number }) {
+    if (event.button != null && event.button !== 0) return;
+    tryActivate();
+  }
+
+  function onPrimaryClick() {
+    tryActivate();
+  }
 
   const hasChrome = Boolean(chrome);
   useLayoutEffect(() => {
@@ -163,30 +181,29 @@ export function BayActionBar({
       if (!pointHitsBaySave(event.clientX, event.clientY)) return;
       event.preventDefault();
       event.stopPropagation();
-      activate();
+      tryActivate();
     }
     document.addEventListener("pointerup", onPointerUp, true);
     return () => document.removeEventListener("pointerup", onPointerUp, true);
-  }, [activate, armed, hasChrome]);
+  }, [tryActivate, armed, hasChrome]);
 
   if (!chrome) return null;
   const live = chrome;
   const noticeTitle = live.error || missed;
   const noticeDetails = live.error ? live.errorDetails : undefined;
 
-  function onPrimaryClick() {
-    activate();
-  }
-
   return (
     <div
       data-testid="bay-action-bar"
       data-bay-chrome=""
       data-save-blocked={noticeTitle ? "true" : "false"}
-      className="no-print relative z-30 isolate shrink-0 overflow-visible border-t border-navy-deep bg-surface px-3 pt-2 pb-[max(0.6rem,env(safe-area-inset-bottom))]"
+      className="no-print relative z-30 isolate shrink-0 overflow-visible border-t border-navy-deep bg-surface pl-3 pr-[11.5rem] pt-2 pb-[max(0.6rem,env(safe-area-inset-bottom))]"
     >
       {noticeTitle ? (
-        <div className="relative z-40 mb-2" data-testid={missed && !live.error ? "bay-save-missed" : undefined}>
+        <div
+          className="relative z-40 mb-2 max-h-36 overflow-auto"
+          data-testid={missed && !live.error ? "bay-save-missed" : undefined}
+        >
           <BaySaveNotice title={noticeTitle} details={noticeDetails} />
         </div>
       ) : null}
@@ -220,8 +237,9 @@ export function BayActionBar({
         form={formId}
         data-testid="bay-primary-action"
         data-bay-primary=""
-        className="mt-2 min-h-12 w-full min-w-0 max-w-[calc(100%-11.5rem)] justify-start text-left touch-manipulation active:scale-100"
+        className="mt-2 min-h-12 w-full min-w-0 justify-start text-left touch-manipulation active:scale-100"
         style={{ minHeight: Math.max(BAY_TAP_MIN_PX, 48) }}
+        onPointerDown={onPrimaryPointerDown}
         onClick={onPrimaryClick}
         disabled={live.disabled || live.busy}
       >

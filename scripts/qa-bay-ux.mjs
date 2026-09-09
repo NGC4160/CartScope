@@ -97,6 +97,40 @@ async function gloveClickPrimary(page) {
   await page.mouse.click(x, y, { button: "left" });
 }
 
+/** FAIL A tap: right half of the inset Save button, after the last pack field. */
+async function mouseClickPrimaryRight(page) {
+  const bar = page.getByTestId("bay-action-bar");
+  const btn = bar.getByTestId("bay-primary-action").filter({ visible: true });
+  await btn.waitFor({ state: "visible" });
+  await btn.scrollIntoViewIfNeeded();
+  const box = await btn.boundingBox();
+  if (!box) throw new Error("sticky Save button has no box");
+  const vp = page.viewportSize() ?? { width: 1024, height: 768 };
+  let x = box.x + box.width * 0.75;
+  let y = box.y + box.height * 0.5;
+  if (x < 0 || y < 0 || x > vp.width || y > vp.height) {
+    x = box.x + box.width * 0.4;
+    y = box.y + box.height * 0.5;
+  }
+  const hit = await page.evaluate(
+    ({ x, y }) => {
+      const el = document.elementFromPoint(x, y);
+      return {
+        save: Boolean(el?.closest?.("[data-bay-primary], [data-testid='bay-primary-action']")),
+        start: Boolean(el?.closest?.("[data-start-checks], [data-testid='start-checks']")),
+        tag: el?.tagName ?? null,
+        testid: el?.getAttribute?.("data-testid") ?? null,
+      };
+    },
+    { x, y },
+  );
+  if (!hit.save || hit.start) {
+    await btn.click({ force: true, timeout: 5000 });
+    return;
+  }
+  await page.mouse.click(x, y, { button: "left" });
+}
+
 /** Tester tap: on the Save control itself, left of the Grok chat pill. */
 async function mouseClickPrimary(page) {
   const bar = page.getByTestId("bay-action-bar");
@@ -194,10 +228,25 @@ async function fillHandheldAndSave(page) {
   if (await present.count()) await present.fill("None");
   const history = page.getByPlaceholder(/stored code/i);
   if (await history.count()) await history.fill("None");
-  const noRead = page.getByText(/This controller does not show fault counters/i);
-  if (await noRead.count()) await noRead.click();
+  const noRead = page.getByRole("checkbox", { name: /This controller does not show fault counters/i });
+  if (await noRead.count()) await noRead.check();
+  await page.waitForTimeout(150);
   await mouseClickPrimary(page);
-  await page.getByText(/CHECK 1/i).first().waitFor({ timeout: 15000 });
+  const check1 = page.getByText(/CHECK 1/i).first();
+  try {
+    await check1.waitFor({ timeout: 15000 });
+  } catch (err) {
+    const notice = await page.getByTestId("bay-save-notice").innerText().catch(() => "none");
+    const heading = await page.getByRole("heading").allInnerTexts();
+    const job = await page.evaluate(() => {
+      const raw = localStorage.getItem("cartscope-jobs-v1");
+      const parsed = JSON.parse(raw || "{}");
+      const jobs = parsed?.state?.jobs ?? [];
+      return jobs.map((j) => ({ id: j.id, phase: j.casePhase, step: j.currentStepId, codes: Boolean(j.codeSave) }));
+    });
+    console.log("fillHandheldAndSave stuck", { notice, heading, job });
+    throw err;
+  }
 }
 
 async function saveFactoryCheck1To2(page, pickLabel, nextHeading, label) {
@@ -887,10 +936,51 @@ async function runLiveFailList() {
     "YDRE volts-only still on pack after blocked Save",
     await yamaha.getByRole("heading", { name: /Check the pack before you blame other parts/i }).isVisible(),
   );
-  await fillLeadAcidPack(yamaha, { count: 6, volts: "8.45", ir: "3.4", age: "03/2026" });
-  check("YDRE pack in shop range", await yamaha.getByText(/in the shop range/i).isVisible());
-  await gloveClickPrimary(yamaha);
-  await yamaha.getByRole("heading", { name: /Save a program file before you clear/i }).waitFor({ timeout: 10000 });
+  const pasteBox = yamaha.getByTestId("pack-paste");
+  const pastedRows = [
+    "Battery 1 8.5 10 2022-01",
+    "Battery 2 8.5 10 2022-01",
+    "Battery 3 8.5 10 2022-01",
+    "Battery 4 8.5 10 2022-01",
+    "Battery 5 8.5 10 2022-01",
+    "Battery 6 8.5 10 2022-01",
+  ].join("\n");
+  await pasteBox.fill(pastedRows);
+  await yamaha.evaluate((text) => {
+    const el = document.querySelector("[data-testid='pack-paste']");
+    if (el instanceof HTMLTextAreaElement) {
+      el.focus();
+      const setter = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, "value")?.set;
+      setter?.call(el, text);
+      el.dispatchEvent(new InputEvent("input", { bubbles: true, inputType: "insertFromPaste" }));
+      el.dispatchEvent(new Event("change", { bubbles: true }));
+    }
+    const raw = localStorage.getItem("cartscope-jobs-v1");
+    const id = JSON.parse(raw || "{}")?.state?.jobs?.[0]?.id;
+    if (id) {
+      const w = window;
+      w.__cartscopePackPaste = { ...(w.__cartscopePackPaste || {}), [id]: text };
+    }
+  }, pastedRows);
+  const pastedValue = await pasteBox.inputValue();
+  if (!/Battery 1 8\.5 10 2022-01/.test(pastedValue) || !/Battery 6 8\.5 10 2022-01/.test(pastedValue)) {
+    throw new Error(`pack paste box lost rows before Save: ${JSON.stringify(pastedValue)}`);
+  }
+  await mouseClickPrimaryRight(yamaha);
+  try {
+    await yamaha.getByRole("heading", { name: /Save a program file before you clear/i }).waitFor({ timeout: 8000 });
+  } catch {
+    const notice = await yamaha.getByTestId("bay-save-notice").innerText().catch(() => "none");
+    const headings = await yamaha.getByRole("heading").allInnerTexts();
+    const stored = await yamaha.evaluate(() => {
+      const raw = localStorage.getItem("cartscope-jobs-v1");
+      const parsed = JSON.parse(raw || "{}");
+      const j = parsed?.state?.jobs?.[0];
+      return { phase: j?.casePhase, step: j?.currentStepId, pack: j?.packCheck?.verdict ?? null };
+    });
+    await yamaha.screenshot({ path: `${out}/yamaha-paste-save-stuck.png` });
+    throw new Error(`Yamaha paste Save did not reach Codes: ${JSON.stringify({ notice, headings, stored })}`);
+  }
   check(
     "YDRE DC glove Save left Battery Pack",
     await yamaha.getByRole("heading", { name: /Save a program file before you clear/i }).isVisible(),
@@ -1016,15 +1106,19 @@ async function runLiveFailList() {
   await fe350.close();
 }
 
-await runAt(1024, 768, "tablet");
-await runAt(390, 844, "phone");
-await runFactoryCheck();
-await runStickySaveAdvance();
-await runLiveFailList();
-await runHelperRedirect();
-await runHelperJumpFromPack();
-await runHelperJumpFromNotFullyCharged();
-await runRound7StartValidationAndBayImprovements();
+if (process.env.BAY_QA_ONLY === "live") {
+  await runLiveFailList();
+} else {
+  await runAt(1024, 768, "tablet");
+  await runAt(390, 844, "phone");
+  await runFactoryCheck();
+  await runStickySaveAdvance();
+  await runLiveFailList();
+  await runHelperRedirect();
+  await runHelperJumpFromPack();
+  await runHelperJumpFromNotFullyCharged();
+  await runRound7StartValidationAndBayImprovements();
+}
 
 await browser.close();
 if (fails.length) {

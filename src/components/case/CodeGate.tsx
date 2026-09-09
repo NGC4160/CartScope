@@ -66,10 +66,32 @@ export function CodeGate({
     cleared,
   };
   const liveRef = useRef(live);
-  liveRef.current = live;
+  // Do not assign liveRef from state on every render. A checkbox/store write
+  // mid-Save would throw away present/history/no-readings before go() runs.
+
+  function patchLive(patch: Partial<typeof live>) {
+    liveRef.current = { ...liveRef.current, ...patch };
+  }
+
+  function readCodesLive(): typeof live {
+    const snap = { ...liveRef.current };
+    if (typeof document === "undefined") return snap;
+    const presentEl = document.querySelector<HTMLTextAreaElement>("[data-codes-present]");
+    const historyEl = document.querySelector<HTMLTextAreaElement>("[data-codes-history]");
+    const programEl = document.querySelector<HTMLInputElement>("[data-codes-program]");
+    const noRead = document.querySelector<HTMLInputElement>("[data-codes-no-readings]");
+    const noLog = document.querySelector<HTMLInputElement>("[data-codes-logger-unused]");
+    if (presentEl?.value) snap.present = presentEl.value;
+    if (historyEl?.value) snap.history = historyEl.value;
+    if (programEl?.value) snap.programFile = programEl.value;
+    if (noRead) snap.noReadings = noRead.checked;
+    if (noLog) snap.loggerNotUsed = noLog.checked;
+    liveRef.current = snap;
+    return snap;
+  }
 
   function currentHandheldBlockers() {
-    const snap = liveRef.current;
+    const snap = readCodesLive();
     return handheldSaveBlockers({
       noConnect: snap.noConnect,
       connectReason: snap.connectReason,
@@ -90,7 +112,7 @@ export function CodeGate({
   const captured = missing.length === 0;
 
   function go(): string | void {
-    const snap = liveRef.current;
+    const snap = readCodesLive();
     const liveMissing = currentHandheldBlockers();
     setError(null);
     if (liveMissing.length) {
@@ -174,6 +196,7 @@ export function CodeGate({
             onChange={(e) => {
               setNoConnect(e.target.checked);
               if (e.target.checked) setCleared(false);
+              patchLive({ noConnect: e.target.checked, cleared: e.target.checked ? false : liveRef.current.cleared });
             }}
             className="mt-1 size-4 accent-navy"
           />
@@ -183,7 +206,10 @@ export function CodeGate({
           <Field label="Short reason" className="mt-2" hint="Say what you tried. Do not guess codes.">
             <textarea
               value={connectReason}
-              onChange={(e) => setConnectReason(e.target.value)}
+              onChange={(e) => {
+                setConnectReason(e.target.value);
+                patchLive({ connectReason: e.target.value });
+              }}
               className={inputClass + " min-h-16 py-2"}
             />
           </Field>
@@ -196,27 +222,39 @@ export function CodeGate({
           >
             <input
               value={programFile}
-              onChange={(e) => setProgramFile(e.target.value)}
+              onChange={(e) => {
+                setProgramFile(e.target.value);
+                patchLive({ programFile: e.target.value });
+              }}
               className={inputClass + " font-mono"}
               disabled={noConnect}
+              data-codes-program=""
             />
           </Field>
           <Field label="Present codes" hint="Write them from the program file or the handheld screen.">
             <textarea
               value={present}
-              onChange={(e) => setPresent(e.target.value)}
+              onChange={(e) => {
+                setPresent(e.target.value);
+                patchLive({ present: e.target.value });
+              }}
               className={inputClass + " min-h-20 py-2"}
               disabled={noConnect}
               placeholder="None, or write each code."
+              data-codes-present=""
             />
           </Field>
           <Field label="History codes" hint="Same program file. Look at history before you clear.">
             <textarea
               value={history}
-              onChange={(e) => setHistory(e.target.value)}
+              onChange={(e) => {
+                setHistory(e.target.value);
+                patchLive({ history: e.target.value });
+              }}
               className={inputClass + " min-h-20 py-2"}
               disabled={noConnect}
               placeholder="None, or write each stored code."
+              data-codes-history=""
             />
           </Field>
         </div>
@@ -230,16 +268,23 @@ export function CodeGate({
             <input
               type="checkbox"
               checked={loggerNotUsed}
-              onChange={(e) => setLoggerNotUsed(e.target.checked)}
+              onChange={(e) => {
+                setLoggerNotUsed(e.target.checked);
+                patchLive({ loggerNotUsed: e.target.checked });
+              }}
               disabled={noConnect}
               className="mt-1 size-4 accent-navy"
+              data-codes-logger-unused=""
             />
             No log file — logger not used
           </label>
           <Field label="Log file name" className="mt-2" hint="Only if you used the logger on a careful move or road test.">
             <input
               value={logFile}
-              onChange={(e) => setLogFile(e.target.value)}
+              onChange={(e) => {
+                setLogFile(e.target.value);
+                patchLive({ logFile: e.target.value });
+              }}
               className={inputClass + " font-mono"}
               disabled={noConnect || loggerNotUsed}
             />
@@ -257,9 +302,13 @@ export function CodeGate({
             <input
               type="checkbox"
               checked={noReadings}
-              onChange={(e) => setNoReadings(e.target.checked)}
+              onChange={(e) => {
+                setNoReadings(e.target.checked);
+                patchLive({ noReadings: e.target.checked });
+              }}
               disabled={noConnect}
               className="mt-1 size-4 accent-navy"
+              data-codes-no-readings=""
             />
             This controller does not show fault counters / odometer / fault odometer
           </label>
@@ -267,7 +316,10 @@ export function CodeGate({
             <Field label="Odometer reading" hint="Write it exactly as shown, with the unit.">
               <input
                 value={odometer}
-                onChange={(e) => setOdometer(e.target.value)}
+                onChange={(e) => {
+                  setOdometer(e.target.value);
+                  patchLive({ odometer: e.target.value });
+                }}
                 className={inputClass}
                 disabled={noConnect || noReadings}
                 placeholder="For example 124.6 hours"
@@ -276,7 +328,10 @@ export function CodeGate({
             <Field label="Fault odometer reading" hint="Write it exactly as shown, with the unit.">
               <input
                 value={faultOdo}
-                onChange={(e) => setFaultOdo(e.target.value)}
+                onChange={(e) => {
+                  setFaultOdo(e.target.value);
+                  patchLive({ faultOdo: e.target.value });
+                }}
                 className={inputClass}
                 disabled={noConnect || noReadings}
                 placeholder="For example 18.2 hours"
@@ -288,9 +343,13 @@ export function CodeGate({
                 <div key={i} className="mb-2 grid grid-cols-[1fr_7rem] gap-2">
                   <input
                     value={row.fault}
-                    onChange={(e) =>
-                      setCounters((rows) => rows.map((r, n) => (n === i ? { ...r, fault: e.target.value } : r)))
-                    }
+                    onChange={(e) => {
+                      setCounters((rows) => {
+                        const next = rows.map((r, n) => (n === i ? { ...r, fault: e.target.value } : r));
+                        patchLive({ counters: next });
+                        return next;
+                      });
+                    }}
                     className={inputClass}
                     disabled={noConnect || noReadings}
                     placeholder="Fault name or code"
@@ -298,9 +357,13 @@ export function CodeGate({
                   />
                   <input
                     value={row.count}
-                    onChange={(e) =>
-                      setCounters((rows) => rows.map((r, n) => (n === i ? { ...r, count: e.target.value } : r)))
-                    }
+                    onChange={(e) => {
+                      setCounters((rows) => {
+                        const next = rows.map((r, n) => (n === i ? { ...r, count: e.target.value } : r));
+                        patchLive({ counters: next });
+                        return next;
+                      });
+                    }}
                     className={inputClass}
                     disabled={noConnect || noReadings}
                     placeholder="Count"
@@ -321,14 +384,25 @@ export function CodeGate({
             <Field label="Fault counter notes">
               <textarea
                 value={counterNotes}
-                onChange={(e) => setCounterNotes(e.target.value)}
+                onChange={(e) => {
+                  setCounterNotes(e.target.value);
+                  patchLive({ counterNotes: e.target.value });
+                }}
                 className={inputClass + " min-h-16 py-2"}
                 disabled={noConnect || noReadings}
                 placeholder="Anything else the screen showed."
               />
             </Field>
             <Field label="Photo of the handheld screen (optional)">
-              <input value={photo} onChange={(e) => setPhoto(e.target.value)} className={inputClass} disabled={noConnect} />
+              <input
+                value={photo}
+                onChange={(e) => {
+                  setPhoto(e.target.value);
+                  patchLive({ photo: e.target.value });
+                }}
+                className={inputClass}
+                disabled={noConnect}
+              />
             </Field>
           </div>
         </div>
@@ -337,7 +411,10 @@ export function CodeGate({
           <input
             type="checkbox"
             checked={cleared}
-            onChange={(e) => setCleared(e.target.checked)}
+            onChange={(e) => {
+              setCleared(e.target.checked);
+              patchLive({ cleared: e.target.checked });
+            }}
             disabled={!captured || noConnect}
             className="mt-1 size-4 accent-navy"
           />

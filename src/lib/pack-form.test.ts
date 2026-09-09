@@ -2,6 +2,10 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   applyBulkAgeUnreadable,
+  cellsForPackSave,
+  decidePackSave,
+  readRememberedPackPaste,
+  rememberPackPaste,
   emptyPackCells,
   groupPackBlockers,
   packSaveBlockedReason,
@@ -146,6 +150,73 @@ test("empty pack sticky reason names resting volts and age", () => {
   assert.match(reason, /Battery 1 resting volts/);
 });
 
+test("empty pack Save decision is a sticky volts/age block, not a silent miss", () => {
+  const decision = decidePackSave({
+    lithium: false,
+    cellCount: 6,
+    cells: emptyPackCells(6),
+    irSkip: false,
+    irSkipReason: "",
+    monitorV: "",
+    noMonitor: false,
+    nominalV: 8,
+  });
+  assert.equal(decision.action, "block");
+  if (decision.action !== "block") return;
+  assert.match(decision.reason, /resting volts/i);
+  assert.match(decision.reason, /age/i);
+  assert.match(decision.reason, /Battery 1 resting volts/);
+  assert.ok(decision.blockers.length > 0);
+});
+
+test("space-separated Battery N volts IR YYYY-MM paste fills a YDRE 6-pack", () => {
+  const pasted = [
+    "Battery 1 8.5 10 2022-01",
+    "Battery 2 8.5 10 2022-01",
+    "Battery 3 8.5 10 2022-01",
+    "Battery 4 8.5 10 2022-01",
+    "Battery 5 8.5 10 2022-01",
+    "Battery 6 8.5 10 2022-01",
+  ].join("\n");
+  const result = parseBulkPackPaste(pasted, emptyPackCells(6), 6);
+  assert.equal(result.applied, 6);
+  assert.equal(result.cells[0]?.volts, "8.5");
+  assert.equal(result.cells[0]?.ir, "10");
+  assert.equal(result.cells[0]?.age, "2022-01");
+  const decision = decidePackSave({
+    lithium: false,
+    cellCount: 6,
+    cells: result.cells,
+    irSkip: false,
+    irSkipReason: "",
+    monitorV: "",
+    noMonitor: false,
+    nominalV: 8,
+  });
+  assert.equal(decision.action, "save-pass");
+});
+
+test("Yamaha YDRE filled pack 8.48 V / 12 mΩ / 09/2024 is a valid Save", () => {
+  const cells = Array.from({ length: 6 }, () => ({
+    volts: "8.48",
+    ir: "12",
+    irUnit: "mohm" as const,
+    age: "09/2024",
+    ageSkip: false,
+  }));
+  const decision = decidePackSave({
+    lithium: false,
+    cellCount: 6,
+    cells,
+    irSkip: false,
+    irSkipReason: "",
+    monitorV: "",
+    noMonitor: false,
+    nominalV: 8,
+  });
+  assert.equal(decision.action, "save-pass");
+});
+
 test("short-load is optional and never a pack Save blocker", () => {
   const cells = Array.from({ length: 6 }, () => ({
     volts: "8.50",
@@ -190,4 +261,77 @@ test("paste of eight values onto a six-battery pack keeps the first six", () => 
   assert.equal(result.applied, 6);
   assert.equal(result.extraIgnored, 2);
   assert.equal(result.cells[5]?.volts, "8.6");
+});
+
+test("Save applies Battery N paste over volts-only cells without Fill", () => {
+  const pasted = [
+    "Battery 1 8.5 10 2022-01",
+    "Battery 2 8.5 10 2022-01",
+    "Battery 3 8.5 10 2022-01",
+    "Battery 4 8.5 10 2022-01",
+    "Battery 5 8.5 10 2022-01",
+    "Battery 6 8.5 10 2022-01",
+  ].join("\n");
+  const cells = cellsForPackSave(pasted, sixAt("8.45"), 6);
+  assert.equal(cells[0]?.volts, "8.5");
+  assert.equal(cells[0]?.ir, "10");
+  assert.equal(cells[0]?.age, "2022-01");
+  const decision = decidePackSave({
+    lithium: false,
+    cellCount: 6,
+    cells,
+    irSkip: false,
+    irSkipReason: "",
+    monitorV: "",
+    noMonitor: false,
+    nominalV: 8,
+  });
+  assert.equal(decision.action, "save-pass");
+});
+
+test("remembered paste survives an empty box remount for the same job", () => {
+  const pasted = [
+    "Battery 1 8.5 10 2022-01",
+    "Battery 2 8.5 10 2022-01",
+    "Battery 3 8.5 10 2022-01",
+    "Battery 4 8.5 10 2022-01",
+    "Battery 5 8.5 10 2022-01",
+    "Battery 6 8.5 10 2022-01",
+  ].join("\n");
+  rememberPackPaste("job_paste_cache", pasted);
+  assert.equal(readRememberedPackPaste("job_paste_cache"), pasted);
+  const cells = cellsForPackSave(readRememberedPackPaste("job_paste_cache"), sixAt("8.45"), 6);
+  const decision = decidePackSave({
+    lithium: false,
+    cellCount: 6,
+    cells,
+    irSkip: false,
+    irSkipReason: "",
+    monitorV: "",
+    noMonitor: false,
+    nominalV: 8,
+  });
+  assert.equal(decision.action, "save-pass");
+  rememberPackPaste("job_paste_cache", "");
+  assert.equal(readRememberedPackPaste("job_paste_cache"), "");
+});
+
+test("empty paste on Save keeps the live cells (empty pack still names volts/age)", () => {
+  const empty = emptyPackCells(6);
+  assert.equal(cellsForPackSave("", empty, 6), empty);
+  const decision = decidePackSave({
+    lithium: false,
+    cellCount: 6,
+    cells: cellsForPackSave("   ", empty, 6),
+    irSkip: false,
+    irSkipReason: "",
+    monitorV: "",
+    noMonitor: false,
+    nominalV: 8,
+  });
+  assert.equal(decision.action, "block");
+  if (decision.action === "block") {
+    assert.match(decision.reason, /resting volts/i);
+    assert.match(decision.reason, /age/i);
+  }
 });

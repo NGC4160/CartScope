@@ -254,6 +254,18 @@ test("submit slot returns false when the bound handler throws", () => {
   assert.ok(warns.some((w) => /sticky Save handler failed/.test(w)));
 });
 
+test("empty pack sticky reason from the bound handler is a block, not a miss", () => {
+  const slot = createBaySubmitSlot();
+  slot.bind(
+    () =>
+      "Cannot save yet. Still needed: Battery 1 resting volts, Battery 1 age. Type resting volts and age, or mark IR/age not readable.",
+  );
+  const fired = fireBaySaveOutcome({ fire: slot.outcome });
+  assert.equal(fired.ran, true);
+  assert.match(fired.blocked ?? "", /resting volts/i);
+  assert.match(fired.blocked ?? "", /age/i);
+});
+
 test("submit slot reports a block reason without treating Save as a miss", () => {
   const slot = createBaySubmitSlot();
   slot.bind(
