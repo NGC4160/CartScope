@@ -426,8 +426,9 @@ async function runAt(width, height, tag) {
     (await reportPane.locator("table").count()) === 0,
   );
   check(`${tag} report peek`, await page.getByText(/Bayux/).first().isVisible());
-  check(`${tag} who checked it is Ryan`, await page.getByText(/^Ryan$/).first().isVisible());
-  check(`${tag} helper text not in who-checked`, (await page.getByText(/Who checked it:\s*Speed sensor fault/i).count()) === 0);
+  const whoValue = page.getByTestId("report-who-checked");
+  check(`${tag} who checked it is Ryan`, (await whoValue.innerText()).trim() === "Ryan", await whoValue.innerText().catch(() => ""));
+  check(`${tag} helper text not in who-checked`, !/Speed sensor fault/i.test(await whoValue.innerText()));
   const sawOnReport = page.getByRole("heading", { name: "What the tech saw" });
   await sawOnReport.scrollIntoViewIfNeeded();
   check(`${tag} what the tech saw`, await sawOnReport.isVisible());
@@ -556,7 +557,14 @@ async function runStickySaveAdvance() {
   await packSection.scrollIntoViewIfNeeded().catch(() => {});
   const reportText = await page.locator("body").innerText();
   check("advance report shows IR with unit", /12\.1\s*mΩ|IR 12\.1 mΩ|3\.4\s*mΩ|IR 3\.4 mΩ/.test(reportText), reportText.slice(0, 200));
-  check("advance who checked it still Ryan", /Who checked it[\s\S]{0,40}Ryan/.test(reportText) || (await page.getByText(/^Ryan$/).count()) > 0);
+  const whoAdvance = page.getByTestId("report-who-checked");
+  check(
+    "advance who checked it still Ryan",
+    (await whoAdvance.count()) > 0
+      ? (await whoAdvance.innerText()).trim() === "Ryan"
+      : /Who checked it[\s\S]{0,40}Ryan/.test(reportText),
+    await whoAdvance.innerText().catch(() => reportText.slice(0, 200)),
+  );
   check("advance report form wired", (await page.locator("#bay-report-form").count()) === 1);
   check("advance only one visible primary", (await page.getByTestId("bay-primary-action").filter({ visible: true }).count()) === 1);
   await mouseClickPrimary(page);
@@ -662,6 +670,16 @@ async function runHelperRedirect() {
   check("helper jump left setup / pack", after?.casePhase === "steps", String(after?.casePhase));
   check("helper jump kept who checked it", after?.technician === "Ryan", String(after?.technician));
   check("helper jump kept meter draft", after?.meterDraft?.selected === "yes" || after?.meterDraft?.stepId === before?.meterDraft?.stepId, JSON.stringify(after?.meterDraft ?? null));
+  await page.getByTestId("bay-dock").getByRole("tab", { name: "Report" }).click();
+  await page.getByText(/Report peek|Report draft/i).first().waitFor();
+  const whoAfterJump = page.getByTestId("report-who-checked");
+  check("helper jump report who is Ryan", (await whoAfterJump.innerText()).trim() === "Ryan", await whoAfterJump.innerText().catch(() => ""));
+  check(
+    "helper jump report who is not the observation",
+    !/solenoid clicks|starter does not crank/i.test(await whoAfterJump.innerText()),
+  );
+  const sawHeading = page.getByRole("heading", { name: "What the tech saw" });
+  check("helper jump observation under what the tech saw", await sawHeading.locator("..").getByText(/solenoid clicks/i).isVisible());
   await page.screenshot({ path: `${out}/bay-helper-redirect.png` });
   await page.close();
 }

@@ -24,6 +24,7 @@ import {
   resultFromAttempt,
 } from "@/lib/diagnostics";
 import { commitMeterReading, observationSaveBlock } from "@/lib/meter-input";
+import { keepWhoCheckedIt } from "@/lib/job-header";
 import { applyJumpToStep } from "@/lib/jump-step";
 import { uid } from "@/lib/utils";
 
@@ -74,7 +75,14 @@ interface JobState {
 }
 
 function touch(job: JobRecord, patch: Partial<JobRecord>): JobRecord {
-  return { ...job, ...patch, updatedAt: new Date().toISOString() };
+  const next = { ...job, ...patch, updatedAt: new Date().toISOString() };
+  next.technician = keepWhoCheckedIt(
+    job.technician,
+    patch.technician,
+    next.techObservation ?? "",
+    (next.aiLog ?? []).map((turn) => turn.text),
+  );
+  return next;
 }
 
 export const useJobStore = create<JobState>()(

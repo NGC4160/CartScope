@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import type { JobRecord, ModelPack } from "../data/types.ts";
-import { plainCaseSummary } from "./case-summary.ts";
+import { plainCaseSummary, reportWhoCheckedIt } from "./case-summary.ts";
 import type { Proof } from "./proof.ts";
 
 const gasPack = {
@@ -101,4 +101,37 @@ test("helper observation never fills Who checked it, even when it is the only ch
   assert.match(text, /What the tech saw\nSpeed sensor fault/);
   assert.match(text, /Helper: Go to the speed sensor check/);
   assert.doesNotMatch(text, /Tech note: Speed sensor fault/);
+});
+
+test("FE350 helper observation never becomes Who checked it", () => {
+  const saw = "Checked FE350 setup; no power at starter-generator terminal.";
+  const job = gasJob({
+    technician: "Hayden Silva",
+    techObservation: saw,
+    includeAiInReport: true,
+    aiLog: [
+      { at: "2026-09-06T00:00:00.000Z", role: "user", text: saw },
+      { at: "2026-09-06T00:00:01.000Z", role: "assistant", text: "Go to starter-generator power." },
+    ],
+  });
+  const text = plainCaseSummary(job, gasPack, proof);
+  assert.equal(reportWhoCheckedIt(job), "Hayden Silva");
+  assert.match(text, /Who checked it: Hayden Silva/);
+  assert.equal([...text.matchAll(/Who checked it:/g)].length, 1);
+  assert.doesNotMatch(text, /Who checked it: Checked FE350/);
+  assert.match(text, /What the tech saw\nChecked FE350 setup; no power at starter-generator terminal/);
+  assert.match(text, /Helper: Go to starter-generator power/);
+  assert.doesNotMatch(text, /Tech note: Checked FE350/);
+});
+
+test("report Who stays empty instead of showing a polluted observation as the tech name", () => {
+  const saw = "Checked FE350 setup; no power at starter-generator terminal.";
+  assert.equal(
+    reportWhoCheckedIt({
+      technician: saw,
+      techObservation: saw,
+      aiLog: [{ at: "2026-09-06T00:00:00.000Z", role: "user", text: saw }],
+    }),
+    "—",
+  );
 });

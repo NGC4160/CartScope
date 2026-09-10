@@ -1,6 +1,7 @@
 import type { JobRecord, ModelPack } from "../data/types.ts";
 import { sheetsForPack } from "../data/wiring.ts";
 import { formatHandheldRecord } from "./handheld.ts";
+import { keepWhoCheckedIt } from "./job-header.ts";
 import { manualsOnFile } from "./manuals.ts";
 import { packNaReportLines } from "./pack-na.ts";
 import { formatPackCellLine } from "./pack-rules.ts";
@@ -8,8 +9,13 @@ import type { Proof } from "./proof.ts";
 import { manualsReportLines, partialReportGaps } from "./report-continuity.ts";
 
 /** Header technician only. Helper chat / observation text must never use this label. */
-export function reportWhoCheckedIt(job: Pick<JobRecord, "technician">): string {
-  return (job.technician || "").trim() || "—";
+export function reportWhoCheckedIt(
+  job: Pick<JobRecord, "technician" | "techObservation" | "aiLog">,
+): string {
+  const observation = job.techObservation?.trim() ?? "";
+  const helperTexts = (job.aiLog ?? []).map((turn) => turn.text);
+  const name = keepWhoCheckedIt("", job.technician, observation, helperTexts).trim();
+  return name || "—";
 }
 
 export function helperNoteSpeaker(role: "user" | "assistant"): "Tech note" | "Helper" {

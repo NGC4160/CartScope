@@ -60,3 +60,16 @@ test("jump from handheld codes enters the factory step", () => {
   assert.equal(next.casePhase, "steps");
   assert.equal(next.currentStepId, "pno-fr");
 });
+
+test("jump reason from a Helper observation does not become Who checked it", () => {
+  const saw = "Checked FE350 setup; no power at starter-generator terminal.";
+  const next = applyJumpToStep(
+    job({ technician: "Hayden Silva", techObservation: saw }),
+    "g-starter",
+    saw,
+    "2026-01-02T00:00:00.000Z",
+  );
+  assert.equal(next.technician, "Hayden Silva");
+  assert.equal(next.techObservation, saw);
+  assert.equal(next.pathRedirects?.[0]?.reason, saw);
+});

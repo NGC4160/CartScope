@@ -44,3 +44,22 @@ export function jobHeaderSummary(gaps: JobHeaderGap[]): string | null {
   });
   return `Cannot start yet. Enter the ${joinRequired(names)}.`;
 }
+
+/**
+ * Header tech name only. A Helper / What-the-tech-saw line must never replace it.
+ * `incoming === undefined` keeps the name already on the job.
+ */
+export function keepWhoCheckedIt(
+  current: string,
+  incoming: string | undefined,
+  observation: string,
+  helperTexts: readonly string[] = [],
+): string {
+  if (incoming === undefined) return current;
+  const candidate = incoming.trim();
+  if (!candidate) return current;
+  const obs = observation.trim();
+  if (obs && candidate === obs) return current;
+  if (helperTexts.some((text) => text.trim() === candidate)) return current;
+  return candidate;
+}
