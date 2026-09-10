@@ -797,7 +797,7 @@ const BY_PACK: Record<string, string[]> = {
   "club-car-ds-iq": ["iq-main", "iq-accessories", "iq-sonic"],
   "club-car-ds-pdplus": ["pdplus-main", "pdplus-zplug"],
   "club-car-ds-vglide": ["vglide-schematic", "vglide-control", "vglide-power"],
-  "club-car-precedent-eric": ["eric-main", "eric-instrument", "eric-batteries", "eric-lights", "prec19-e-main"],
+  "club-car-precedent-eric": ["eric-main", "eric-instrument", "eric-batteries", "eric-lights"],
   "club-car-precedent-excel": ["excel-main", "excel-accessories", "excel-sonic"],
   "club-car-precedent-gas": ["tempo-ex40-main", "tempo-ex40-dash", "tempo-ex40-engine", "ex40-main", "ex40-alt", "fe350-main", "fe350-accessories", "prec19-g-main"],
   "club-car-precedent-iq": ["iq-main", "iq-accessories", "iq-sonic"],

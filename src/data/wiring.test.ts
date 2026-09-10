@@ -147,3 +147,24 @@ test("PDS pack shows Library map, then F-6 intro and Fig. 7–8 support, then tr
   assert.ok(!sheetsForPack("ezgo-txt-tct").some((s) => isPdsSheet(s.id)));
   assert.ok(!sheetsForPack("ezgo-txt-36-non-pds").some((s) => isPdsSheet(s.id)));
 });
+
+const ERIC_2017_SHEET_IDS = ["eric-main", "eric-instrument", "eric-batteries", "eric-lights"];
+
+test("Precedent ERIC 2017 pack lists only ERIC Excel sheets, not the 2019 main harness", () => {
+  const sheets = sheetsForPack("club-car-precedent-eric");
+  const ids = sheets.map((s) => s.id);
+  assert.deepEqual(ids, ERIC_2017_SHEET_IDS);
+  assert.ok(!ids.includes("prec19-e-main"));
+  assert.ok(!sheets.some((s) => s.title === "2019 Precedent electric — main wire bundle"));
+
+  for (const id of ERIC_2017_SHEET_IDS) {
+    const sheet = getSheet(id);
+    assert.ok(sheet, id);
+    assertPublicSrc(sheet.src);
+  }
+
+  const prec19 = getSheet("prec19-e-main");
+  assert.ok(prec19);
+  assert.equal(prec19.title, "2019 Precedent electric — main wire bundle");
+  assert.ok(sheetsForPack("club-car-tempo-eric").some((s) => s.id === "prec19-e-main"));
+});
