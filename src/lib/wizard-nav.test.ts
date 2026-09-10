@@ -117,6 +117,45 @@ test("gas FE290 no-crank: header then Start reaches bench without battery type",
   }
 });
 
+test("Yamaha YDRE DC no-run: filled header Start reaches the Check 1 bench path", () => {
+  const symptomId = "no-operation";
+  assert.equal(openJobHeader(symptomId), 4);
+
+  const empty = jobHeaderGaps({
+    lastName: "",
+    hcpJobNumber: "",
+    powertrain: "electric",
+    batteryType: "",
+    technician: "",
+  });
+  assert.deepEqual(empty, ["lastName", "hcpJobNumber", "batteryType", "technician"]);
+  assert.equal(canStartChecks(empty), false);
+
+  const filled = jobHeaderGaps({
+    lastName: "Test",
+    hcpJobNumber: "HCP-YDRE-01",
+    powertrain: "electric",
+    batteryType: "lead-acid",
+    technician: "Hayden Silva",
+  });
+  assert.deepEqual(filled, []);
+  assert.equal(canStartChecks(filled), true);
+
+  const started = resolveStartJob({
+    hasModel: true,
+    symptomId,
+    startStepId: "yno-split",
+    gaps: filled,
+    hasFirstStep: true,
+  });
+  assert.equal(started.ok, true);
+  if (started.ok) {
+    assert.equal(started.startStepId, "yno-split");
+    assert.equal(benchUrl("job_ydre"), "/bench/job_ydre");
+    assert.equal(benchPathHasJob("/bench/job_ydre", "job_ydre"), true);
+  }
+});
+
 test("bench path helper recognizes the Check 1 URL after Start", () => {
   assert.equal(benchPathHasJob("/bench/job_abc", "job_abc"), true);
   assert.equal(benchPathHasJob("/bench/job_abc/extra", "job_abc"), true);
