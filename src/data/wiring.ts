@@ -794,7 +794,7 @@ const BY_PACK: Record<string, string[]> = {
   "club-car-ds-electric": ["pd48-multistep", "pd48-cvpot"],
   "club-car-ds-fe290": ["fe350-main", "fe350-accessories", "dsgas-circuits", "dsgas-kill", "dsgas-oil"],
   "club-car-ds-gas": ["fe350-main", "fe350-accessories", "dsgas-circuits", "dsgas-kill", "dsgas-oil"],
-  "club-car-ds-iq": ["iq-main", "iq-accessories", "iq-sonic"],
+  "club-car-ds-iq": ["iq-main"],
   "club-car-ds-pdplus": ["pdplus-main", "pdplus-zplug"],
   "club-car-ds-vglide": ["vglide-schematic", "vglide-control", "vglide-power"],
   "club-car-precedent-eric": ["eric-main", "eric-instrument", "eric-batteries", "eric-lights"],

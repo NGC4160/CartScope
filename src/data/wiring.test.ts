@@ -168,3 +168,37 @@ test("Precedent ERIC 2017 pack lists only ERIC Excel sheets, not the 2019 main h
   assert.equal(prec19.title, "2019 Precedent electric — main wire bundle");
   assert.ok(sheetsForPack("club-car-tempo-eric").some((s) => s.id === "prec19-e-main"));
 });
+
+const PRECEDENT_IQ_SHEET_IDS = ["iq-main", "iq-accessories", "iq-sonic"];
+
+test("DS IQ pack lists the shared IQ System main wire map, not Precedent accessory or instrument sheets", () => {
+  const sheets = sheetsForPack("club-car-ds-iq");
+  const ids = sheets.map((s) => s.id);
+  assert.deepEqual(ids, ["iq-main"]);
+  assert.ok(!ids.includes("iq-accessories"));
+  assert.ok(!ids.includes("iq-sonic"));
+  assert.ok(!sheets.some((s) => /precedent/i.test(s.title)));
+  assert.ok(!sheets.some((s) => s.title === "IQ System — lights and extras"));
+  assert.ok(!sheets.some((s) => s.title === "IQ System — weld spots and one-way parts"));
+
+  const main = getSheet("iq-main");
+  assert.ok(main);
+  assert.equal(main.title, "IQ System — main wire map");
+  assert.equal(main.src, "/wiring/iq-main.jpg");
+  assertPublicSrc(main.src);
+
+  const accessories = getSheet("iq-accessories");
+  assert.ok(accessories);
+  assert.equal(accessories.title, "IQ System — lights and extras");
+  assertPublicSrc(accessories.src);
+
+  const sonic = getSheet("iq-sonic");
+  assert.ok(sonic);
+  assert.equal(sonic.title, "IQ System — weld spots and one-way parts");
+  assertPublicSrc(sonic.src);
+
+  assert.deepEqual(
+    sheetsForPack("club-car-precedent-iq").map((s) => s.id),
+    PRECEDENT_IQ_SHEET_IDS,
+  );
+});
