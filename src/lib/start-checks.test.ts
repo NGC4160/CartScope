@@ -13,6 +13,7 @@ import {
   startIsReady,
   type HeaderSnapshot,
 } from "./start-checks.ts";
+import { initialPhase } from "./case-flow.ts";
 import { yearIssueLine, yearStatusNote } from "./year-compat.ts";
 
 /** Real Club Car DS IQ motor-braking path from `club-car-iq`. */
@@ -78,6 +79,25 @@ const ezgoTxt = {
     },
   ],
   steps: { "tdir-fr": { id: "tdir-fr" } },
+} as unknown as ModelPack;
+
+/** Real Yamaha YDRE DC ids and year copy from `yamaha-dc` (not a stub catalog). */
+const yamahaYdreDc = {
+  id: "yamaha-ydre-dc",
+  manufacturerLabel: "Yamaha",
+  name: "YDRE DC Drive",
+  fullName: "Yamaha YDRE / Drive G29 DC (48 V)",
+  powertrain: "electric",
+  years: "2007–2016 Drive / G29 / YDRE DC (YDRA/E Service Manual, 2016)",
+  symptoms: [
+    {
+      id: "no-operation",
+      label: "Will not run either way",
+      summary: "The book splits this into two check lists: the solenoid clicks, or it does not.",
+      startStepId: "yno-split",
+    },
+  ],
+  steps: { "yno-split": { id: "yno-split" } },
 } as unknown as ModelPack;
 
 /** Real Yamaha YDRA year copy and starts-then-dies path from `gas` builder. */
@@ -519,6 +539,55 @@ test("sticky Save fires pointerdown and click on the button and still steals onl
   assert.match(src, /onClick=\{onPrimaryClick\}/);
   assert.match(src, /pr-\[11\.5rem\]/);
   assert.doesNotMatch(src, /pointHitsBayStart|data-start-checks/);
+});
+
+test("real Yamaha YDRE DC pack still starts Will not run either way on yno-split", () => {
+  const src = readFileSync(new URL("../data/builders/yamaha-dc.ts", import.meta.url), "utf8");
+  assert.match(src, /id:\s*"yamaha-ydre-dc"/);
+  assert.match(src, /id:\s*"no-operation"/);
+  assert.match(src, /startStepId:\s*"yno-split"/);
+  assert.match(src, /["']yno-split["']/);
+});
+
+test("Yamaha YDRE DC valid header Starts to Check 1 (pack first, yno-split queued)", () => {
+  const header: HeaderSnapshot = {
+    lastName: "Test",
+    hcpJobNumber: "HCP-YDRE-01",
+    technician: "Hayden Silva",
+    cartYear: "2012",
+    serialNumber: "",
+    batteryType: "lead-acid",
+    complaintNote: "Will not run either way.",
+    fuelNote: "",
+  };
+  assert.equal(complaintHasFirstStep(yamahaYdreDc, "no-operation"), true);
+  assert.equal(initialPhase(yamahaYdreDc), "pack");
+
+  const started = attemptStartChecks({
+    pack: yamahaYdreDc,
+    symptomId: "no-operation",
+    header,
+  });
+  assert.equal(started.ok, true);
+  if (started.ok) {
+    assert.equal(started.symptomId, "no-operation");
+    assert.equal(started.startStepId, "yno-split");
+    assert.equal(started.jobInput.modelId, "yamaha-ydre-dc");
+    assert.equal(started.jobInput.lastName, "Test");
+    assert.equal(started.jobInput.technician, "Hayden Silva");
+    assert.equal(started.jobInput.batteryType, "lead-acid");
+    assert.equal(started.benchPath("job_ydre"), "/bench/job_ydre");
+    assert.match(started.routeLabel, /Yamaha/);
+    assert.match(started.routeLabel, /YDRE/);
+  }
+});
+
+test("bay UX must prove Yamaha YDRE Start leaves Job header on its own", () => {
+  const src = readFileSync(new URL("../../scripts/qa-bay-ux.mjs", import.meta.url), "utf8");
+  assert.match(src, /runYamahaYdreStartToFirstCheck/);
+  assert.match(src, /Hayden Silva/);
+  assert.match(src, /YDRE DC/);
+  assert.match(src, /keyboardActivateStart/);
 });
 
 test("Start overlay catch lives outside the wizard and clicks the Start control", () => {

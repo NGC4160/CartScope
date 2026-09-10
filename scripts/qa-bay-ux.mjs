@@ -217,6 +217,15 @@ async function mouseClickStart(page) {
   await page.mouse.click(x, y, { button: "left" });
 }
 
+/** Keyboard Start — same activation as a focused control, not a mouse hit on the pill. */
+async function keyboardActivateStart(page) {
+  const btn = page.getByTestId("start-checks");
+  await btn.waitFor({ state: "visible" });
+  await btn.scrollIntoViewIfNeeded();
+  await btn.focus();
+  await page.keyboard.press("Enter");
+}
+
 function yearCoverSpan(text) {
   const m = String(text).match(/1991\s*[–—-]\s*\d{4}/);
   return m ? m[0].replace(/\s+/g, "") : "";
@@ -1124,9 +1133,66 @@ async function runLiveFailList() {
   await fe350.close();
 }
 
-if (process.env.BAY_QA_ONLY === "live") {
+/**
+ * Must-pass Yamaha YDRE Start. Kept off the pack/Save blast so a later
+ * Save miss cannot hide a Start regression (PR #36 coverage gap).
+ */
+async function runYamahaYdreStartToFirstCheck() {
+  const page = await browser.newPage({ viewport: { width: 1024, height: 768 } });
+  page.on("pageerror", (e) => console.log("PAGEERROR", e.message));
+  await page.goto(BASE, { waitUntil: "networkidle" });
+  const neu = page.getByRole("button", { name: /New job/i });
+  if (await neu.count()) await neu.click();
+  await page.getByRole("button", { name: /Yamaha/i }).click();
+  await page.getByRole("button", { name: /YDRE DC/i }).first().click();
+  await page.getByRole("button", { name: /Will not run either way/i }).first().click();
+  const headerBtn = page.getByRole("button", { name: /Job header/i });
+  if (await headerBtn.count()) await headerBtn.click();
+  await fillHeader(page, {
+    last: "Test",
+    job: "HCP-YDRE-01",
+    year: "2012",
+    battery: "Lead-acid",
+    who: "Hayden Silva",
+    complaint: "Will not run either way.",
+  });
+  const start = page.getByTestId("start-checks");
+  check("Yamaha YDRE Start is ready", (await start.getAttribute("data-start-ready")) === "true");
+  check("Yamaha YDRE Start not blocked", (await page.getByTestId("start-blocked-reason").count()) === 0);
+
+  await keyboardActivateStart(page);
+  const reached = await page
+    .waitForURL("**/bench/**", { timeout: 8000 })
+    .then(() => true)
+    .catch(() => false);
+  if (!reached) {
+    await mouseClickStart(page);
+    await page.waitForURL("**/bench/**", { timeout: 15000 });
+  }
+
+  const packHeading = page.getByRole("heading", { name: /Check the pack before you blame other parts/i });
+  await packHeading.waitFor({ timeout: 15000 });
+  check("Yamaha YDRE Start left Job header", (await page.getByTestId("start-checks").count()) === 0);
+  check("Yamaha YDRE Start reached first diagnostic check", await packHeading.isVisible());
+  check("Yamaha YDRE Start is not on Setup/header", (await page.getByLabel(/Customer last name/i).count()) === 0);
+
+  const stored = await readStoredJob(page);
+  check("Yamaha YDRE job is YDRE DC", stored?.modelId === "yamaha-ydre-dc", String(stored?.modelId));
+  check("Yamaha YDRE last name is Test", stored?.lastName === "Test", String(stored?.lastName));
+  check("Yamaha YDRE who checked it is Hayden Silva", stored?.technician === "Hayden Silva", String(stored?.technician));
+  check("Yamaha YDRE Check 1 step is queued", stored?.currentStepId === "yno-split", String(stored?.currentStepId));
+  check("Yamaha YDRE first phase is pack", stored?.casePhase === "pack", String(stored?.casePhase));
+  await page.screenshot({ path: `${out}/yamaha-ydre-start-check1.png` });
+  await page.close();
+}
+
+if (process.env.BAY_QA_ONLY === "yamaha-start") {
+  await runYamahaYdreStartToFirstCheck();
+} else if (process.env.BAY_QA_ONLY === "live") {
+  await runYamahaYdreStartToFirstCheck();
   await runLiveFailList();
 } else {
+  await runYamahaYdreStartToFirstCheck();
   await runAt(1024, 768, "tablet");
   await runAt(390, 844, "phone");
   await runFactoryCheck();
