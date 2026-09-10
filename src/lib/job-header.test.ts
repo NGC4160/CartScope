@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { jobHeaderGaps, jobHeaderSummary } from "./job-header.ts";
+import { jobHeaderGaps, jobHeaderSummary, keepWhoCheckedIt } from "./job-header.ts";
 
 test("empty electric header lists last name, job number, battery type, and who checked it", () => {
   const gaps = jobHeaderGaps({
@@ -67,4 +67,13 @@ test("Who checked it is required even when other header fields are filled", () =
     jobHeaderSummary(gaps),
     "Cannot start yet. Enter the name of who checked it.",
   );
+});
+
+test("keepWhoCheckedIt refuses a Helper observation in place of the tech name", () => {
+  const saw = "Checked FE350 setup; no power at starter-generator terminal.";
+  assert.equal(keepWhoCheckedIt("Hayden Silva", saw, saw), "Hayden Silva");
+  assert.equal(keepWhoCheckedIt("Hayden Silva", undefined, saw), "Hayden Silva");
+  assert.equal(keepWhoCheckedIt("Hayden Silva", saw, "", [saw]), "Hayden Silva");
+  assert.equal(keepWhoCheckedIt("Hayden Silva", "  ", saw), "Hayden Silva");
+  assert.equal(keepWhoCheckedIt("Hayden Silva", "Ryan", saw), "Ryan");
 });

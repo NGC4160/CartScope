@@ -82,7 +82,7 @@ export function InFlowGuidance({
   }, []);
 
   function persistObservation(next: string) {
-    patchJob(job.id, { techObservation: next });
+    patchJob(job.id, { techObservation: next, technician: job.technician });
   }
 
   function goToSuggested(step: DiagnosticStep) {

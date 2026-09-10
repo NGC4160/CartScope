@@ -145,7 +145,7 @@ export function CaseReport({
         <dl className="mt-4 grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
           <Row label="Customer last name" value={job.lastName || "—"} />
           <Row label="Housecall Pro job number" value={job.hcpJobNumber || "—"} />
-          <Row label="Who checked it" value={reportWhoCheckedIt(job)} />
+          <Row label="Who checked it" value={reportWhoCheckedIt(job)} testId="report-who-checked" />
           <Row label="Year" value={job.cartYear || "—"} />
           <Row label="Make" value={job.cartMake || pack.manufacturerLabel} />
           <Row label="Model" value={job.cartModel || pack.name} />
@@ -423,11 +423,11 @@ export function CaseReport({
   );
 }
 
-function Row({ label, value }: { label: string; value: string }) {
+function Row({ label, value, testId }: { label: string; value: string; testId?: string }) {
   return (
     <div>
       <dt className="text-xs uppercase tracking-wide text-ink-subtle">{label}</dt>
-      <dd>{value}</dd>
+      <dd data-testid={testId}>{value}</dd>
     </div>
   );
 }
