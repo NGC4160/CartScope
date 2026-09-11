@@ -202,3 +202,46 @@ test("DS IQ pack lists the shared IQ System main wire map, not Precedent accesso
     PRECEDENT_IQ_SHEET_IDS,
   );
 });
+
+const YDRE_DC_SHEET_IDS = ["ydre-dc-1", "ydre-dc-2", "ydre-dc-mcu"];
+const YDRE_AC_SHEET_IDS = ["ydre-ac-1", "ydre-ac-mcu-1", "ydre-ac-mcu-2"];
+
+test("YDRE DC pack lists only the three printed DC sheets with matching fig/page refs", () => {
+  const sheets = sheetsForPack("yamaha-ydre-dc");
+  const ids = sheets.map((s) => s.id);
+  assert.deepEqual(ids, YDRE_DC_SHEET_IDS);
+
+  for (const id of YDRE_AC_SHEET_IDS) {
+    assert.ok(!ids.includes(id), id);
+  }
+  assert.ok(!sheets.some((s) => /YDRE AC/i.test(s.title)));
+  assert.ok(!sheets.some((s) => /troubleshooting tree/i.test(s.title)));
+  assert.ok(!sheets.some((s) => /fault code/i.test(s.title)));
+
+  const cart = getSheet("ydre-dc-1");
+  assert.ok(cart);
+  assert.equal(cart.title, "YDRE DC — cart wire map (Fig. 8-19)");
+  assert.equal(cart.manualRef, "YDRA/E Service Manual, Figure 8-19, page 8-15");
+  assert.equal(cart.src, "/wiring/ydre-dc-1.jpg");
+  assertPublicSrc(cart.src);
+
+  const cruise = getSheet("ydre-dc-2");
+  assert.ok(cruise);
+  assert.equal(cruise.title, "YDRE DC Cruise — cart wire map (Fig. 8-20)");
+  assert.equal(cruise.manualRef, "YDRA/E Service Manual, Figure 8-20, page 8-16");
+  assert.equal(cruise.src, "/wiring/ydre-dc-2.jpg");
+  assert.doesNotMatch(cruise.manualRef, /page 8-20/);
+  assertPublicSrc(cruise.src);
+
+  const mcu = getSheet("ydre-dc-mcu");
+  assert.ok(mcu);
+  assert.equal(mcu.title, "YDRE DC — controller wire map (Fig. 8-24)");
+  assert.equal(mcu.manualRef, "YDRA/E Service Manual, Figure 8-24, page 8-20");
+  assert.equal(mcu.src, "/wiring/ydre-dc-mcu.jpg");
+  assert.doesNotMatch(mcu.title, /Fig\. 8-20/);
+  assert.doesNotMatch(mcu.manualRef, /Figure 8-20/);
+  assertPublicSrc(mcu.src);
+
+  assert.deepEqual(sheetsForPack("yamaha-ydre-ac").map((s) => s.id), YDRE_AC_SHEET_IDS);
+  assert.ok(!sheetsForPack("yamaha-ydre-ac").some((s) => YDRE_DC_SHEET_IDS.includes(s.id)));
+});
