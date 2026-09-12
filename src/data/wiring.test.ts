@@ -381,13 +381,20 @@ const YDRE_DC_CH9_SHEETS: Array<{
     src: "/wiring/ydre-dc-ch9-9-29-z2-tester-failure-chart-b.png",
     kind: "control",
   },
-  ...YDRE_DC_CH9_GENIUS_IDS.map((id, i) => ({
-    id,
-    title: `Genius PDA fault plate (page 9-${38 + i})`,
-    manualRef: `Chapter 9, page 9-${38 + i}`,
-    src: `/wiring/ydre-dc-ch9-9-${38 + i}-genius-faults.png`,
-    kind: "control" as const,
-  })),
+  ...YDRE_DC_CH9_GENIUS_IDS.map((id, i) => {
+    const page = 38 + i;
+    const heading =
+      page === 38
+        ? "TROUBLESHOOTING USING GENIUS — Faults and Troubleshooting steps"
+        : "TROUBLESHOOTING USING GENIUS — Faults and Troubleshooting steps (cont.)";
+    return {
+      id,
+      title: `${heading}, page 9-${page}`,
+      manualRef: `YDRA/E Service Manual, ${heading}, page 9-${page}`,
+      src: `/wiring/ydre-dc-ch9-9-${page}-genius-faults.png`,
+      kind: "control" as const,
+    };
+  }),
 ];
 
 test("YDRE DC pack keeps the three wire maps, then Ch.9 flowchart / trees / Z-2 / Genius plates", () => {
