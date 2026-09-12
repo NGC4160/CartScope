@@ -3,7 +3,7 @@ import { existsSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import test from "node:test";
-import { getSheet, sheetsForPack } from "./wiring.ts";
+import { getSheet, packsWithWiring, sheetsForPack } from "./wiring.ts";
 
 const PUBLIC = join(dirname(fileURLToPath(import.meta.url)), "../../public");
 
@@ -361,4 +361,43 @@ test("YDRE DC pack keeps the three wire maps, then Ch.9 flowchart / trees / Z-2 
 
   assert.deepEqual(sheetsForPack("yamaha-ydre-ac").map((s) => s.id), YDRE_AC_SHEET_IDS);
   assert.ok(!sheetsForPack("yamaha-ydre-ac").some((s) => YDRE_DC_SHEET_IDS.includes(s.id)));
+});
+
+const DCS_E6_ID = "dcs-e6-ten-pin-troubleshooting";
+const EZGO_TXT_DCS_SHEET_IDS = ["dcs-connector", "dcs-wiring", DCS_E6_ID];
+
+test("TXT DCS pack keeps the two wire maps, then Fig. E-6 ten-pin troubleshooting tree", () => {
+  const sheet = getSheet(DCS_E6_ID);
+  assert.ok(sheet);
+  assert.equal(sheet.id, DCS_E6_ID);
+  assert.equal(sheet.title, "TXT DCS — Ten Pin Connector Troubleshooting Diagram (Fig. E-6)");
+  assert.equal(
+    sheet.manualRef,
+    "TXT 96–01 DCS Service Manual (28407-G01), Fig. E-6 Ten Pin Connector Troubleshooting Diagram, page E-5 — Electronic Speed Control (DCS)",
+  );
+  assert.equal(sheet.src, "/wiring/dcs-e6-ten-pin-troubleshooting.png");
+  assert.equal(sheet.kind, "control");
+  assert.equal(sheet.landscape, false);
+  assert.match(sheet.manualRef, /28407-G01/);
+  assert.match(sheet.manualRef, /Fig\. E-6/);
+  assert.match(sheet.manualRef, /E-5/);
+  assert.doesNotMatch(sheet.title, /wire map/i);
+  assertPublicSrc(sheet.src);
+
+  const ids = sheetsForPack("ezgo-txt-dcs").map((s) => s.id);
+  assert.deepEqual(ids, EZGO_TXT_DCS_SHEET_IDS);
+  assert.deepEqual(ids.slice(0, 2), ["dcs-connector", "dcs-wiring"]);
+  assert.equal(ids[2], DCS_E6_ID);
+
+  for (const packId of packsWithWiring()) {
+    if (packId === "ezgo-txt-dcs") continue;
+    assert.ok(
+      !sheetsForPack(packId).some((s) => s.id === DCS_E6_ID),
+      packId,
+    );
+  }
+
+  assert.ok(!sheetsForPack("ezgo-pds-36").some((s) => s.id === DCS_E6_ID));
+  assert.ok(!sheetsForPack("ezgo-txt-tct").some((s) => s.id === DCS_E6_ID));
+  assert.ok(!sheetsForPack("ezgo-txt-36-non-pds").some((s) => s.id === DCS_E6_ID));
 });

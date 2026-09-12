@@ -442,6 +442,17 @@ export const WIRING_SHEETS: WiringSheet[] = [
     kind: "full",
     landscape: false,
   },
+  // Factory Fig. E-6 — 96-01 EZGO TXT DCS Service Manual (28407-G01), Drive 1mqKd5SC2tksQExnGmn5iUUOdFMcEG7PT.
+  // Kind/landscape match YDRE Ch.9 / TXT PDS troubleshooting trees. ezgo-txt-dcs only.
+  {
+    id: "dcs-e6-ten-pin-troubleshooting",
+    title: "TXT DCS — Ten Pin Connector Troubleshooting Diagram (Fig. E-6)",
+    manualRef:
+      "TXT 96–01 DCS Service Manual (28407-G01), Fig. E-6 Ten Pin Connector Troubleshooting Diagram, page E-5 — Electronic Speed Control (DCS)",
+    src: "/wiring/dcs-e6-ten-pin-troubleshooting.png",
+    kind: "control",
+    landscape: false,
+  },
   // Library Drive 1QnJpnsq9Pp1ayELBLKBR0N1zNJ8O1KIW — EZGo TXT 36v Non-PDS Wiring Diagram
   {
     id: "txt36-non-pds",
@@ -987,7 +998,7 @@ const BY_PACK: Record<string, string[]> = {
     "txt36-nonpds-tree-8",
   ],
   "ezgo-rxv-ac": ["rxv-k1", "rxv-k2", "rxv-k3", "rxv-k4"],
-  "ezgo-txt-dcs": ["dcs-connector", "dcs-wiring"],
+  "ezgo-txt-dcs": ["dcs-connector", "dcs-wiring", "dcs-e6-ten-pin-troubleshooting"],
   "ezgo-txt-gas": ["ezgas-l2", "ezgas-l9", "ezgas-l10", "ezgas-l11"],
   "ezgo-txt-tct": ["txt-electrical-1", "txt-electrical-2", "txt-electrical-3", "txt-electrical-4", "txt-tct-esc"],
   "yamaha-ydra": ["ydra-carb", "ydra-efi", "ydra-efi-2"],
