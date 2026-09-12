@@ -1,120 +1,104 @@
 {
   "goal": "CartScope Goal 9a YDRE DC Ch.9 trees/fault plates",
   "pack": "yamaha-ydre-dc",
-  "readyForCloudAgent": true,
-  "note": "Factory PNG plates were attached on the vision channel only. Original PNG bytes were not found on this VM (no /workspace/cartscope-library/ydre-dc/, no matching sha256 anywhere under /tmp /home /workspace /opt /cursor). Do not invent, redraw, screenshot, or re-encode diagrams. A follow-up must supply the 16 original files as base64 or exact PNG bytes.",
+  "source": "Drive Yamaha YDRA/YDRE service manual (2:2), factory scans only",
+  "note": "16 factory PNG plates are on disk under public/wiring/. Do not invent, redraw, or replace PNG pixels. Sheet ids below are the live WIRING_SHEETS / BY_PACK[yamaha-ydre-dc] ids (not mapped onto other packs).",
   "plates": [
     {
-      "proposedSheetId": "ydre-dc-ch9-9-18-traction-motor",
+      "sheetId": "ydre-dc-ch9-traction-motor",
       "path": "public/wiring/ydre-dc-ch9-9-18-traction-motor.png",
       "pngBytes": 347696,
-      "sha256": "87250994e14ce5808e1796c51d340670e69cccc5be41491f93786379207e0311",
-      "written": false
+      "sha256": "87250994e14ce5808e1796c51d340670e69cccc5be41491f93786379207e0311"
     },
     {
-      "proposedSheetId": "ydre-dc-ch9-9-19-mcu-reset-harness-dc",
+      "sheetId": "ydre-dc-ch9-mcu-reset-harness-dc",
       "path": "public/wiring/ydre-dc-ch9-9-19-mcu-reset-harness-dc.png",
       "pngBytes": 411245,
-      "sha256": "0f002a5710744afaaeeab791bb2f6418a059bc303d912bbea2b1fd3fca528937",
-      "written": false
+      "sha256": "0f002a5710744afaaeeab791bb2f6418a059bc303d912bbea2b1fd3fca528937"
     },
     {
-      "proposedSheetId": "ydre-dc-ch9-9-21-buzzer-rated-speed-trees",
+      "sheetId": "ydre-dc-ch9-buzzer-rated-speed",
       "path": "public/wiring/ydre-dc-ch9-9-21-buzzer-rated-speed-trees.png",
       "pngBytes": 361701,
-      "sha256": "3255fae1cdc7e016e56f182833c4385845955bafd9b2e7d8ae5384812e0af15e",
-      "written": false
+      "sha256": "3255fae1cdc7e016e56f182833c4385845955bafd9b2e7d8ae5384812e0af15e"
     },
     {
-      "proposedSheetId": "ydre-dc-ch9-9-22-solenoid-does-not-operate",
+      "sheetId": "ydre-dc-ch9-solenoid-no-click",
       "path": "public/wiring/ydre-dc-ch9-9-22-solenoid-does-not-operate.png",
       "pngBytes": 452431,
-      "sha256": "f3d321515261baa2cec377ba03288ccf72216013e081c85cb8a93fe97b22e089",
-      "written": false
+      "sha256": "f3d321515261baa2cec377ba03288ccf72216013e081c85cb8a93fe97b22e089"
     },
     {
-      "proposedSheetId": "ydre-dc-ch9-9-23-solenoid-does-operate",
+      "sheetId": "ydre-dc-ch9-solenoid-clicks",
       "path": "public/wiring/ydre-dc-ch9-9-23-solenoid-does-operate.png",
       "pngBytes": 524260,
-      "sha256": "4a01d704def4d1830378bc293d56be3592a321c4efa96d1689e268cfa7c92041",
-      "written": false
+      "sha256": "4a01d704def4d1830378bc293d56be3592a321c4efa96d1689e268cfa7c92041"
     },
     {
-      "proposedSheetId": "ydre-dc-ch9-9-24-no-regen-rollaway",
+      "sheetId": "ydre-dc-ch9-no-regen-rollaway",
       "path": "public/wiring/ydre-dc-ch9-9-24-no-regen-rollaway.png",
       "pngBytes": 266296,
-      "sha256": "b8998060da3de65281a75a6b689523d3659754d18312434541fc75450fcbac57",
-      "written": false
+      "sha256": "b8998060da3de65281a75a6b689523d3659754d18312434541fc75450fcbac57"
     },
     {
-      "proposedSheetId": "ydre-dc-ch9-9-28-z2-tester-failure-chart-a",
+      "sheetId": "ydre-dc-ch9-z2-failure-chart-a",
       "path": "public/wiring/ydre-dc-ch9-9-28-z2-tester-failure-chart-a.png",
       "pngBytes": 637964,
-      "sha256": "ae7525fd158cd9665328c194347ca686c96e351d67e27b9823ce492d25cc1391",
-      "written": false
+      "sha256": "ae7525fd158cd9665328c194347ca686c96e351d67e27b9823ce492d25cc1391"
     },
     {
-      "proposedSheetId": "ydre-dc-ch9-9-29-z2-tester-failure-chart-b",
+      "sheetId": "ydre-dc-ch9-z2-failure-chart-b",
       "path": "public/wiring/ydre-dc-ch9-9-29-z2-tester-failure-chart-b.png",
       "pngBytes": 437573,
-      "sha256": "e2ac16b679853ce8eb81c9537c914480dcaa1bd498ede9608ab13fad2fec8d3b",
-      "written": false
+      "sha256": "e2ac16b679853ce8eb81c9537c914480dcaa1bd498ede9608ab13fad2fec8d3b"
     },
     {
-      "proposedSheetId": "ydre-dc-ch9-9-38-genius-faults",
+      "sheetId": "ydre-dc-ch9-genius-faults-9-38",
       "path": "public/wiring/ydre-dc-ch9-9-38-genius-faults.png",
       "pngBytes": 209677,
-      "sha256": "ae70aa925f88903469a4d2d8b7070d7c571a7a81df6407679cc3f12d88f16921",
-      "written": false
+      "sha256": "ae70aa925f88903469a4d2d8b7070d7c571a7a81df6407679cc3f12d88f16921"
     },
     {
-      "proposedSheetId": "ydre-dc-ch9-9-39-genius-faults",
+      "sheetId": "ydre-dc-ch9-genius-faults-9-39",
       "path": "public/wiring/ydre-dc-ch9-9-39-genius-faults.png",
       "pngBytes": 177958,
-      "sha256": "13dcb7cb05d6a617f83ba0db695a4c6d4d65e364894b95bafac9a445df4a661d",
-      "written": false
+      "sha256": "13dcb7cb05d6a617f83ba0db695a4c6d4d65e364894b95bafac9a445df4a661d"
     },
     {
-      "proposedSheetId": "ydre-dc-ch9-9-40-genius-faults",
+      "sheetId": "ydre-dc-ch9-genius-faults-9-40",
       "path": "public/wiring/ydre-dc-ch9-9-40-genius-faults.png",
       "pngBytes": 208608,
-      "sha256": "5717abfade591ffbc3dbe9f1b24c3b0a3d174769ef6a28dde2582e3e6354c835",
-      "written": false
+      "sha256": "5717abfade591ffbc3dbe9f1b24c3b0a3d174769ef6a28dde2582e3e6354c835"
     },
     {
-      "proposedSheetId": "ydre-dc-ch9-9-41-genius-faults",
+      "sheetId": "ydre-dc-ch9-genius-faults-9-41",
       "path": "public/wiring/ydre-dc-ch9-9-41-genius-faults.png",
       "pngBytes": 193112,
-      "sha256": "8b90cf44eb264a9e37373d0769410faa8002fd37d18ab9f8280f512a6991577d",
-      "written": false
+      "sha256": "8b90cf44eb264a9e37373d0769410faa8002fd37d18ab9f8280f512a6991577d"
     },
     {
-      "proposedSheetId": "ydre-dc-ch9-9-42-genius-faults",
+      "sheetId": "ydre-dc-ch9-genius-faults-9-42",
       "path": "public/wiring/ydre-dc-ch9-9-42-genius-faults.png",
       "pngBytes": 203593,
-      "sha256": "82760a9466c7c95300ccf9c7c84557d62e176b978ed46c8a00f58c873b7a9f6e",
-      "written": false
+      "sha256": "82760a9466c7c95300ccf9c7c84557d62e176b978ed46c8a00f58c873b7a9f6e"
     },
     {
-      "proposedSheetId": "ydre-dc-ch9-9-43-genius-faults",
+      "sheetId": "ydre-dc-ch9-genius-faults-9-43",
       "path": "public/wiring/ydre-dc-ch9-9-43-genius-faults.png",
       "pngBytes": 216948,
-      "sha256": "3f8697641a2a16608f170e46901250f1a971a0dbd8b66b3fd28956c14deef3e3",
-      "written": false
+      "sha256": "3f8697641a2a16608f170e46901250f1a971a0dbd8b66b3fd28956c14deef3e3"
     },
     {
-      "proposedSheetId": "ydre-dc-ch9-9-44-genius-faults",
+      "sheetId": "ydre-dc-ch9-genius-faults-9-44",
       "path": "public/wiring/ydre-dc-ch9-9-44-genius-faults.png",
       "pngBytes": 79201,
-      "sha256": "f8ed50bb4c9ab2c4d9e18fd8df1560ebd29fb72c97481ca3f79529d0ae0e59f2",
-      "written": false
+      "sha256": "f8ed50bb4c9ab2c4d9e18fd8df1560ebd29fb72c97481ca3f79529d0ae0e59f2"
     },
     {
-      "proposedSheetId": "ydre-dc-ch9-fig9-18-electrical-flowchart-z2",
+      "sheetId": "ydre-dc-ch9-flowchart-z2",
       "path": "public/wiring/ydre-dc-ch9-fig9-18-electrical-flowchart-z2.png",
       "pngBytes": 712794,
-      "sha256": "851955b70b6c9d6b52cecff8b5aa57b191882c525a3470bb58079a800d2e0cdc",
-      "written": false
+      "sha256": "851955b70b6c9d6b52cecff8b5aa57b191882c525a3470bb58079a800d2e0cdc"
     }
   ]
 }

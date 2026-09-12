@@ -203,20 +203,119 @@ test("DS IQ pack lists the shared IQ System main wire map, not Precedent accesso
   );
 });
 
-const YDRE_DC_SHEET_IDS = ["ydre-dc-1", "ydre-dc-2", "ydre-dc-mcu"];
+const YDRE_DC_WIRE_MAP_IDS = ["ydre-dc-1", "ydre-dc-2", "ydre-dc-mcu"];
+const YDRE_DC_CH9_TREE_IDS = [
+  "ydre-dc-ch9-traction-motor",
+  "ydre-dc-ch9-mcu-reset-harness-dc",
+  "ydre-dc-ch9-buzzer-rated-speed",
+  "ydre-dc-ch9-solenoid-no-click",
+  "ydre-dc-ch9-solenoid-clicks",
+  "ydre-dc-ch9-no-regen-rollaway",
+];
+const YDRE_DC_CH9_Z2_IDS = ["ydre-dc-ch9-z2-failure-chart-a", "ydre-dc-ch9-z2-failure-chart-b"];
+const YDRE_DC_CH9_GENIUS_IDS = Array.from({ length: 7 }, (_, i) => `ydre-dc-ch9-genius-faults-9-${38 + i}`);
+const YDRE_DC_SHEET_IDS = [
+  ...YDRE_DC_WIRE_MAP_IDS,
+  "ydre-dc-ch9-flowchart-z2",
+  ...YDRE_DC_CH9_TREE_IDS,
+  ...YDRE_DC_CH9_Z2_IDS,
+  ...YDRE_DC_CH9_GENIUS_IDS,
+];
 const YDRE_AC_SHEET_IDS = ["ydre-ac-1", "ydre-ac-mcu-1", "ydre-ac-mcu-2"];
 
-test("YDRE DC pack lists only the three printed DC sheets with matching fig/page refs", () => {
+const YDRE_DC_CH9_SHEETS: Array<{
+  id: string;
+  title: string;
+  manualRef: string;
+  src: string;
+  kind: "control" | "pinout";
+}> = [
+  {
+    id: "ydre-dc-ch9-flowchart-z2",
+    title: "YDRE DC MODELS ELECTRICAL TROUBLESHOOTING FLOWCHART (Z-2 Diagnostic Tester)",
+    manualRef: "Figure 9-18, page 9-25",
+    src: "/wiring/ydre-dc-ch9-fig9-18-electrical-flowchart-z2.png",
+    kind: "control",
+  },
+  {
+    id: "ydre-dc-ch9-traction-motor",
+    title: "TRACTION MOTOR — Troubleshooting – YDRE (Battery Models)",
+    manualRef: "Chapter 9, page 9-18 (YDRE section)",
+    src: "/wiring/ydre-dc-ch9-9-18-traction-motor.png",
+    kind: "control",
+  },
+  {
+    id: "ydre-dc-ch9-mcu-reset-harness-dc",
+    title: "RESETTING MOTOR CONTROL UNIT / MCU MAIN HARNESS CONNECTOR – DC MODELS",
+    manualRef: "Figure 9-16, page 9-19",
+    src: "/wiring/ydre-dc-ch9-9-19-mcu-reset-harness-dc.png",
+    kind: "pinout",
+  },
+  {
+    id: "ydre-dc-ch9-buzzer-rated-speed",
+    title: "REVERSE WARNING BUZZER DOES NOT WORK / CAR WILL NOT RUN AT RATED SPEED",
+    manualRef: "Chapter 9, page 9-21",
+    src: "/wiring/ydre-dc-ch9-9-21-buzzer-rated-speed-trees.png",
+    kind: "control",
+  },
+  {
+    id: "ydre-dc-ch9-solenoid-no-click",
+    title: "CAR WILL NOT OPERATE IN EITHER DIRECTION – SOLENOID DOES NOT OPERATE",
+    manualRef: "Chapter 9, page 9-22",
+    src: "/wiring/ydre-dc-ch9-9-22-solenoid-does-not-operate.png",
+    kind: "control",
+  },
+  {
+    id: "ydre-dc-ch9-solenoid-clicks",
+    title: "CAR WILL NOT OPERATE IN EITHER DIRECTION – SOLENOID DOES OPERATE",
+    manualRef: "Chapter 9, page 9-23",
+    src: "/wiring/ydre-dc-ch9-9-23-solenoid-does-operate.png",
+    kind: "control",
+  },
+  {
+    id: "ydre-dc-ch9-no-regen-rollaway",
+    title: "NO REGENERATIVE BRAKING OR ROLLAWAY PROTECTION",
+    manualRef: "Chapter 9, page 9-24",
+    src: "/wiring/ydre-dc-ch9-9-24-no-regen-rollaway.png",
+    kind: "control",
+  },
+  {
+    id: "ydre-dc-ch9-z2-failure-chart-a",
+    title: "Z-2 TESTER FAILURE CHART – DC MODELS (sheet A)",
+    manualRef: "Figure 9-24 + chart, page 9-28",
+    src: "/wiring/ydre-dc-ch9-9-28-z2-tester-failure-chart-a.png",
+    kind: "control",
+  },
+  {
+    id: "ydre-dc-ch9-z2-failure-chart-b",
+    title: "Z-2 TESTER FAILURE CHART – DC MODELS (sheet B)",
+    manualRef: "Chapter 9, page 9-29",
+    src: "/wiring/ydre-dc-ch9-9-29-z2-tester-failure-chart-b.png",
+    kind: "control",
+  },
+  ...YDRE_DC_CH9_GENIUS_IDS.map((id, i) => ({
+    id,
+    title: `Genius PDA fault plate (page 9-${38 + i})`,
+    manualRef: `Chapter 9, page 9-${38 + i}`,
+    src: `/wiring/ydre-dc-ch9-9-${38 + i}-genius-faults.png`,
+    kind: "control" as const,
+  })),
+];
+
+test("YDRE DC pack keeps the three wire maps, then Ch.9 flowchart / trees / Z-2 / Genius plates", () => {
   const sheets = sheetsForPack("yamaha-ydre-dc");
   const ids = sheets.map((s) => s.id);
   assert.deepEqual(ids, YDRE_DC_SHEET_IDS);
+  assert.deepEqual(ids.slice(0, 3), YDRE_DC_WIRE_MAP_IDS);
+  assert.equal(ids[3], "ydre-dc-ch9-flowchart-z2");
+  assert.deepEqual(ids.slice(4, 10), YDRE_DC_CH9_TREE_IDS);
+  assert.deepEqual(ids.slice(10, 12), YDRE_DC_CH9_Z2_IDS);
+  assert.deepEqual(ids.slice(12), YDRE_DC_CH9_GENIUS_IDS);
 
   for (const id of YDRE_AC_SHEET_IDS) {
     assert.ok(!ids.includes(id), id);
   }
   assert.ok(!sheets.some((s) => /YDRE AC/i.test(s.title)));
-  assert.ok(!sheets.some((s) => /troubleshooting tree/i.test(s.title)));
-  assert.ok(!sheets.some((s) => /fault code/i.test(s.title)));
 
   const cart = getSheet("ydre-dc-1");
   assert.ok(cart);
@@ -241,6 +340,24 @@ test("YDRE DC pack lists only the three printed DC sheets with matching fig/page
   assert.doesNotMatch(mcu.title, /Fig\. 8-20/);
   assert.doesNotMatch(mcu.manualRef, /Figure 8-20/);
   assertPublicSrc(mcu.src);
+
+  for (const expected of YDRE_DC_CH9_SHEETS) {
+    const sheet = getSheet(expected.id);
+    assert.ok(sheet, expected.id);
+    assert.equal(sheet.title, expected.title);
+    assert.equal(sheet.manualRef, expected.manualRef);
+    assert.equal(sheet.src, expected.src);
+    assert.equal(sheet.kind, expected.kind);
+    assert.equal(sheet.landscape, false);
+    assertPublicSrc(sheet.src);
+  }
+
+  const foreignPacks = ["yamaha-ydre-ac", "yamaha-ydra", "ezgo-txt-dcs", "ezgo-pds-36"];
+  for (const packId of foreignPacks) {
+    const foreign = sheetsForPack(packId);
+    assert.ok(!foreign.some((s) => s.id.startsWith("ydre-dc-ch9-")), packId);
+    assert.ok(!foreign.some((s) => YDRE_DC_SHEET_IDS.includes(s.id)), packId);
+  }
 
   assert.deepEqual(sheetsForPack("yamaha-ydre-ac").map((s) => s.id), YDRE_AC_SHEET_IDS);
   assert.ok(!sheetsForPack("yamaha-ydre-ac").some((s) => YDRE_DC_SHEET_IDS.includes(s.id)));
