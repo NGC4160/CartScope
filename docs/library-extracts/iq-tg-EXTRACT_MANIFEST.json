@@ -1,0 +1,152 @@
+{
+  "goal": "CartScope Goal 9c \u2014 DS IQ / Precedent IQ Troubleshooting Guide 1 & 2 (TG)",
+  "packs": [
+    "club-car-ds-iq",
+    "club-car-precedent-iq"
+  ],
+  "sourceDriveFiles": [
+    {
+      "id": "1JWBHviLLBD9tvbyZ6LgOiigZg3GpKjGb",
+      "title": "06-07 Club Car Precedent Service Manual.pdf",
+      "note": "Landed at /workspace/library-iq/06-07-Club-Car-Precedent-Service-Manual.pdf (11,985,078 bytes)"
+    }
+  ],
+  "extracted": [
+    {
+      "proposedSheetId": "iq-tg1-p1",
+      "title": "Troubleshooting Guide 1, page 11-8",
+      "manualRef": "2006\u20132007 Precedent IQ System Electric Golf Car Maintenance and Service Manual, Troubleshooting Guide 1, page 11-8",
+      "printedPage": "11-8",
+      "figure": "Troubleshooting Guide 1",
+      "kind": "control",
+      "confidence": "high",
+      "packs": [
+        "club-car-ds-iq",
+        "club-car-precedent-iq"
+      ],
+      "source": {
+        "driveFileId": "1JWBHviLLBD9tvbyZ6LgOiigZg3GpKjGb",
+        "driveFileTitle": "06-07 Club Car Precedent Service Manual.pdf",
+        "pdfPage": 100,
+        "localPdf": "/workspace/cartscope-library/ds-iq/src/06-07-Club-Car-Precedent-Service-Manual.pdf"
+      },
+      "png": "/workspace/cartscope-library/ds-iq/iq-tg1-guide1-p1.png",
+      "pngBytes": 493479,
+      "sha256": "8cba6c7516e7d5a9d9c90842204342393d3f36475e4cdf66d7e19515eaf5880b",
+      "notes": "Full-page factory scan. Title/manualRef use printed guide name + page from footer. No invent."
+    },
+    {
+      "proposedSheetId": "iq-tg1-p2",
+      "title": "Troubleshooting Guide 1, page 11-9",
+      "manualRef": "2006\u20132007 Precedent IQ System Electric Golf Car Maintenance and Service Manual, Troubleshooting Guide 1, page 11-9",
+      "printedPage": "11-9",
+      "figure": "Troubleshooting Guide 1",
+      "kind": "control",
+      "confidence": "high",
+      "packs": [
+        "club-car-ds-iq",
+        "club-car-precedent-iq"
+      ],
+      "source": {
+        "driveFileId": "1JWBHviLLBD9tvbyZ6LgOiigZg3GpKjGb",
+        "driveFileTitle": "06-07 Club Car Precedent Service Manual.pdf",
+        "pdfPage": 101,
+        "localPdf": "/workspace/cartscope-library/ds-iq/src/06-07-Club-Car-Precedent-Service-Manual.pdf"
+      },
+      "png": "/workspace/cartscope-library/ds-iq/iq-tg1-guide1-p2.png",
+      "pngBytes": 467112,
+      "sha256": "ee1da58894f1822ce5bac04f4ac7eab864d4f99e04947c7288e74653cb15459d",
+      "notes": "Full-page factory scan. Title/manualRef use printed guide name + page from footer. No invent."
+    },
+    {
+      "proposedSheetId": "iq-tg1-p3",
+      "title": "Troubleshooting Guide 1, page 11-10",
+      "manualRef": "2006\u20132007 Precedent IQ System Electric Golf Car Maintenance and Service Manual, Troubleshooting Guide 1, page 11-10",
+      "printedPage": "11-10",
+      "figure": "Troubleshooting Guide 1",
+      "kind": "control",
+      "confidence": "high",
+      "packs": [
+        "club-car-ds-iq",
+        "club-car-precedent-iq"
+      ],
+      "source": {
+        "driveFileId": "1JWBHviLLBD9tvbyZ6LgOiigZg3GpKjGb",
+        "driveFileTitle": "06-07 Club Car Precedent Service Manual.pdf",
+        "pdfPage": 102,
+        "localPdf": "/workspace/cartscope-library/ds-iq/src/06-07-Club-Car-Precedent-Service-Manual.pdf"
+      },
+      "png": "/workspace/cartscope-library/ds-iq/iq-tg1-guide1-p3.png",
+      "pngBytes": 315348,
+      "sha256": "0a44c0ffb0b8eede1472f3c62775e2d438eea6426d0a9226adb4b5d03dec139e",
+      "notes": "Full-page factory scan. Title/manualRef use printed guide name + page from footer. No invent."
+    },
+    {
+      "proposedSheetId": "iq-tg2-p1",
+      "title": "Troubleshooting Guide 2, page 11-11",
+      "manualRef": "2006\u20132007 Precedent IQ System Electric Golf Car Maintenance and Service Manual, Troubleshooting Guide 2, page 11-11",
+      "printedPage": "11-11",
+      "figure": "Troubleshooting Guide 2",
+      "kind": "control",
+      "confidence": "high",
+      "packs": [
+        "club-car-ds-iq",
+        "club-car-precedent-iq"
+      ],
+      "source": {
+        "driveFileId": "1JWBHviLLBD9tvbyZ6LgOiigZg3GpKjGb",
+        "driveFileTitle": "06-07 Club Car Precedent Service Manual.pdf",
+        "pdfPage": 103,
+        "localPdf": "/workspace/cartscope-library/ds-iq/src/06-07-Club-Car-Precedent-Service-Manual.pdf"
+      },
+      "png": "/workspace/cartscope-library/ds-iq/iq-tg2-guide2-p1.png",
+      "pngBytes": 333678,
+      "sha256": "9dc1bf28d54affba3c630114e70e9bc54c3b8332dd03ecf1360566d1f51ccae7",
+      "notes": "Full-page factory scan. Title/manualRef use printed guide name + page from footer. No invent."
+    },
+    {
+      "proposedSheetId": "iq-tg2-p2",
+      "title": "Troubleshooting Guide 2, page 11-12",
+      "manualRef": "2006\u20132007 Precedent IQ System Electric Golf Car Maintenance and Service Manual, Troubleshooting Guide 2, page 11-12",
+      "printedPage": "11-12",
+      "figure": "Troubleshooting Guide 2",
+      "kind": "control",
+      "confidence": "high",
+      "packs": [
+        "club-car-ds-iq",
+        "club-car-precedent-iq"
+      ],
+      "source": {
+        "driveFileId": "1JWBHviLLBD9tvbyZ6LgOiigZg3GpKjGb",
+        "driveFileTitle": "06-07 Club Car Precedent Service Manual.pdf",
+        "pdfPage": 104,
+        "localPdf": "/workspace/cartscope-library/ds-iq/src/06-07-Club-Car-Precedent-Service-Manual.pdf"
+      },
+      "png": "/workspace/cartscope-library/ds-iq/iq-tg2-guide2-p2.png",
+      "pngBytes": 355025,
+      "sha256": "7f87ac013c64c5698937f2dbbe14b35ba45626dad9bbcd4487b3fe0e963765cb",
+      "notes": "Full-page factory scan. Title/manualRef use printed guide name + page from footer. No invent."
+    }
+  ],
+  "skipped": [
+    {
+      "reason": "intro text before Guide 1",
+      "items": [
+        "PDF p.99 / printed 11-7"
+      ]
+    },
+    {
+      "reason": "test procedures not TG trees",
+      "items": [
+        "PDF p.105+"
+      ]
+    },
+    {
+      "reason": "CDM Troubleshooting Guide not TG1/TG2",
+      "items": [
+        "TOC 11-40"
+      ]
+    }
+  ],
+  "languageRule": "Adopt printed service-manual wording for titles and manualRef (Ryan via Chief 2026-09-12)."
+}
