@@ -10,8 +10,15 @@ import { bayProgressChip, bayReportActionLabel } from "@/lib/bay-chrome";
 import { BAY_REPORT_FORM_ID, bayFormSubmitGate, type BaySaveHandler } from "@/lib/bay-chrome-action";
 import { reportShowsFactoryCheckLog } from "@/lib/bay-layer";
 import { submitBrainCopy } from "@/lib/brain-submit";
-import { helperNoteSpeaker, helperNotesForReport, plainCaseSummary, reportWhoCheckedIt } from "@/lib/case-summary";
-import { formatReading } from "@/lib/diagnostics";
+import {
+  alsoRecordedReadings,
+  checkGotLabel,
+  checkOutcomeLabel,
+  helperNoteSpeaker,
+  helperNotesForReport,
+  plainCaseSummary,
+  reportWhoCheckedIt,
+} from "@/lib/case-summary";
 import { formatHandheldRecord } from "@/lib/handheld";
 import { PackNaBanner } from "@/components/case/PackNaBanner";
 import { formatPackCellLine } from "@/lib/pack-rules";
@@ -302,7 +309,9 @@ export function CaseReport({
             </tr>
           </thead>
           <tbody>
-            {job.log.map((e, i) => (
+            {job.log.map((e, i) => {
+              const extras = alsoRecordedReadings(e);
+              return (
               <tr key={e.id} className="border-b border-line align-top">
                 <td className="py-2 pr-2 font-mono text-xs">{i + 1}</td>
                 <td className="py-2 pr-2">
@@ -310,12 +319,14 @@ export function CaseReport({
                   {e.skipReason ? <p className="text-xs text-ink-muted">Skip: {e.skipReason}</p> : null}
                 </td>
                 <td className="py-2 pr-2 font-mono text-xs">{e.expectedLabel}</td>
-                <td className="py-2 pr-2 font-mono text-xs">{formatReading(e.confirmedRaw, e.unit)}</td>
-                <td className="py-2 font-mono text-xs">
-                  {e.result === "pass" ? "looks OK" : e.result === "fail" ? "looks wrong" : e.result === "skip" ? "skipped" : e.result}
+                <td className="py-2 pr-2 font-mono text-xs">
+                  <p>{checkGotLabel(e)}</p>
+                  {extras.length ? <p className="text-ink-muted">Also {extras.join(", ")}</p> : null}
                 </td>
+                <td className="py-2 font-mono text-xs">{checkOutcomeLabel(e.result)}</td>
               </tr>
-            ))}
+              );
+            })}
           </tbody>
         </table>
         {job.log.length === 0 ? <p className="mt-2 text-sm text-ink-muted">No factory checks saved yet.</p> : null}
