@@ -86,6 +86,7 @@ export function NewJobWizard({
     powertrain: model?.powertrain,
     batteryType,
     technician,
+    cartYear: year,
   });
   const headerMessage = jobHeaderSummary(gaps);
   const yearCheck = model ? packYearCheck(model, year) : { status: "ok" as const };
@@ -332,7 +333,8 @@ export function NewJobWizard({
       {step === 4 && model ? (
         <form ref={formRef} noValidate onSubmit={onStartSubmit}>
           <p className="mb-3 text-sm text-ink-muted">
-            Every case needs the customer last name, the Housecall Pro job number, and who checked it
+            Every case needs the customer last name, the Housecall Pro job number, who checked it, and
+            the cart year
             {electricCart ? ", plus the battery type" : ""}. Then we can start checks.
           </p>
           <div className="grid gap-3 sm:grid-cols-2">
@@ -384,9 +386,13 @@ export function NewJobWizard({
                 onChange={(next) => setYear(sanitizeCartYearInput(next))}
                 inputMode="numeric"
                 aria-label="Year"
-                aria-invalid={Boolean(yearMessage)}
+                aria-required
+                aria-invalid={gaps.includes("cartYear") || Boolean(yearMessage)}
                 aria-describedby="year-compat-note"
               />
+              {gaps.includes("cartYear") ? (
+                <span className="mt-1 block text-sm text-danger">{JOB_HEADER_MESSAGES.cartYear}</span>
+              ) : null}
               <span
                 id="year-compat-note"
                 data-testid="year-compat"
@@ -398,7 +404,7 @@ export function NewJobWizard({
                 {yearIssue ??
                   yearNote ??
                   yearsHint ??
-                  "Year is optional. If you enter one, we check it against the factory book on file."}
+                  "Type the four-digit year. We check it against the factory book on file."}
               </span>
             </Field>
             <Field label="Serial (recommended)">

@@ -72,7 +72,7 @@ test("EZ-GO TXT TCT years have no numeric range so 2019 is not marked unsupporte
   assert.equal(check.status, "unknown");
 });
 
-test("empty or non-year text does not block start", () => {
+test("empty or non-year text is not a pack-range mismatch", () => {
   assert.equal(parseCartYear(""), null);
   assert.equal(parseCartYear("late"), null);
   const empty = yearCompatibility({
@@ -80,6 +80,7 @@ test("empty or non-year text does not block start", () => {
     packYears: YDRA_YEARS,
     packName: "Yamaha YDRA / Drive gasoline (G29 gas)",
   });
+  // Presence is a Start header gate; range check stays silent until a year is typed.
   assert.equal(empty.status, "ok");
 });
 

@@ -163,6 +163,7 @@ export function startBlockers(input: {
     powertrain: pack?.powertrain,
     batteryType: header.batteryType,
     technician: header.technician,
+    cartYear: header.cartYear,
   });
   for (const gap of gaps) {
     blockers.push({ kind: "header", message: JOB_HEADER_MESSAGES[gap] });
@@ -216,6 +217,7 @@ export function attemptStartChecks(input: {
     powertrain: pack?.powertrain,
     batteryType: header.batteryType,
     technician: header.technician,
+    cartYear: header.cartYear,
   });
 
   const year = pack ? packYearCheck(pack, header.cartYear) : { status: "ok" as const };

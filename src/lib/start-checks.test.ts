@@ -307,7 +307,7 @@ test("Club Car DS V-Glide 1994 starts checks and names the year", () => {
   }
 });
 
-test("gas header with last name, HCP, and who-checked starts without a battery type", () => {
+test("gas header with last name, HCP, year, and who-checked starts without a battery type", () => {
   const started = attemptStartChecks({
     pack: yamahaYdra,
     symptomId: "starts-dies",
@@ -315,7 +315,7 @@ test("gas header with last name, HCP, and who-checked starts without a battery t
       lastName: "GasPR14",
       hcpJobNumber: "881602",
       technician: "Hayden",
-      cartYear: "",
+      cartYear: "2012",
       serialNumber: "",
       batteryType: "",
       complaintNote: "",
@@ -473,6 +473,87 @@ test("DS FE350 year 1996 starts Check 1; year 2010 stays blocked with the 1991�
   }
 });
 
+test("DS FE350 blank Year keeps Start blocked; 1990 stays blocked; 1996 starts", () => {
+  const fe350 = {
+    id: "club-car-ds-gas",
+    manufacturerLabel: "Club Car",
+    name: "DS FE350 gasoline",
+    fullName: "Club Car DS gasoline (Kawasaki FE350)",
+    powertrain: "gasoline",
+    years:
+      "1991–1996 Club Car DS gasoline (Kawasaki FE350; 1995–96 DS gas/electric; 2000 Club Car Service Manual). FE290 DS/Villager is a separate pack.",
+    yearMin: 1991,
+    yearMax: 1996,
+    symptoms: [
+      {
+        id: "no-crank",
+        label: "Engine will not crank",
+        summary: "Key START does nothing.",
+        startStepId: "g-setup",
+      },
+    ],
+    steps: { "g-setup": { id: "g-setup" } },
+  } as unknown as ModelPack;
+
+  const header: HeaderSnapshot = {
+    lastName: "Test",
+    hcpJobNumber: "M72008",
+    technician: "Hayden Silva",
+    cartYear: "",
+    serialNumber: "",
+    batteryType: "",
+    complaintNote: "Engine will not crank",
+    fuelNote: "",
+  };
+
+  const blankBlockers = startBlockers({
+    pack: fe350,
+    symptomId: "no-crank",
+    header,
+  });
+  assert.equal(startIsReady(blankBlockers), false);
+  assert.ok(blankBlockers.some((b) => b.message === "Year is required."));
+
+  const blank = attemptStartChecks({
+    pack: fe350,
+    symptomId: "no-crank",
+    header,
+  });
+  assert.equal(blank.ok, false);
+  if (!blank.ok) {
+    assert.ok(blank.gaps.includes("cartYear"));
+    assert.ok(blank.messages.includes("Year is required."));
+    assert.equal(blank.yearMessage, null);
+    assert.equal(startBlockedReason(blank.yearMessage, blank.blockers), "Year is required.");
+  }
+
+  const wrong = attemptStartChecks({
+    pack: fe350,
+    symptomId: "no-crank",
+    header: { ...header, cartYear: "1990" },
+  });
+  assert.equal(wrong.ok, false);
+  if (!wrong.ok) {
+    assert.equal(startIsReady(wrong.blockers), false);
+    assert.match(wrong.yearMessage ?? "", /1990/);
+    assert.match(wrong.yearMessage ?? "", /1991–1996|1991-1996/);
+    assert.ok(wrong.blockers.some((b) => b.kind === "year"));
+  }
+
+  const started = attemptStartChecks({
+    pack: fe350,
+    symptomId: "no-crank",
+    header: { ...header, cartYear: "1996" },
+  });
+  assert.equal(started.ok, true);
+  if (started.ok) {
+    assert.equal(started.startStepId, "g-setup");
+    assert.equal(started.jobInput.cartYear, "1996");
+    assert.equal(started.jobInput.technician, "Hayden Silva");
+    assert.equal(started.benchPath("job_fe350"), "/bench/job_fe350");
+  }
+});
+
 test("a missing first factory check is named, never a silent no-op", () => {
   const broken = {
     ...ezgoTxt,
@@ -588,6 +669,14 @@ test("bay UX must prove Yamaha YDRE Start leaves Job header on its own", () => {
   assert.match(src, /Hayden Silva/);
   assert.match(src, /YDRE DC/);
   assert.match(src, /keyboardActivateStart/);
+});
+
+test("bay UX must prove FE350 blank Year cannot Start", () => {
+  const src = readFileSync(new URL("../../scripts/qa-bay-ux.mjs", import.meta.url), "utf8");
+  assert.match(src, /FE350 blank Year/);
+  assert.match(src, /Year is required/);
+  assert.match(src, /FE350 1990/);
+  assert.match(src, /mouseClickStart/);
 });
 
 test("Start overlay catch lives outside the wizard and clicks the Start control", () => {
