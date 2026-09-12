@@ -34,6 +34,54 @@ export const WIRING_SHEETS: WiringSheet[] = [
     kind: "pinout",
     landscape: false,
   },
+  // Factory Troubleshooting Guide 1 / Guide 2 — 2006–2007 Precedent IQ System
+  // Electric Golf Car Maintenance and Service Manual, Drive 1JWBHviLLBD9tvbyZ6LgOiigZg3GpKjGb.
+  // Titles and manualRef use printed guide name + page. club-car-ds-iq + club-car-precedent-iq only.
+  {
+    id: "iq-tg1-p1",
+    title: "Troubleshooting Guide 1, page 11-8",
+    manualRef:
+      "2006–2007 Precedent IQ System Electric Golf Car Maintenance and Service Manual, Troubleshooting Guide 1, page 11-8",
+    src: "/wiring/iq-tg1-guide1-p1.png",
+    kind: "control",
+    landscape: false,
+  },
+  {
+    id: "iq-tg1-p2",
+    title: "Troubleshooting Guide 1, page 11-9",
+    manualRef:
+      "2006–2007 Precedent IQ System Electric Golf Car Maintenance and Service Manual, Troubleshooting Guide 1, page 11-9",
+    src: "/wiring/iq-tg1-guide1-p2.png",
+    kind: "control",
+    landscape: false,
+  },
+  {
+    id: "iq-tg1-p3",
+    title: "Troubleshooting Guide 1, page 11-10",
+    manualRef:
+      "2006–2007 Precedent IQ System Electric Golf Car Maintenance and Service Manual, Troubleshooting Guide 1, page 11-10",
+    src: "/wiring/iq-tg1-guide1-p3.png",
+    kind: "control",
+    landscape: false,
+  },
+  {
+    id: "iq-tg2-p1",
+    title: "Troubleshooting Guide 2, page 11-11",
+    manualRef:
+      "2006–2007 Precedent IQ System Electric Golf Car Maintenance and Service Manual, Troubleshooting Guide 2, page 11-11",
+    src: "/wiring/iq-tg2-guide2-p1.png",
+    kind: "control",
+    landscape: false,
+  },
+  {
+    id: "iq-tg2-p2",
+    title: "Troubleshooting Guide 2, page 11-12",
+    manualRef:
+      "2006–2007 Precedent IQ System Electric Golf Car Maintenance and Service Manual, Troubleshooting Guide 2, page 11-12",
+    src: "/wiring/iq-tg2-guide2-p2.png",
+    kind: "control",
+    landscape: false,
+  },
   {
     id: "excel-main",
     title: "Excel System — main wire map",
@@ -939,13 +987,22 @@ const BY_PACK: Record<string, string[]> = {
   "club-car-ds-electric": ["pd48-multistep", "pd48-cvpot"],
   "club-car-ds-fe290": ["fe350-main", "fe350-accessories", "dsgas-circuits", "dsgas-kill", "dsgas-oil"],
   "club-car-ds-gas": ["fe350-main", "fe350-accessories", "dsgas-circuits", "dsgas-kill", "dsgas-oil"],
-  "club-car-ds-iq": ["iq-main"],
+  "club-car-ds-iq": ["iq-main", "iq-tg1-p1", "iq-tg1-p2", "iq-tg1-p3", "iq-tg2-p1", "iq-tg2-p2"],
   "club-car-ds-pdplus": ["pdplus-main", "pdplus-zplug"],
   "club-car-ds-vglide": ["vglide-schematic", "vglide-control", "vglide-power"],
   "club-car-precedent-eric": ["eric-main", "eric-instrument", "eric-batteries", "eric-lights"],
   "club-car-precedent-excel": ["excel-main", "excel-accessories", "excel-sonic"],
   "club-car-precedent-gas": ["tempo-ex40-main", "tempo-ex40-dash", "tempo-ex40-engine", "ex40-main", "ex40-alt", "fe350-main", "fe350-accessories", "prec19-g-main"],
-  "club-car-precedent-iq": ["iq-main", "iq-accessories", "iq-sonic"],
+  "club-car-precedent-iq": [
+    "iq-main",
+    "iq-accessories",
+    "iq-sonic",
+    "iq-tg1-p1",
+    "iq-tg1-p2",
+    "iq-tg1-p3",
+    "iq-tg2-p1",
+    "iq-tg2-p2",
+  ],
   "club-car-tempo-eric": [
     "eric-main",
     "eric-instrument",

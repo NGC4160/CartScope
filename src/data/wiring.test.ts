@@ -169,12 +169,54 @@ test("Precedent ERIC 2017 pack lists only ERIC Excel sheets, not the 2019 main h
   assert.ok(sheetsForPack("club-car-tempo-eric").some((s) => s.id === "prec19-e-main"));
 });
 
-const PRECEDENT_IQ_SHEET_IDS = ["iq-main", "iq-accessories", "iq-sonic"];
+const IQ_TG_SHEET_IDS = ["iq-tg1-p1", "iq-tg1-p2", "iq-tg1-p3", "iq-tg2-p1", "iq-tg2-p2"];
+const DS_IQ_SHEET_IDS = ["iq-main", ...IQ_TG_SHEET_IDS];
+const PRECEDENT_IQ_SHEET_IDS = ["iq-main", "iq-accessories", "iq-sonic", ...IQ_TG_SHEET_IDS];
+const IQ_TG_MANUAL =
+  "2006–2007 Precedent IQ System Electric Golf Car Maintenance and Service Manual";
+const IQ_TG_SHEETS: Array<{
+  id: string;
+  title: string;
+  manualRef: string;
+  src: string;
+}> = [
+  {
+    id: "iq-tg1-p1",
+    title: "Troubleshooting Guide 1, page 11-8",
+    manualRef: `${IQ_TG_MANUAL}, Troubleshooting Guide 1, page 11-8`,
+    src: "/wiring/iq-tg1-guide1-p1.png",
+  },
+  {
+    id: "iq-tg1-p2",
+    title: "Troubleshooting Guide 1, page 11-9",
+    manualRef: `${IQ_TG_MANUAL}, Troubleshooting Guide 1, page 11-9`,
+    src: "/wiring/iq-tg1-guide1-p2.png",
+  },
+  {
+    id: "iq-tg1-p3",
+    title: "Troubleshooting Guide 1, page 11-10",
+    manualRef: `${IQ_TG_MANUAL}, Troubleshooting Guide 1, page 11-10`,
+    src: "/wiring/iq-tg1-guide1-p3.png",
+  },
+  {
+    id: "iq-tg2-p1",
+    title: "Troubleshooting Guide 2, page 11-11",
+    manualRef: `${IQ_TG_MANUAL}, Troubleshooting Guide 2, page 11-11`,
+    src: "/wiring/iq-tg2-guide2-p1.png",
+  },
+  {
+    id: "iq-tg2-p2",
+    title: "Troubleshooting Guide 2, page 11-12",
+    manualRef: `${IQ_TG_MANUAL}, Troubleshooting Guide 2, page 11-12`,
+    src: "/wiring/iq-tg2-guide2-p2.png",
+  },
+];
 
 test("DS IQ pack lists the shared IQ System main wire map, not Precedent accessory or instrument sheets", () => {
   const sheets = sheetsForPack("club-car-ds-iq");
   const ids = sheets.map((s) => s.id);
-  assert.deepEqual(ids, ["iq-main"]);
+  assert.deepEqual(ids, DS_IQ_SHEET_IDS);
+  assert.equal(ids[0], "iq-main");
   assert.ok(!ids.includes("iq-accessories"));
   assert.ok(!ids.includes("iq-sonic"));
   assert.ok(!sheets.some((s) => /precedent/i.test(s.title)));
@@ -201,6 +243,52 @@ test("DS IQ pack lists the shared IQ System main wire map, not Precedent accesso
     sheetsForPack("club-car-precedent-iq").map((s) => s.id),
     PRECEDENT_IQ_SHEET_IDS,
   );
+});
+
+test("DS IQ and Precedent IQ append Troubleshooting Guide 1 then Guide 2 with printed titles", () => {
+  for (const expected of IQ_TG_SHEETS) {
+    const sheet = getSheet(expected.id);
+    assert.ok(sheet, expected.id);
+    assert.equal(sheet.title, expected.title);
+    assert.equal(sheet.manualRef, expected.manualRef);
+    assert.equal(sheet.src, expected.src);
+    assert.equal(sheet.kind, "control");
+    assert.equal(sheet.landscape, false);
+    assert.match(sheet.title, /^Troubleshooting Guide [12], page 11-\d+$/);
+    assert.match(sheet.manualRef, /2006–2007 Precedent IQ System Electric Golf Car Maintenance and Service Manual/);
+    assert.doesNotMatch(sheet.title, /tree|fault plate|wire map/i);
+    assertPublicSrc(sheet.src);
+  }
+
+  const dsIds = sheetsForPack("club-car-ds-iq").map((s) => s.id);
+  assert.deepEqual(dsIds, DS_IQ_SHEET_IDS);
+  assert.deepEqual(dsIds.slice(1), IQ_TG_SHEET_IDS);
+
+  const precIds = sheetsForPack("club-car-precedent-iq").map((s) => s.id);
+  assert.deepEqual(precIds, PRECEDENT_IQ_SHEET_IDS);
+  assert.deepEqual(precIds.slice(0, 3), ["iq-main", "iq-accessories", "iq-sonic"]);
+  assert.deepEqual(precIds.slice(3), IQ_TG_SHEET_IDS);
+
+  const foreignPacks = [
+    "club-car-precedent-excel",
+    "club-car-precedent-eric",
+    "club-car-villager-iqplus",
+    "club-car-tempo-eric",
+  ];
+  for (const packId of foreignPacks) {
+    assert.ok(
+      !sheetsForPack(packId).some((s) => IQ_TG_SHEET_IDS.includes(s.id)),
+      packId,
+    );
+  }
+
+  for (const packId of packsWithWiring()) {
+    if (packId === "club-car-ds-iq" || packId === "club-car-precedent-iq") continue;
+    assert.ok(
+      !sheetsForPack(packId).some((s) => IQ_TG_SHEET_IDS.includes(s.id)),
+      packId,
+    );
+  }
 });
 
 const YDRE_DC_WIRE_MAP_IDS = ["ydre-dc-1", "ydre-dc-2", "ydre-dc-mcu"];
