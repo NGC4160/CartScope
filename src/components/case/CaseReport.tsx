@@ -21,6 +21,7 @@ import {
 } from "@/lib/case-summary";
 import { formatHandheldRecord } from "@/lib/handheld";
 import { PackNaBanner } from "@/components/case/PackNaBanner";
+import { packLayoutStampLines } from "@/lib/pack-layout";
 import { formatPackCellLine } from "@/lib/pack-rules";
 import { packNaCopy } from "@/lib/pack-na";
 import { evaluateProof } from "@/lib/proof";
@@ -208,9 +209,14 @@ export function CaseReport({
         ) : job.packCheck ? (
           <section className="mt-6 border border-line p-4">
             <h2 className="font-display text-lg font-semibold">Battery pack</h2>
-            <p className="mt-1 text-sm text-ink-muted">
-              {job.packCheck.cellCount} × {job.packCheck.nominalV} V · {job.packCheck.chemistry} · {job.packCheck.verdict}
-            </p>
+            <div className="mt-1 space-y-0.5 text-sm text-ink-muted">
+              {packLayoutStampLines(job.packCheck).map((line) => (
+                <p key={line}>{line}</p>
+              ))}
+              <p>
+                {job.packCheck.chemistry} · {job.packCheck.verdict}
+              </p>
+            </div>
             {job.packCheck.chemistry === "lead-acid" ? (
               <ul className="mt-2 grid gap-1 font-mono text-sm">
                 {job.packCheck.cells.map((c) => (

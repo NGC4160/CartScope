@@ -3,6 +3,7 @@ import { formatReading } from "@/lib/diagnostics";
 import type { Proof } from "@/lib/proof";
 import { collectSecrets, findPiiLeaks, mdCell, redactText, slugPart } from "@/lib/redact";
 import { formatHandheldRecord } from "@/lib/handheld";
+import { packLayoutStampLines } from "@/lib/pack-layout";
 import { formatPackCellLine } from "@/lib/pack-rules";
 
 const BRAIN_FOLDER = "knowledge/diagnostics/cases";
@@ -69,7 +70,7 @@ export function buildBrainCase(job: JobRecord, pack: ModelPack, proof: Proof): B
     if (pc.chemistry === "lead-acid") {
       rows.push({
         test: "Battery pack rest, IR, and age",
-        setup: `Wheels blocked. ${pc.cellCount} × ${pc.nominalV} V lead-acid. Resting volts, IR meter, month/year date code.`,
+        setup: `Wheels blocked. ${packLayoutStampLines(pc).join(" · ")}. Resting volts, IR meter, month/year date code.`,
         result: `${pc.cells.map((c) => formatPackCellLine(c)).join("; ")} · ${pc.verdict}`,
       });
       if (pc.irCouldNotMeasure) {

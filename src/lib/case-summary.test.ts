@@ -503,6 +503,9 @@ test("YDRE Housecall copy is bay-complete: identity, complaint, meters, codes, H
   assert.equal([...text.matchAll(/Who checked it:/g)].length, 1);
   assert.doesNotMatch(text, /Who checked it: Solenoid/);
 
+  assert.match(text, /Factory book layout: 6 × 8 V/);
+  assert.doesNotMatch(text, /Field-modified/);
+  assert.match(text, /Chemistry: lead-acid/);
   assert.match(text, /Battery 1: 8\.42 V/);
   assert.match(text, /Date label photo: Date codes photographed on the case/);
   assert.match(text, /Present codes: none shown/);
@@ -666,4 +669,37 @@ test("FE350 Housecall copy keeps 12 V meters, complaint, and no pack / no parts 
   assert.match(text, /Recommended repair: Not enough proof to recommend a repair yet/);
   assert.doesNotMatch(text, /replace the TCI/i);
   assert.doesNotMatch(text, /starter-generator as a part/i);
+});
+
+test("field-modified Housecall copy stamps factory book and as-found layouts", () => {
+  const pack = yamahaYdreDc;
+  const job = caseJob(pack, {
+    batteryType: "lead-acid",
+    packCheck: {
+      at: at(),
+      chemistry: "lead-acid",
+      cellCount: 4,
+      nominalV: 12,
+      layoutSource: "field-modified",
+      factoryCellCount: 6,
+      factoryNominalV: 8,
+      asFoundCellCount: 4,
+      asFoundNominalV: 12,
+      cells: Array.from({ length: 4 }, (_, i) => ({
+        index: i,
+        volts: "12.80",
+        ir: "8",
+        irUnit: "mohm" as const,
+        ageMonthYear: "03/2024",
+      })),
+      verdict: "pass",
+      issues: [],
+    },
+  });
+  const text = plainCaseSummary(job, pack, evaluateProof(job, pack));
+  assert.match(text, /Factory book layout: 6 × 8 V/);
+  assert.match(text, /Field-modified as-found: 4 × 12 V \(48 V pack\)/);
+  assert.match(text, /Chemistry: lead-acid/);
+  assert.match(text, /Battery 1: 12\.80 V/);
+  assert.equal(job.packCheck?.cells.length, 4);
 });

@@ -5,6 +5,7 @@ import { formatHandheldRecord } from "./handheld.ts";
 import { keepWhoCheckedIt } from "./job-header.ts";
 import { manualsOnFile } from "./manuals.ts";
 import { packNaReportLines } from "./pack-na.ts";
+import { packLayoutStampLines } from "./pack-layout.ts";
 import { formatPackCellLine } from "./pack-rules.ts";
 import type { Proof } from "./proof.ts";
 import { manualsReportLines, partialReportGaps } from "./report-continuity.ts";
@@ -123,7 +124,8 @@ export function plainCaseSummary(job: JobRecord, pack: ModelPack, proof: Proof):
     lines.push("");
   } else if (job.packCheck) {
     lines.push("Battery pack");
-    lines.push(`Layout: ${job.packCheck.cellCount} × ${job.packCheck.nominalV} V (${job.packCheck.chemistry})`);
+    packLayoutStampLines(job.packCheck).forEach((l) => lines.push(l));
+    lines.push(`Chemistry: ${job.packCheck.chemistry}`);
     if (job.packCheck.chemistry === "lead-acid") {
       job.packCheck.cells.forEach((c) => lines.push(formatPackCellLine(c)));
       if (job.packCheck.irCouldNotMeasure) {

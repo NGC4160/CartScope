@@ -316,6 +316,53 @@ test("remembered paste survives an empty box remount for the same job", () => {
   assert.equal(readRememberedPackPaste("job_paste_cache"), "");
 });
 
+test("as-found 4 × 12 V paste fill and scaled limits follow the 4-pack", () => {
+  const pasted = "12.80\t8\t09/2024\n12.80\t8\t09/2024\n12.80\t8\t09/2024\n12.80\t8\t09/2024\n12.80\t8\t09/2024";
+  const result = parseBulkPackPaste(pasted, emptyPackCells(4), 4);
+  assert.equal(result.applied, 4);
+  assert.equal(result.extraIgnored, 1);
+  assert.equal(result.cells.length, 4);
+  const pass = decidePackSave({
+    lithium: false,
+    cellCount: 4,
+    cells: result.cells,
+    irSkip: false,
+    irSkipReason: "",
+    monitorV: "",
+    noMonitor: false,
+    nominalV: 12,
+  });
+  assert.equal(pass.action, "save-pass");
+
+  const low = result.cells.map((c) => ({ ...c, volts: "12.30" }));
+  const fail = decidePackSave({
+    lithium: false,
+    cellCount: 4,
+    cells: low,
+    irSkip: false,
+    irSkipReason: "",
+    monitorV: "",
+    noMonitor: false,
+    nominalV: 12,
+  });
+  assert.equal(fail.action, "block");
+  if (fail.action === "block") {
+    assert.match(fail.reason, /test battery|Charge or fix/i);
+  }
+
+  const factoryWouldPass = decidePackSave({
+    lithium: false,
+    cellCount: 4,
+    cells: low,
+    irSkip: false,
+    irSkipReason: "",
+    monitorV: "",
+    noMonitor: false,
+    nominalV: 8,
+  });
+  assert.equal(factoryWouldPass.action, "save-pass");
+});
+
 test("empty paste on Save keeps the live cells (empty pack still names volts/age)", () => {
   const empty = emptyPackCells(6);
   assert.equal(cellsForPackSave("", empty, 6), empty);
