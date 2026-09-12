@@ -1,12 +1,14 @@
 import type { BatteryType, Powertrain } from "@/data/types";
+import { parseCartYear } from "./year-compat.ts";
 
-export type JobHeaderGap = "lastName" | "hcpJobNumber" | "batteryType" | "technician";
+export type JobHeaderGap = "lastName" | "hcpJobNumber" | "batteryType" | "technician" | "cartYear";
 
 export const JOB_HEADER_MESSAGES: Record<JobHeaderGap, string> = {
   lastName: "Customer last name is required.",
   hcpJobNumber: "Housecall Pro job number is required.",
   batteryType: "Battery type is required for an electric cart. Pick lead-acid or lithium.",
   technician: "Who checked it is required. Put the tech name so the shop knows who ran this case.",
+  cartYear: "Year is required.",
 };
 
 export function jobHeaderGaps(input: {
@@ -15,6 +17,8 @@ export function jobHeaderGaps(input: {
   powertrain?: Powertrain;
   batteryType?: BatteryType | "";
   technician?: string;
+  /** When passed (including ""), a four-digit year is required to Start. */
+  cartYear?: string;
 }): JobHeaderGap[] {
   const gaps: JobHeaderGap[] = [];
   if (!input.lastName.trim()) gaps.push("lastName");
@@ -25,6 +29,9 @@ export function jobHeaderGaps(input: {
     }
   }
   if (!(input.technician ?? "").trim()) gaps.push("technician");
+  if (input.cartYear !== undefined && parseCartYear(input.cartYear) == null) {
+    gaps.push("cartYear");
+  }
   return gaps;
 }
 
@@ -40,6 +47,7 @@ export function jobHeaderSummary(gaps: JobHeaderGap[]): string | null {
     if (g === "lastName") return "customer last name";
     if (g === "hcpJobNumber") return "Housecall Pro job number";
     if (g === "batteryType") return "battery type";
+    if (g === "cartYear") return "cart year";
     return "name of who checked it";
   });
   return `Cannot start yet. Enter the ${joinRequired(names)}.`;

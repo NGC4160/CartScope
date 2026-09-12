@@ -1083,10 +1083,35 @@ async function runLiveFailList() {
   await fillHeader(fe350, {
     last: "Fe350",
     job: "HCP-5803",
-    year: "2010",
+    year: "",
     who: "Hayden",
     complaint: "No crank.",
   });
+  const feStart = fe350.getByTestId("start-checks");
+  check("FE350 blank Year Start not ready", (await feStart.getAttribute("data-start-ready")) === "false");
+  const blankBanner = fe350.getByTestId("start-blocked-reason");
+  check("FE350 blank Year reason is visible", await blankBanner.isVisible());
+  const blankText = await blankBanner.innerText();
+  check("FE350 blank Year names Year is required", /Year is required/i.test(blankText), blankText);
+  await mouseClickStart(fe350);
+  await fe350.waitForTimeout(400);
+  check("FE350 blank Year Start stays on header", (await fe350.getByTestId("start-checks").count()) === 1);
+
+  const yearBox = fe350.getByLabel(/^Year$/i);
+  await yearBox.fill("1990");
+  check("FE350 1990 Start not ready", (await feStart.getAttribute("data-start-ready")) === "false");
+  const wrong1990 = await fe350.getByTestId("start-blocked-reason").innerText();
+  check(
+    "FE350 1990 names 1990 and 1991–1996",
+    /1990/.test(wrong1990) && /1991–1996|1991-1996/.test(wrong1990),
+    wrong1990,
+  );
+  await mouseClickStart(fe350);
+  await fe350.waitForTimeout(400);
+  check("FE350 1990 Start stays on header", (await fe350.getByTestId("start-checks").count()) === 1);
+
+  await yearBox.fill("");
+  await yearBox.pressSequentially("2010", { delay: 40 });
   const yearNote = fe350.getByTestId("year-compat");
   const yearText = await yearNote.innerText();
   const bannerText = await fe350.getByTestId("start-blocked-reason").innerText();
@@ -1104,7 +1129,6 @@ async function runLiveFailList() {
   await mouseClickStart(fe350);
   await fe350.waitForTimeout(400);
   check("FE350 2010 Start stays on header", (await fe350.getByTestId("start-checks").count()) === 1);
-  const yearBox = fe350.getByLabel(/^Year$/i);
   await yearBox.fill("");
   await yearBox.pressSequentially("1996", { delay: 40 });
   check("FE350 1996 stays 1996 in the box", (await yearBox.inputValue()) === "1996");

@@ -29,6 +29,40 @@ test("gas cart does not require battery type", () => {
   assert.equal(jobHeaderSummary(gaps), null);
 });
 
+test("blank Year is a header gap when cartYear is passed; a four-digit year is not", () => {
+  const blank = jobHeaderGaps({
+    lastName: "Test",
+    hcpJobNumber: "M72008",
+    powertrain: "gasoline",
+    batteryType: "",
+    technician: "Hayden Silva",
+    cartYear: "",
+  });
+  assert.deepEqual(blank, ["cartYear"]);
+  assert.equal(jobHeaderSummary(blank), "Cannot start yet. Enter the cart year.");
+
+  const partial = jobHeaderGaps({
+    lastName: "Test",
+    hcpJobNumber: "M72008",
+    powertrain: "gasoline",
+    batteryType: "",
+    technician: "Hayden Silva",
+    cartYear: "19",
+  });
+  assert.deepEqual(partial, ["cartYear"]);
+
+  const filled = jobHeaderGaps({
+    lastName: "Test",
+    hcpJobNumber: "M72008",
+    powertrain: "gasoline",
+    batteryType: "",
+    technician: "Hayden Silva",
+    cartYear: "1996",
+  });
+  assert.deepEqual(filled, []);
+  assert.equal(jobHeaderSummary(filled), null);
+});
+
 test("empty gas header lists last name, job number, and who checked it only", () => {
   const gaps = jobHeaderGaps({
     lastName: "",
