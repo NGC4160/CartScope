@@ -847,56 +847,63 @@ export const WIRING_SHEETS: WiringSheet[] = [
   },
   {
     id: "ydre-dc-ch9-genius-faults-9-38",
-    title: "Genius PDA fault plate (page 9-38)",
-    manualRef: "Chapter 9, page 9-38",
+    title: "TROUBLESHOOTING USING GENIUS — Faults and Troubleshooting steps, page 9-38",
+    manualRef:
+      "YDRA/E Service Manual, TROUBLESHOOTING USING GENIUS — Faults and Troubleshooting steps, page 9-38",
     src: "/wiring/ydre-dc-ch9-9-38-genius-faults.png",
     kind: "control",
     landscape: false,
   },
   {
     id: "ydre-dc-ch9-genius-faults-9-39",
-    title: "Genius PDA fault plate (page 9-39)",
-    manualRef: "Chapter 9, page 9-39",
+    title: "TROUBLESHOOTING USING GENIUS — Faults and Troubleshooting steps (cont.), page 9-39",
+    manualRef:
+      "YDRA/E Service Manual, TROUBLESHOOTING USING GENIUS — Faults and Troubleshooting steps (cont.), page 9-39",
     src: "/wiring/ydre-dc-ch9-9-39-genius-faults.png",
     kind: "control",
     landscape: false,
   },
   {
     id: "ydre-dc-ch9-genius-faults-9-40",
-    title: "Genius PDA fault plate (page 9-40)",
-    manualRef: "Chapter 9, page 9-40",
+    title: "TROUBLESHOOTING USING GENIUS — Faults and Troubleshooting steps (cont.), page 9-40",
+    manualRef:
+      "YDRA/E Service Manual, TROUBLESHOOTING USING GENIUS — Faults and Troubleshooting steps (cont.), page 9-40",
     src: "/wiring/ydre-dc-ch9-9-40-genius-faults.png",
     kind: "control",
     landscape: false,
   },
   {
     id: "ydre-dc-ch9-genius-faults-9-41",
-    title: "Genius PDA fault plate (page 9-41)",
-    manualRef: "Chapter 9, page 9-41",
+    title: "TROUBLESHOOTING USING GENIUS — Faults and Troubleshooting steps (cont.), page 9-41",
+    manualRef:
+      "YDRA/E Service Manual, TROUBLESHOOTING USING GENIUS — Faults and Troubleshooting steps (cont.), page 9-41",
     src: "/wiring/ydre-dc-ch9-9-41-genius-faults.png",
     kind: "control",
     landscape: false,
   },
   {
     id: "ydre-dc-ch9-genius-faults-9-42",
-    title: "Genius PDA fault plate (page 9-42)",
-    manualRef: "Chapter 9, page 9-42",
+    title: "TROUBLESHOOTING USING GENIUS — Faults and Troubleshooting steps (cont.), page 9-42",
+    manualRef:
+      "YDRA/E Service Manual, TROUBLESHOOTING USING GENIUS — Faults and Troubleshooting steps (cont.), page 9-42",
     src: "/wiring/ydre-dc-ch9-9-42-genius-faults.png",
     kind: "control",
     landscape: false,
   },
   {
     id: "ydre-dc-ch9-genius-faults-9-43",
-    title: "Genius PDA fault plate (page 9-43)",
-    manualRef: "Chapter 9, page 9-43",
+    title: "TROUBLESHOOTING USING GENIUS — Faults and Troubleshooting steps (cont.), page 9-43",
+    manualRef:
+      "YDRA/E Service Manual, TROUBLESHOOTING USING GENIUS — Faults and Troubleshooting steps (cont.), page 9-43",
     src: "/wiring/ydre-dc-ch9-9-43-genius-faults.png",
     kind: "control",
     landscape: false,
   },
   {
     id: "ydre-dc-ch9-genius-faults-9-44",
-    title: "Genius PDA fault plate (page 9-44)",
-    manualRef: "Chapter 9, page 9-44",
+    title: "TROUBLESHOOTING USING GENIUS — Faults and Troubleshooting steps (cont.), page 9-44",
+    manualRef:
+      "YDRA/E Service Manual, TROUBLESHOOTING USING GENIUS — Faults and Troubleshooting steps (cont.), page 9-44",
     src: "/wiring/ydre-dc-ch9-9-44-genius-faults.png",
     kind: "control",
     landscape: false,
