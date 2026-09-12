@@ -684,26 +684,30 @@ export const WIRING_SHEETS: WiringSheet[] = [
     kind: "harness",
     landscape: false,
   },
+  // Printed on ydre-dc-1.jpg: "YDRE DC MODELS WIRING DIAGRAM" / Figure 8-19 / page 8-15
   {
     id: "ydre-dc-1",
-    title: "YDRE DC — cart wire map (sheet 1)",
-    manualRef: "YDRA/E Service Manual, page 8-15",
+    title: "YDRE DC — cart wire map (Fig. 8-19)",
+    manualRef: "YDRA/E Service Manual, Figure 8-19, page 8-15",
     src: "/wiring/ydre-dc-1.jpg",
     kind: "full",
     landscape: false,
   },
+  // Printed on ydre-dc-2.jpg: "YDRE DC MODELS WIRING DIAGRAM" / "YDRE Cruise" / Figure 8-20 / page 8-16
+  // Fig. 8-20 is this Cruise cart sheet (page 8-16), not the MCU sheet (page 8-20 is Fig. 8-24).
   {
     id: "ydre-dc-2",
-    title: "YDRE DC — cart wire map (sheet 2)",
-    manualRef: "YDRA/E Service Manual, page 8-16",
+    title: "YDRE DC Cruise — cart wire map (Fig. 8-20)",
+    manualRef: "YDRA/E Service Manual, Figure 8-20, page 8-16",
     src: "/wiring/ydre-dc-2.jpg",
     kind: "harness",
     landscape: false,
   },
+  // Printed on ydre-dc-mcu.jpg: "MAIN CONTROLLER WIRING DIAGRAM – DC MODELS" / Figure 8-24 / page 8-20
   {
     id: "ydre-dc-mcu",
-    title: "YDRE DC — controller wire map",
-    manualRef: "YDRA/E Service Manual, page 8-20",
+    title: "YDRE DC — controller wire map (Fig. 8-24)",
+    manualRef: "YDRA/E Service Manual, Figure 8-24, page 8-20",
     src: "/wiring/ydre-dc-mcu.jpg",
     kind: "control",
     landscape: false,
