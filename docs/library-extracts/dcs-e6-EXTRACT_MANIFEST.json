@@ -1,0 +1,47 @@
+{
+  "goal": "CartScope Goal 9b — EZGO TXT DCS Fig. E-6 / Section E trees",
+  "pack": "ezgo-txt-dcs",
+  "sourceDriveFiles": [
+    {
+      "id": "1mqKd5SC2tksQExnGmn5iUUOdFMcEG7PT",
+      "title": "96-01 EZGO TXT DCS Service Manual.pdf",
+      "note": "Landed locally as /workspace/library-dcs/96-01-EZGO-TXT-DCS-Service-Manual.pdf (11,340,634 bytes)"
+    }
+  ],
+  "extracted": [
+    {
+      "proposedSheetId": "dcs-e6-ten-pin-troubleshooting",
+      "title": "TXT DCS — Ten Pin Connector Troubleshooting Diagram (Fig. E-6)",
+      "manualRef": "TXT 96–01 DCS Service Manual (28407-G01), Fig. E-6 Ten Pin Connector Troubleshooting Diagram, page E-5 — Electronic Speed Control (DCS)",
+      "printedPage": "E-5",
+      "figure": "Fig. E-6",
+      "kind": "control",
+      "confidence": "high",
+      "pack": "ezgo-txt-dcs",
+      "source": {
+        "driveFileId": "1mqKd5SC2tksQExnGmn5iUUOdFMcEG7PT",
+        "driveFileTitle": "96-01 EZGO TXT DCS Service Manual.pdf",
+        "pdfPage": 55,
+        "localPdf": "/workspace/cartscope-library/dcs-e6/src/96-01-ezgo-txt-dcs-service-manual.pdf"
+      },
+      "png": "/workspace/cartscope-library/dcs-e6/dcs-e6-ten-pin-troubleshooting.png",
+      "pngBytes": 473848,
+      "sha256": "7877a47872b2fa457090582aa01189860c3c726e771a21e02a8ff959170158ea",
+      "notes": "Full-page factory scan. Only Section E troubleshooting diagram/tree plate. Skipped E-7…E-12 probe photos and E-16 wiring (already in pack as dcs-connector/dcs-wiring)."
+    }
+  ],
+  "skipped": [
+    {
+      "reason": "probe photos not trees",
+      "items": [
+        "Fig. E-7…E-12"
+      ]
+    },
+    {
+      "reason": "wire map already in pack",
+      "items": [
+        "Fig. E-16 / Page E-14 → dcs-wiring / dcs-connector"
+      ]
+    }
+  ]
+}
