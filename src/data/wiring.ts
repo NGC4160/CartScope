@@ -12,24 +12,27 @@ export interface WiringSheet {
 export const WIRING_SHEETS: WiringSheet[] = [
   {
     id: "iq-main",
-    title: "IQ System — main wire map",
-    manualRef: "2006–07 Precedent IQ M&S, Wiring Diagrams 11-2 / 11-3",
+    title: "Figure 11-1 / Figure 11-2 Precedent Electric Vehicle Wiring Diagram",
+    manualRef:
+      "2006–2007 Precedent IQ System Electric Golf Car Maintenance and Service Manual, Figure 11-1 / Figure 11-2 Precedent Electric Vehicle Wiring Diagram, pages 11-2 / 11-3",
     src: "/wiring/iq-main.jpg",
     kind: "full",
     landscape: true,
   },
   {
     id: "iq-accessories",
-    title: "IQ System — lights and extras",
-    manualRef: "2006–07 Precedent IQ M&S, Wiring Diagrams 11-4 / 11-5",
+    title: "Figure 11-3 / Figure 11-4 Precedent Electric Vehicle Accessory Wiring Diagram",
+    manualRef:
+      "2006–2007 Precedent IQ System Electric Golf Car Maintenance and Service Manual, Figure 11-3 / Figure 11-4 Precedent Electric Vehicle Accessory Wiring Diagram, pages 11-4 / 11-5",
     src: "/wiring/iq-accessories.jpg",
     kind: "accessory",
     landscape: true,
   },
   {
     id: "iq-sonic",
-    title: "IQ System — weld spots and one-way parts",
-    manualRef: "2006–07 Precedent IQ M&S, Wiring Diagrams 11-6",
+    title: "Figure 11-5 Precedent Electric Vehicle Instrument Panel Wiring Diagram",
+    manualRef:
+      "2006–2007 Precedent IQ System Electric Golf Car Maintenance and Service Manual, Figure 11-5 Precedent Electric Vehicle Instrument Panel Wiring Diagram, page 11-6",
     src: "/wiring/iq-sonic.jpg",
     kind: "pinout",
     landscape: false,
