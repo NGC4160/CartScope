@@ -1,8 +1,36 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { getPack } from "../data/index.ts";
-import type { JobRecord } from "../data/types.ts";
+import type { JobRecord, ModelPack } from "../data/types.ts";
 import { evaluateProof } from "./proof.ts";
+
+/** Real YDRE controller diagnosis copy from `yamaha-dc` (node tests cannot import `@/` packs). */
+const yamahaYdreDc = {
+  id: "yamaha-ydre-dc",
+  manufacturerLabel: "Yamaha",
+  name: "YDRE DC Drive",
+  fullName: "Yamaha YDRE / Drive G29 DC (48 V)",
+  powertrain: "electric",
+  architecture: "YDRE DC · Moric controller",
+  years: "2007–2016",
+  diagramTitle: "Power and control picture — Yamaha YDRE DC 48 V",
+  diagramNotes: [],
+  symptoms: [{ id: "no-operation", label: "Will not run either way", summary: "", manualSection: "", startStepId: "yno-split" }],
+  steps: {},
+  diagnoses: {
+    "ydx-controller": {
+      id: "ydx-controller",
+      title: "Controller",
+      summary: "",
+      likelyCause: "Failed Moric / YDRE DC controller (MCU).",
+      recommendedAction: "Replace the controller (JW2-H6510 series or the current replacement part).",
+      parts: [{ name: "Yamaha YDRE DC controller (MCU)" }],
+      severity: "replace",
+    },
+  },
+  components: [],
+  wires: [],
+  testPoints: [],
+} as unknown as ModelPack;
 
 function job(partial: Partial<JobRecord> = {}): JobRecord {
   return {
@@ -24,9 +52,7 @@ function job(partial: Partial<JobRecord> = {}): JobRecord {
 }
 
 test("no diagnosis and no pack proof does not recommend parts", () => {
-  const pack = getPack("yamaha-ydre-dc");
-  assert.ok(pack);
-  const proof = evaluateProof(job(), pack);
+  const proof = evaluateProof(job(), yamahaYdreDc);
   assert.equal(proof.enoughProof, false);
   assert.equal(proof.provenCause, null);
   assert.equal(proof.recommendedRepair, null);
@@ -34,9 +60,7 @@ test("no diagnosis and no pack proof does not recommend parts", () => {
 });
 
 test("a controller diagnosis without saved meters does not unlock parts", () => {
-  const pack = getPack("yamaha-ydre-dc");
-  assert.ok(pack);
-  const proof = evaluateProof(job({ diagnosisId: "ydx-controller", status: "diagnosed" }), pack);
+  const proof = evaluateProof(job({ diagnosisId: "ydx-controller", status: "diagnosed" }), yamahaYdreDc);
   assert.equal(proof.enoughProof, false);
   assert.equal(proof.mayShowParts, false);
   assert.equal(proof.recommendedRepair, null);
@@ -44,8 +68,6 @@ test("a controller diagnosis without saved meters does not unlock parts", () => 
 });
 
 test("a failed pack blocks controller parts even if a controller diagnosis is set", () => {
-  const pack = getPack("yamaha-ydre-dc");
-  assert.ok(pack);
   const proof = evaluateProof(
     job({
       batteryType: "lead-acid",
@@ -60,7 +82,7 @@ test("a failed pack blocks controller parts even if a controller diagnosis is se
         issues: ["Pack too low"],
       },
     }),
-    pack,
+    yamahaYdreDc,
   );
   assert.equal(proof.packStatus, "fail");
   assert.equal(proof.mayBlameController, false);

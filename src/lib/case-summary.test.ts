@@ -1,6 +1,5 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { getPack } from "../data/index.ts";
 import type { JobRecord, LogEntry, ModelPack } from "../data/types.ts";
 import {
   alsoRecordedReadings,
@@ -164,6 +163,206 @@ function logEntry(partial: Partial<LogEntry> & Pick<LogEntry, "stepId" | "stepTi
   };
 }
 
+/** Real YDRE DC ids, complaint, and Chapter 9 check titles from `yamaha-dc`. */
+const yamahaYdreDc = {
+  id: "yamaha-ydre-dc",
+  manufacturer: "yamaha",
+  manufacturerLabel: "Yamaha",
+  name: "YDRE DC Drive",
+  fullName: "Yamaha YDRE / Drive G29 DC (48 V)",
+  powertrain: "electric",
+  architecture: "YDRE DC · Moric controller · 3 A fuse · solenoid split",
+  years: "2007–2016 Drive / G29 / YDRE DC (YDRA/E Service Manual, 2016)",
+  diagramTitle: "Power and control picture — Yamaha YDRE DC 48 V",
+  diagramNotes: [],
+  symptoms: [
+    {
+      id: "no-operation",
+      label: "Will not run either way",
+      summary: "",
+      manualSection: "",
+      startStepId: "yno-split",
+    },
+  ],
+  steps: {
+    "yno-split": {
+      id: "yno-split",
+      title: "Did the solenoid click? (Chapter 9 split)",
+      instruction: "",
+      manualRef: "",
+      highlight: [],
+      measurement: {
+        kind: "observation",
+        prompt: "",
+        meterSetup: "",
+        expectedLabel: "Click or no-click picks the factory check list",
+      },
+      pass: { kind: "step", id: "yn-run" },
+      fail: { kind: "step", id: "ys-conn" },
+    },
+    "yn-pack": {
+      id: "yn-pack",
+      title: "Step 6 — Battery pack voltage",
+      instruction: "",
+      manualRef: "",
+      highlight: [],
+      measurement: {
+        kind: "voltage",
+        prompt: "",
+        meterSetup: "",
+        unit: "V",
+        expectedLabel: "48–54.5 V",
+      },
+      pass: { kind: "step", id: "yn-buzzer" },
+      fail: { kind: "diagnosis", id: "ydx-pack" },
+    },
+  },
+  diagnoses: {
+    "ydx-controller": {
+      id: "ydx-controller",
+      title: "Controller",
+      summary: "",
+      likelyCause: "Failed Moric / YDRE DC controller (MCU).",
+      recommendedAction: "Replace the controller (JW2-H6510 series or the current replacement part).",
+      parts: [{ name: "Yamaha YDRE DC controller (MCU)" }],
+      severity: "replace",
+    },
+  },
+  components: [],
+  wires: [],
+  testPoints: [],
+} as unknown as ModelPack;
+
+/** Real Precedent ERIC ids, IQDM complaint, and book test 1 from `club-car-iq`. */
+const precedentEric = {
+  id: "club-car-precedent-eric",
+  manufacturer: "club-car",
+  manufacturerLabel: "Club Car",
+  name: "Precedent ERIC",
+  fullName: "Club Car Precedent ERIC Excel (48 V)",
+  powertrain: "electric",
+  architecture: "ERIC Excel electric · ERIC charger · gas pedal sensor · 16-pin plug",
+  years: "2015–2019 Precedent electric",
+  diagramTitle: "Power and control picture — Precedent ERIC 48 V",
+  diagramNotes: [],
+  symptoms: [
+    {
+      id: "fault-code",
+      label: "IQDM / controller fault code",
+      summary: "",
+      manualSection: "",
+      startStepId: "pfault-code",
+    },
+  ],
+  steps: {
+    "pfault-code": {
+      id: "pfault-code",
+      title: "IQDM / controller fault code",
+      instruction: "",
+      manualRef: "",
+      highlight: [],
+      measurement: {
+        kind: "observation",
+        prompt: "",
+        meterSetup: "",
+        expectedLabel: "Fault identified",
+      },
+      pass: { kind: "step", id: "pno-setup" },
+      fail: { kind: "step", id: "pno-setup" },
+    },
+    "pno-pack": {
+      id: "pno-pack",
+      title: "Check battery pack power (book test 1)",
+      instruction: "",
+      manualRef: "",
+      highlight: [],
+      measurement: {
+        kind: "voltage",
+        prompt: "",
+        meterSetup: "",
+        unit: "V",
+        expectedLabel: "48–54.5 V sitting still (book says 48–50 V is ready)",
+      },
+      pass: { kind: "step", id: "pno-connections" },
+      fail: { kind: "diagnosis", id: "pdx-pack" },
+    },
+  },
+  diagnoses: {},
+  components: [],
+  wires: [],
+  testPoints: [],
+} as unknown as ModelPack;
+
+/** Real DS FE350 ids and 12 V sitting check from `club-car-ds-gas` / `gas`. */
+const dsFe350 = {
+  id: "club-car-ds-gas",
+  manufacturer: "club-car",
+  manufacturerLabel: "Club Car",
+  name: "DS FE350 gasoline",
+  fullName: "Club Car DS gasoline (Kawasaki FE350)",
+  powertrain: "gasoline",
+  architecture: "Kawasaki FE350 · carburetor · starter-generator · low-oil spark cut",
+  years: "1991–1996 Club Car DS gasoline (Kawasaki FE350)",
+  diagramTitle: "Starting and spark picture — DS FE350",
+  diagramNotes: [],
+  symptoms: [
+    {
+      id: "no-crank",
+      label: "Engine will not crank",
+      summary: "",
+      manualSection: "",
+      startStepId: "g-setup",
+    },
+  ],
+  steps: {
+    "g-setup": {
+      id: "g-setup",
+      title: "Set the cart up first",
+      instruction: "",
+      manualRef: "",
+      highlight: [],
+      measurement: {
+        kind: "observation",
+        prompt: "",
+        meterSetup: "",
+        expectedLabel: "Setup is right",
+      },
+      pass: { kind: "step", id: "g-bat" },
+      fail: { kind: "diagnosis", id: "gdx-setup" },
+    },
+    "g-bat": {
+      id: "g-bat",
+      title: "12 V battery, sitting",
+      instruction: "",
+      manualRef: "",
+      highlight: [],
+      measurement: {
+        kind: "voltage",
+        prompt: "",
+        meterSetup: "",
+        unit: "V",
+        expectedLabel: "12.4–12.8 V sitting",
+      },
+      pass: { kind: "step", id: "g-fuse" },
+      fail: { kind: "diagnosis", id: "gdx-battery" },
+    },
+  },
+  diagnoses: {
+    "gdx-ignition": {
+      id: "gdx-ignition",
+      title: "No spark — coil / TCI",
+      summary: "",
+      likelyCause: "Failed TCI.",
+      recommendedAction: "Replace the TCI.",
+      parts: [{ name: "TCI / ignitor" }],
+      severity: "replace",
+    },
+  },
+  components: [],
+  wires: [],
+  testPoints: [],
+} as unknown as ModelPack;
+
 function caseJob(pack: ModelPack, partial: Partial<JobRecord> = {}): JobRecord {
   const symptom = pack.symptoms[0]!;
   return {
@@ -228,8 +427,7 @@ test("verify re-reads stay on the Housecall check line with units", () => {
 });
 
 test("YDRE Housecall copy is bay-complete: identity, complaint, meters, codes, Helper place, no parts guess", () => {
-  const pack = getPack("yamaha-ydre-dc");
-  assert.ok(pack);
+  const pack = yamahaYdreDc;
   const split = pack.steps["yno-split"];
   const packVolt = pack.steps["yn-pack"];
   assert.ok(split && packVolt);
@@ -329,8 +527,7 @@ test("YDRE Housecall copy is bay-complete: identity, complaint, meters, codes, H
 });
 
 test("Precedent ERIC Housecall copy keeps fault codes, pack volts, and Helper off Who", () => {
-  const pack = getPack("club-car-precedent-eric");
-  assert.ok(pack);
+  const pack = precedentEric;
   const fault = pack.steps["pfault-code"];
   const packVolt = pack.steps["pno-pack"];
   assert.ok(fault && packVolt);
@@ -411,8 +608,7 @@ test("Precedent ERIC Housecall copy keeps fault codes, pack volts, and Helper of
 });
 
 test("FE350 Housecall copy keeps 12 V meters, complaint, and no pack / no parts guess", () => {
-  const pack = getPack("club-car-ds-gas");
-  assert.ok(pack);
+  const pack = dsFe350;
   const setup = pack.steps["g-setup"];
   const battery = pack.steps["g-bat"];
   assert.ok(setup && battery);

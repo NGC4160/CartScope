@@ -1,7 +1,7 @@
-import type { JobRecord, ModelPack } from "@/data/types";
-import { packRecordPass } from "@/lib/pack-rules";
-import { sheetsForPack } from "@/data/wiring";
-import { manualsOnFile } from "@/lib/manuals";
+import type { JobRecord, ModelPack } from "../data/types.ts";
+import { sheetsForPack } from "../data/wiring.ts";
+import { manualsOnFile } from "./manuals.ts";
+import { packRecordPass } from "./pack-rules.ts";
 
 export interface Proof {
   packStatus: "unknown" | "pass" | "fail" | "test-battery" | "lithium" | "gas";
