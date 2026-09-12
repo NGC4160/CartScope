@@ -458,7 +458,7 @@ test("TXT DCS pack keeps the two wire maps, then Fig. E-6 ten-pin troubleshootin
   const sheet = getSheet(DCS_E6_ID);
   assert.ok(sheet);
   assert.equal(sheet.id, DCS_E6_ID);
-  assert.equal(sheet.title, "TXT DCS — Ten Pin Connector Troubleshooting Diagram (Fig. E-6)");
+  assert.equal(sheet.title, "Fig. E-6 Ten Pin Connector Troubleshooting Diagram");
   assert.equal(
     sheet.manualRef,
     "TXT 96–01 DCS Service Manual (28407-G01), Fig. E-6 Ten Pin Connector Troubleshooting Diagram, page E-5 — Electronic Speed Control (DCS)",

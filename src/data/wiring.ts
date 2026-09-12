@@ -494,7 +494,7 @@ export const WIRING_SHEETS: WiringSheet[] = [
   // Kind/landscape match YDRE Ch.9 / TXT PDS troubleshooting trees. ezgo-txt-dcs only.
   {
     id: "dcs-e6-ten-pin-troubleshooting",
-    title: "TXT DCS — Ten Pin Connector Troubleshooting Diagram (Fig. E-6)",
+    title: "Fig. E-6 Ten Pin Connector Troubleshooting Diagram",
     manualRef:
       "TXT 96–01 DCS Service Manual (28407-G01), Fig. E-6 Ten Pin Connector Troubleshooting Diagram, page E-5 — Electronic Speed Control (DCS)",
     src: "/wiring/dcs-e6-ten-pin-troubleshooting.png",
