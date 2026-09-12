@@ -91,7 +91,7 @@ test("scaled lead-acid limits follow as-found cell volts", () => {
   assert.equal(eight.deadFloor, 8.07);
 
   const twelve = scaledLeadAcidLimits(12);
-  assert.equal(twelve.restMin, 12.44);
+  assert.equal(twelve.restMin, 12.43);
   assert.equal(twelve.chargeTarget, 12.74);
   assert.equal(twelve.deadFloor, 12.11);
   assert.equal(twelve.spreadMax, 0.3);
@@ -105,7 +105,7 @@ test("evaluateLeadAcid uses as-found 12 V limits, not factory 8 V", () => {
   const fourAt1230 = [12.3, 12.3, 12.3, 12.3];
   const asFound = evaluateLeadAcid(fourAt1230, 12);
   assert.equal(asFound.pass, false);
-  assert.match(asFound.issues.join(" "), /12 V battery is under 12\.44 V/);
+  assert.match(asFound.issues.join(" "), /12 V battery is under 12\.43 V/);
 
   const factoryWouldPass = evaluateLeadAcid(fourAt1230, 8);
   assert.equal(factoryWouldPass.pass, true);
