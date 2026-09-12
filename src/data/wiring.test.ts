@@ -174,6 +174,31 @@ const DS_IQ_SHEET_IDS = ["iq-main", ...IQ_TG_SHEET_IDS];
 const PRECEDENT_IQ_SHEET_IDS = ["iq-main", "iq-accessories", "iq-sonic", ...IQ_TG_SHEET_IDS];
 const IQ_TG_MANUAL =
   "2006–2007 Precedent IQ System Electric Golf Car Maintenance and Service Manual";
+const IQ_WIRE_MAP_SHEETS: Array<{
+  id: string;
+  title: string;
+  manualRef: string;
+  src: string;
+}> = [
+  {
+    id: "iq-main",
+    title: "Figure 11-1 / Figure 11-2 Precedent Electric Vehicle Wiring Diagram",
+    manualRef: `${IQ_TG_MANUAL}, Figure 11-1 / Figure 11-2 Precedent Electric Vehicle Wiring Diagram, pages 11-2 / 11-3`,
+    src: "/wiring/iq-main.jpg",
+  },
+  {
+    id: "iq-accessories",
+    title: "Figure 11-3 / Figure 11-4 Precedent Electric Vehicle Accessory Wiring Diagram",
+    manualRef: `${IQ_TG_MANUAL}, Figure 11-3 / Figure 11-4 Precedent Electric Vehicle Accessory Wiring Diagram, pages 11-4 / 11-5`,
+    src: "/wiring/iq-accessories.jpg",
+  },
+  {
+    id: "iq-sonic",
+    title: "Figure 11-5 Precedent Electric Vehicle Instrument Panel Wiring Diagram",
+    manualRef: `${IQ_TG_MANUAL}, Figure 11-5 Precedent Electric Vehicle Instrument Panel Wiring Diagram, page 11-6`,
+    src: "/wiring/iq-sonic.jpg",
+  },
+];
 const IQ_TG_SHEETS: Array<{
   id: string;
   title: string;
@@ -212,32 +237,41 @@ const IQ_TG_SHEETS: Array<{
   },
 ];
 
-test("DS IQ pack lists the shared IQ System main wire map, not Precedent accessory or instrument sheets", () => {
+test("DS IQ pack lists the shared IQ main wiring diagram, not accessory or instrument sheets", () => {
   const sheets = sheetsForPack("club-car-ds-iq");
   const ids = sheets.map((s) => s.id);
   assert.deepEqual(ids, DS_IQ_SHEET_IDS);
   assert.equal(ids[0], "iq-main");
   assert.ok(!ids.includes("iq-accessories"));
   assert.ok(!ids.includes("iq-sonic"));
-  assert.ok(!sheets.some((s) => /precedent/i.test(s.title)));
+  assert.ok(!sheets.some((s) => s.title === IQ_WIRE_MAP_SHEETS[1].title));
+  assert.ok(!sheets.some((s) => s.title === IQ_WIRE_MAP_SHEETS[2].title));
   assert.ok(!sheets.some((s) => s.title === "IQ System — lights and extras"));
   assert.ok(!sheets.some((s) => s.title === "IQ System — weld spots and one-way parts"));
 
+  for (const expected of IQ_WIRE_MAP_SHEETS) {
+    const sheet = getSheet(expected.id);
+    assert.ok(sheet, expected.id);
+    assert.equal(sheet.title, expected.title);
+    assert.equal(sheet.manualRef, expected.manualRef);
+    assert.equal(sheet.src, expected.src);
+    assert.doesNotMatch(sheet.title, /IQ System —/);
+    assert.doesNotMatch(sheet.title, /main wire map|lights and extras|weld spots/);
+    assert.doesNotMatch(sheet.manualRef, /2006–07 Precedent IQ M&S/);
+    assert.doesNotMatch(sheet.manualRef, /Wiring Diagrams 11-/);
+    assert.doesNotMatch(sheet.manualRef, /Figure 11-6/);
+    assertPublicSrc(sheet.src);
+  }
+
   const main = getSheet("iq-main");
   assert.ok(main);
-  assert.equal(main.title, "IQ System — main wire map");
   assert.equal(main.src, "/wiring/iq-main.jpg");
-  assertPublicSrc(main.src);
-
-  const accessories = getSheet("iq-accessories");
-  assert.ok(accessories);
-  assert.equal(accessories.title, "IQ System — lights and extras");
-  assertPublicSrc(accessories.src);
 
   const sonic = getSheet("iq-sonic");
   assert.ok(sonic);
-  assert.equal(sonic.title, "IQ System — weld spots and one-way parts");
-  assertPublicSrc(sonic.src);
+  assert.match(sonic.manualRef, /Figure 11-5/);
+  assert.match(sonic.manualRef, /page 11-6/);
+  assert.doesNotMatch(sonic.title, /Figure 11-6/);
 
   assert.deepEqual(
     sheetsForPack("club-car-precedent-iq").map((s) => s.id),
