@@ -582,6 +582,7 @@ export function buildYamahaYdreDc(): ModelPack {
       "A 3 A fuse in the Tow/Run-to-controller feed is a common no-click.",
       "Never push the cart home with Tow/Run in RUN.",
       "Controller pin 4 white = Forward. Pin 5 yellow = Reverse.",
+      "Factory Chapter 9 plates from the YDRA/E book are in Diagrams after the three wire maps: Z-2 flowchart, symptom trees, Z-2 failure charts, then Genius PDA faults (pages 9-38–9-44).",
     ],
     components,
     wires,
