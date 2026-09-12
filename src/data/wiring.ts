@@ -479,16 +479,18 @@ export const WIRING_SHEETS: WiringSheet[] = [
   },
   {
     id: "dcs-connector",
-    title: "TXT DCS — controller 10-pin power numbers",
-    manualRef: "TXT 96–01 DCS Service Manual, Section E",
+    title: "Fig. E-7 Checking Voltage on Ten Pin Connector",
+    manualRef:
+      "TXT 96–01 DCS Service Manual (28407-G01), Fig. E-7 Checking Voltage on Ten Pin Connector, page E-6 — Electronic Speed Control (DCS)",
     src: "/wiring/dcs-connector.jpg",
     kind: "pinout",
     landscape: false,
   },
   {
     id: "dcs-wiring",
-    title: "TXT DCS — controller wires",
-    manualRef: "TXT 96–01 DCS Service Manual, Section E",
+    title: "Fig. E-16 Wiring Diagram",
+    manualRef:
+      "TXT 96–01 DCS Service Manual (28407-G01), Fig. E-16 Wiring Diagram, page E-14 — Electronic Speed Control (DCS)",
     src: "/wiring/dcs-wiring.jpg",
     kind: "full",
     landscape: false,
