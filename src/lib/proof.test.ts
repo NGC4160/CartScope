@@ -9,6 +9,7 @@ const yamahaYdreDc = {
   manufacturerLabel: "Yamaha",
   name: "YDRE DC Drive",
   fullName: "Yamaha YDRE / Drive G29 DC (48 V)",
+  voltage: 48,
   powertrain: "electric",
   architecture: "YDRE DC · Moric controller",
   years: "2007–2016",
@@ -65,6 +66,26 @@ test("a controller diagnosis without saved meters does not unlock parts", () => 
   assert.equal(proof.mayShowParts, false);
   assert.equal(proof.recommendedRepair, null);
   assert.equal(proof.provenCause, null);
+});
+
+test("pack-phase hint uses as-found count when the pack is field-modified", () => {
+  const factory = evaluateProof(job({ casePhase: "pack", batteryType: "lead-acid" }), yamahaYdreDc);
+  assert.match(factory.nextHint, /Measure each of the 6 batteries at rest/);
+
+  const modified = evaluateProof(
+    job({
+      casePhase: "pack",
+      batteryType: "lead-acid",
+      packDraft: {
+        cells: [],
+        layoutSource: "field-modified",
+        asFoundCount: "4",
+        asFoundCellV: "12",
+      },
+    }),
+    yamahaYdreDc,
+  );
+  assert.match(modified.nextHint, /Measure each of the 4 as-found 12 V batteries/);
 });
 
 test("a failed pack blocks controller parts even if a controller diagnosis is set", () => {
