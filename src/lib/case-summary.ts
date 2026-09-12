@@ -1,5 +1,6 @@
-import type { JobRecord, ModelPack } from "../data/types.ts";
+import type { JobRecord, LogEntry, ModelPack } from "../data/types.ts";
 import { sheetsForPack } from "../data/wiring.ts";
+import { formatReading } from "./diagnostics.ts";
 import { formatHandheldRecord } from "./handheld.ts";
 import { keepWhoCheckedIt } from "./job-header.ts";
 import { manualsOnFile } from "./manuals.ts";
@@ -7,6 +8,48 @@ import { packNaReportLines } from "./pack-na.ts";
 import { formatPackCellLine } from "./pack-rules.ts";
 import type { Proof } from "./proof.ts";
 import { manualsReportLines, partialReportGaps } from "./report-continuity.ts";
+
+/** Shop wording for a saved check result. Never dump the raw `branch` token. */
+export function checkOutcomeLabel(result: LogEntry["result"]): string {
+  if (result === "pass") return "looks OK";
+  if (result === "fail") return "looks wrong";
+  if (result === "skip") return "skipped";
+  if (result === "branch") return "chose this path";
+  return result;
+}
+
+export function checkGotLabel(entry: Pick<LogEntry, "confirmedRaw" | "unit">): string {
+  return formatReading(entry.confirmedRaw, entry.unit);
+}
+
+/** Earlier verify readings, excluding the confirmed number already on the line. */
+export function alsoRecordedReadings(
+  entry: Pick<LogEntry, "attempts" | "confirmedRaw" | "unit">,
+): string[] {
+  const confirmed = formatReading(entry.confirmedRaw, entry.unit);
+  const seen = new Set([confirmed, entry.confirmedRaw.trim()]);
+  const extras: string[] = [];
+  for (const attempt of entry.attempts ?? []) {
+    const raw = attempt.raw.trim();
+    if (!raw) continue;
+    const labeled = formatReading(raw, entry.unit);
+    if (seen.has(labeled) || seen.has(raw)) continue;
+    seen.add(labeled);
+    seen.add(raw);
+    extras.push(labeled);
+  }
+  return extras;
+}
+
+export function formatCheckEvidenceLines(entry: LogEntry, index: number): string[] {
+  const lines = [
+    `${index + 1}. ${entry.stepTitle} — look for ${entry.expectedLabel}; got ${checkGotLabel(entry)}; ${checkOutcomeLabel(entry.result)}`,
+  ];
+  if (entry.skipReason) lines.push(`   Skip reason: ${entry.skipReason}`);
+  const extras = alsoRecordedReadings(entry);
+  if (extras.length) lines.push(`   Also recorded: ${extras.join(", ")}`);
+  return lines;
+}
 
 /** Header technician only. Helper chat / observation text must never use this label. */
 export function reportWhoCheckedIt(
@@ -86,6 +129,9 @@ export function plainCaseSummary(job: JobRecord, pack: ModelPack, proof: Proof):
       if (job.packCheck.irCouldNotMeasure) {
         lines.push(`IR meter: could not measure${job.packCheck.irSkipReason ? ` (${job.packCheck.irSkipReason})` : ""}`);
       }
+      if (job.packCheck.ageLabelPhotoNote) {
+        lines.push(`Date label photo: ${job.packCheck.ageLabelPhotoNote}`);
+      }
       if (job.packCheck.loadDropPct) lines.push(`Load drop: ${job.packCheck.loadDropPct} %`);
     } else {
       lines.push(`Monitor pack: ${job.packCheck.lithiumMonitorV || "—"} V`);
@@ -132,10 +178,7 @@ export function plainCaseSummary(job: JobRecord, pack: ModelPack, proof: Proof):
   lines.push("Checks");
   if (job.log.length === 0) lines.push("(no factory checks saved yet)");
   job.log.forEach((e, i) => {
-    const result =
-      e.result === "pass" ? "looks OK" : e.result === "fail" ? "looks wrong" : e.result === "skip" ? "skipped" : e.result;
-    lines.push(`${i + 1}. ${e.stepTitle} — look for ${e.expectedLabel}; got ${e.confirmedRaw}; ${result}`);
-    if (e.skipReason) lines.push(`   Skip reason: ${e.skipReason}`);
+    formatCheckEvidenceLines(e, i).forEach((line) => lines.push(line));
   });
   lines.push("");
   lines.push(`Proven cause: ${proof.provenCause ?? "Not proven yet"}`);
