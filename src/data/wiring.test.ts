@@ -59,14 +59,18 @@ test("Library TXT 36 V Non-PDS sheet leads the pack, then Fig. 6, then trees 1�
     assert.ok(tree, id);
     assert.equal(tree.kind, "control");
     assert.equal(tree.src, `/wiring/${id}.jpg`);
-    assert.match(tree.title, /Non-PDS — troubleshooting tree/);
-    assert.match(tree.title, new RegExp(`sheet ${i + 1}`));
-    assert.match(tree.title, new RegExp(`Fig\\. ${NON_PDS_FIGS[i]}`));
+    assert.equal(
+      tree.title,
+      `Fig. ${NON_PDS_FIGS[i]} Detailed Troubleshooting Diagram (Sheet ${i + 1} of 8)`,
+    );
     assert.match(tree.manualRef, /2001\+ EZ-GO TXT 36 V Service Manual/);
     assert.match(tree.manualRef, /28646-G01/);
     assert.match(tree.manualRef, new RegExp(`Fig\\. ${NON_PDS_FIGS[i]}`));
+    assert.match(tree.manualRef, /Detailed Troubleshooting Diagram/);
+    assert.match(tree.manualRef, new RegExp(`Sheet ${i + 1} of 8`));
     assert.match(tree.manualRef, new RegExp(NON_PDS_PAGES[i]));
     assert.match(tree.manualRef, /Non-PDS/);
+    assert.doesNotMatch(tree.title, /TXT 36 V Non-PDS — troubleshooting tree/);
     assert.doesNotMatch(tree.manualRef, /Speed Control \(PDS\)/);
     assertPublicSrc(tree.src);
   }
@@ -126,14 +130,18 @@ test("PDS pack shows Library map, then F-6 intro and Fig. 7–8 support, then tr
     assert.ok(tree, id);
     assert.equal(tree.kind, "control");
     assert.equal(tree.src, `/wiring/${id}.jpg`);
-    assert.match(tree.title, /PDS — troubleshooting tree/);
-    assert.match(tree.title, new RegExp(`sheet ${i + 1}`));
-    assert.match(tree.title, new RegExp(`Fig\\. ${PDS_FIGS[i]}`));
+    assert.equal(
+      tree.title,
+      `Fig. ${PDS_FIGS[i]} Detailed Troubleshooting Diagram (Sheet ${i + 1} of 10)`,
+    );
     assert.match(tree.manualRef, /2001\+ EZ-GO TXT 36 V Service Manual/);
     assert.match(tree.manualRef, /28646-G01/);
     assert.match(tree.manualRef, new RegExp(`Fig\\. ${PDS_FIGS[i]}`));
+    assert.match(tree.manualRef, /Detailed Troubleshooting Diagram/);
+    assert.match(tree.manualRef, new RegExp(`Sheet ${i + 1} of 10`));
     assert.match(tree.manualRef, new RegExp(PDS_PAGES[i]));
     assert.match(tree.manualRef, /\(PDS\)/);
+    assert.doesNotMatch(tree.title, /TXT 36 V PDS — troubleshooting tree/);
     assert.doesNotMatch(tree.manualRef, /Non-PDS/);
     assertPublicSrc(tree.src);
   }
