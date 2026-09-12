@@ -4,15 +4,33 @@ import { usePublishBayChrome, type BayActionChrome } from "@/components/bay/BayA
 import { BaySaveNotice } from "@/components/bay/BaySaveNotice";
 import { Button } from "@/components/ui/button";
 import { Field, inputClass, IrUnitPicker, VoltageInput } from "@/components/case/fields";
-import type { JobRecord, ModelPack, PackCheckRecord, PackCellReading, PackDraft } from "@/data/types";
+import type {
+  JobRecord,
+  ModelPack,
+  PackCheckRecord,
+  PackCellReading,
+  PackDraft,
+  PackLayoutSource,
+} from "@/data/types";
 import { IR_UNIT_HELP, resolveIrUnit } from "@/lib/ir-unit";
 import { bayPackActionLabel, bayProgressChip } from "@/lib/bay-chrome";
 import { BAY_CHECK_FORM_ID, bayFormSubmitGate, type BaySaveHandler } from "@/lib/bay-chrome-action";
-import { packLayout, scaledLeadAcidLimits } from "@/lib/pack-layout";
+import {
+  FACTORY_BOOK_LAYOUT_LABEL,
+  FIELD_MODIFIED_PACK_LABEL,
+  asFoundPackVolts,
+  layoutSourceFrom,
+  leadAcidMeasureHint,
+  packLayout,
+  parseAsFoundCellVolts,
+  parseAsFoundCount,
+  resolveLeadAcidLayout,
+  scaledLeadAcidLimits,
+} from "@/lib/pack-layout";
 import {
   applyBulkAgeUnreadable,
-  cellsForPackSave,
   decidePackSave,
+  emptyPackCells,
   packPasteTemplate,
   readRememberedPackPaste,
   rememberPackPaste,
@@ -64,12 +82,26 @@ export function PackGate({
   const save = useJobStore((s) => s.savePackCheck);
   const patchJob = useJobStore((s) => s.patchJob);
   const submitGate = bayFormSubmitGate;
-  const layout = packLayout(pack);
-  const lim = scaledLeadAcidLimits(layout.nominalV);
+  const factory = packLayout(pack);
   const lithium = job.batteryType === "lithium";
 
   const prior = job.packCheck;
   const draft = job.packDraft;
+  const [layoutSource, setLayoutSource] = useState<PackLayoutSource>(() =>
+    lithium ? "factory-book" : layoutSourceFrom(draft?.layoutSource, prior?.layoutSource),
+  );
+  const [asFoundCount, setAsFoundCount] = useState(
+    () => draft?.asFoundCount ?? (prior?.asFoundCellCount != null ? String(prior.asFoundCellCount) : ""),
+  );
+  const [asFoundCellV, setAsFoundCellV] = useState(
+    () => draft?.asFoundCellV ?? (prior?.asFoundNominalV != null ? String(prior.asFoundNominalV) : ""),
+  );
+  const parsedAsFoundCount = parseAsFoundCount(asFoundCount);
+  const parsedAsFoundCellV = parseAsFoundCellVolts(asFoundCellV);
+  const layout = lithium
+    ? factory
+    : resolveLeadAcidLayout(pack, layoutSource, parsedAsFoundCount, parsedAsFoundCellV);
+  const lim = scaledLeadAcidLimits(layout.nominalV);
   const [cells, setCells] = useState<PackCellDraft[]>(() => draftsFrom(prior, draft, layout.count));
   const [loadDrop, setLoadDrop] = useState(draft?.loadDrop ?? prior?.loadDropPct ?? "");
   const [monitorV, setMonitorV] = useState(draft?.monitorV ?? prior?.lithiumMonitorV ?? "");
@@ -91,7 +123,21 @@ export function PackGate({
   const [blockers, setBlockers] = useState<PackBlocker[]>([]);
   const errorAnchor = useRef<HTMLDivElement>(null);
 
-  const live = { cells, loadDrop, monitorV, minCell, faults, noMonitor, irSkip, irSkipReason, agePhoto, testNote };
+  const live = {
+    cells,
+    loadDrop,
+    monitorV,
+    minCell,
+    faults,
+    noMonitor,
+    irSkip,
+    irSkipReason,
+    agePhoto,
+    testNote,
+    layoutSource,
+    asFoundCount,
+    asFoundCellV,
+  };
   const liveRef = useRef(live);
   // Do not assign liveRef from state on every render. A store write mid-Save
   // re-renders with stale cells and would throw away paste rows.
@@ -112,8 +158,17 @@ export function PackGate({
         agePhoto: snap.agePhoto,
         testNote: snap.testNote,
         paste: pasteRef.current,
+        layoutSource: snap.layoutSource,
+        asFoundCount: snap.asFoundCount,
+        asFoundCellV: snap.asFoundCellV,
       },
     });
+  }
+
+  function resizeCellsTo(count: number, current: PackCellDraft[]): PackCellDraft[] {
+    if (current.length === count) return current;
+    if (current.length > count) return current.slice(0, count);
+    return [...current, ...emptyPackCells(count - current.length)];
   }
 
   const numericCells = useMemo(
@@ -150,16 +205,87 @@ export function PackGate({
     setBlockers([]);
   }
 
+  function workingLayout() {
+    const snap = liveRef.current;
+    return lithium
+      ? factory
+      : resolveLeadAcidLayout(
+          pack,
+          snap.layoutSource,
+          parseAsFoundCount(snap.asFoundCount),
+          parseAsFoundCellVolts(snap.asFoundCellV),
+        );
+  }
+
   function currentBlockers() {
-    return packSaveBlockers({
+    const working = workingLayout();
+    const blockers = packSaveBlockers({
       lithium,
-      cellCount: layout.count,
+      cellCount: working.count,
       cells: liveRef.current.cells,
       irSkip: liveRef.current.irSkip,
       irSkipReason: liveRef.current.irSkipReason,
       monitorV: liveRef.current.monitorV,
       noMonitor: liveRef.current.noMonitor,
     });
+    if (!lithium && liveRef.current.layoutSource === "field-modified") {
+      if (parseAsFoundCount(liveRef.current.asFoundCount) == null) {
+        blockers.unshift({
+          field: "as-found count",
+          message: "Type the as-found battery count.",
+        });
+      }
+      if (parseAsFoundCellVolts(liveRef.current.asFoundCellV) == null) {
+        blockers.unshift({
+          field: "as-found cell volts",
+          message: "Type the as-found cell volts.",
+        });
+      }
+    }
+    return blockers;
+  }
+
+  function applyLayoutChoice(next: PackLayoutSource) {
+    const countRaw = liveRef.current.asFoundCount;
+    const cellRaw = liveRef.current.asFoundCellV;
+    const working = resolveLeadAcidLayout(
+      pack,
+      next,
+      parseAsFoundCount(countRaw),
+      parseAsFoundCellVolts(cellRaw),
+    );
+    const resized = resizeCellsTo(working.count, liveRef.current.cells);
+    setLayoutSource(next);
+    setCells(resized);
+    liveRef.current = { ...liveRef.current, layoutSource: next, cells: resized };
+    persistDraft({ layoutSource: next, cells: resized });
+    setError(null);
+    setBlockers([]);
+  }
+
+  function applyAsFoundCount(raw: string) {
+    const nextCount = parseAsFoundCount(raw);
+    const working = resolveLeadAcidLayout(
+      pack,
+      liveRef.current.layoutSource,
+      nextCount,
+      parseAsFoundCellVolts(liveRef.current.asFoundCellV),
+    );
+    const resized = nextCount != null ? resizeCellsTo(working.count, liveRef.current.cells) : liveRef.current.cells;
+    setAsFoundCount(raw);
+    setCells(resized);
+    liveRef.current = { ...liveRef.current, asFoundCount: raw, cells: resized };
+    persistDraft({ asFoundCount: raw, cells: resized });
+    setError(null);
+    setBlockers([]);
+  }
+
+  function applyAsFoundCellV(raw: string) {
+    setAsFoundCellV(raw);
+    liveRef.current = { ...liveRef.current, asFoundCellV: raw };
+    persistDraft({ asFoundCellV: raw });
+    setError(null);
+    setBlockers([]);
   }
 
   function showBlockers(list: ReturnType<typeof packSaveBlockers>, reason?: string): string {
@@ -179,11 +305,11 @@ export function PackGate({
       const parsed = parseAgeMonthYear(c.age);
       return parsed ? monthsOld(parsed) : null;
     });
-    return evaluateLeadAcid(numeric, layout.nominalV, parseVolts(snap.loadDrop), ages);
+    return evaluateLeadAcid(numeric, workingLayout().nominalV, parseVolts(snap.loadDrop), ages);
   }
 
   function applyPaste() {
-    const result = parseBulkPackPaste(readPasteRaw(), liveRef.current.cells, layout.count);
+    const result = parseBulkPackPaste(readPasteRaw(), liveRef.current.cells, workingLayout().count);
     setCells(result.cells);
     liveRef.current = { ...liveRef.current, cells: result.cells };
     persistDraft({ cells: result.cells });
@@ -203,12 +329,28 @@ export function PackGate({
       ageNotReadable: !lithium && c.ageSkip ? true : undefined,
     }));
     const allIssues = irNote && verdict === "pass" ? [...issues, irNote] : irNote ? [...issues, irNote] : issues;
+    const source = lithium ? "factory-book" : liveRef.current.layoutSource;
+    const working = lithium
+      ? factory
+      : resolveLeadAcidLayout(
+          pack,
+          source,
+          parseAsFoundCount(liveRef.current.asFoundCount),
+          parseAsFoundCellVolts(liveRef.current.asFoundCellV),
+        );
     return {
       at: new Date().toISOString(),
       chemistry: lithium ? "lithium" : "lead-acid",
-      cellCount: layout.count,
-      nominalV: layout.nominalV,
-      cells: mapped,
+      cellCount: working.count,
+      nominalV: working.nominalV,
+      layoutSource: source,
+      factoryCellCount: factory.count,
+      factoryNominalV: factory.nominalV,
+      asFoundCellCount:
+        source === "field-modified" ? parseAsFoundCount(liveRef.current.asFoundCount) : undefined,
+      asFoundNominalV:
+        source === "field-modified" ? parseAsFoundCellVolts(liveRef.current.asFoundCellV) : undefined,
+      cells: mapped.slice(0, working.count),
       loadDropPct: snap.loadDrop.trim() || undefined,
       irCouldNotMeasure: lithium ? undefined : snap.irSkip,
       irSkipReason: lithium || !snap.irSkip ? undefined : snap.irSkipReason.trim(),
@@ -254,7 +396,7 @@ export function PackGate({
 
   function submitLive(): string | void {
     const pasteRaw = readPasteRaw();
-    const parsed = pasteRaw.trim() ? parseBulkPackPaste(pasteRaw, liveRef.current.cells, layout.count) : null;
+    const parsed = pasteRaw.trim() ? parseBulkPackPaste(pasteRaw, liveRef.current.cells, workingLayout().count) : null;
     if (parsed && parsed.applied === 0) {
       return showBlockers([], `Cannot save yet. ${parsed.message}`);
     }
@@ -266,9 +408,14 @@ export function PackGate({
       setPasteNote(parsed!.message);
     }
     const snap = liveRef.current;
+    const working = workingLayout();
+    const layoutMissing = currentBlockers().filter((b) => b.field.startsWith("as-found"));
+    if (layoutMissing.length) {
+      return showBlockers(currentBlockers());
+    }
     const decision = decidePackSave({
       lithium,
-      cellCount: layout.count,
+      cellCount: working.count,
       cells: snap.cells,
       irSkip: snap.irSkip,
       irSkipReason: snap.irSkipReason,
@@ -276,7 +423,7 @@ export function PackGate({
       noMonitor: snap.noMonitor,
       loadDrop: snap.loadDrop,
       testNote: snap.testNote,
-      nominalV: layout.nominalV,
+      nominalV: working.nominalV,
     });
     if (decision.action === "block") {
       return showBlockers(decision.blockers, decision.reason);
@@ -334,7 +481,11 @@ export function PackGate({
           </p>
         ) : (
           <ol className="mt-3 list-decimal space-y-2 pl-5 text-sm leading-relaxed text-ink">
-            <li>Measure resting voltage on each battery.</li>
+            <li>
+              {layoutSource === "field-modified" && parsedAsFoundCount != null
+                ? `Measure resting voltage on each of the ${layout.count} as-found batteries.`
+                : "Measure resting voltage on each battery."}
+            </li>
             <li>
               Measure internal resistance on each battery with the internal resistance meter. Write the reading and pick
               milliohms (mΩ) or megaohms (MΩ). Golf-cart lead-acid pack IR is almost always milliohms.
@@ -348,9 +499,76 @@ export function PackGate({
             </li>
           </ol>
         )}
-        <p className="mt-2 text-sm text-ink-muted">
-          This cart uses {layout.label}. Confirm that count on the cart before you trust the numbers.
-        </p>
+        {lithium ? (
+          <p className="mt-2 text-sm text-ink-muted">
+            {FACTORY_BOOK_LAYOUT_LABEL}: {factory.label}. Confirm that count on the cart before you trust the numbers.
+          </p>
+        ) : (
+          <div className="mt-4 space-y-3">
+            <p className="text-sm text-ink-muted">
+              {FACTORY_BOOK_LAYOUT_LABEL}: {factory.label}. Confirm that count on the cart before you trust the numbers.
+            </p>
+            <div>
+              <p className="mb-1 text-xs font-medium uppercase tracking-wide text-ink-subtle">Pack layout</p>
+              <div className="grid grid-cols-2 gap-2">
+                {(["factory-book", "field-modified"] as const).map((choice) => (
+                  <button
+                    key={choice}
+                    type="button"
+                    onClick={() => applyLayoutChoice(choice)}
+                    className={
+                      "min-h-12 rounded-md px-3 text-sm font-medium shadow-[var(--shadow-border)] " +
+                      (layoutSource === choice ? "bg-navy text-navy-fg" : "bg-surface text-ink")
+                    }
+                    aria-pressed={layoutSource === choice}
+                    data-testid={`pack-layout-${choice}`}
+                  >
+                    {choice === "factory-book" ? FACTORY_BOOK_LAYOUT_LABEL : FIELD_MODIFIED_PACK_LABEL}
+                  </button>
+                ))}
+              </div>
+            </div>
+            {layoutSource === "field-modified" ? (
+              <div className="space-y-3 rounded-md border border-line p-3">
+                <p className="text-sm text-ink">
+                  {parsedAsFoundCount != null && parsedAsFoundCellV != null
+                    ? `${leadAcidMeasureHint(layout, "field-modified")} Pack volts are count × cell.`
+                    : "Type the as-found count and cell volts. Pack volts are count × cell."}
+                </p>
+                <Field label="as-found count" hint="How many batteries are on the cart now.">
+                  <input
+                    value={asFoundCount}
+                    onChange={(e) => applyAsFoundCount(e.target.value.replace(/[^\d]/g, ""))}
+                    onBlur={() => persistDraft()}
+                    inputMode="numeric"
+                    className={inputClass + " font-mono"}
+                    placeholder="4"
+                    aria-label="as-found count"
+                    data-testid="pack-as-found-count"
+                  />
+                </Field>
+                <Field label="as-found cell volts" hint="Volts marked on one battery. Example: 12">
+                  <VoltageInput
+                    value={asFoundCellV}
+                    onChange={(next) => applyAsFoundCellV(next)}
+                    onBlur={() => persistDraft()}
+                    className={inputClass + " font-mono"}
+                    placeholder="12"
+                    aria-label="as-found cell volts"
+                    data-testid="pack-as-found-cell-v"
+                  />
+                </Field>
+                {parsedAsFoundCount != null && parsedAsFoundCellV != null ? (
+                  <p className="text-sm text-ink" data-testid="pack-as-found-total">
+                    as-found pack volts: {asFoundPackVolts(parsedAsFoundCount, parsedAsFoundCellV)} V
+                  </p>
+                ) : (
+                  <p className="text-sm text-ink-muted">as-found pack volts: type count and cell volts.</p>
+                )}
+              </div>
+            ) : null}
+          </div>
+        )}
 
         {lithium ? (
           <div className="mt-4 space-y-3">

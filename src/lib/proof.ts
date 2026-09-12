@@ -1,6 +1,13 @@
 import type { JobRecord, ModelPack } from "../data/types.ts";
 import { sheetsForPack } from "../data/wiring.ts";
 import { manualsOnFile } from "./manuals.ts";
+import {
+  layoutSourceFrom,
+  leadAcidMeasureHint,
+  parseAsFoundCellVolts,
+  parseAsFoundCount,
+  resolveLeadAcidLayout,
+} from "./pack-layout.ts";
 import { packRecordPass } from "./pack-rules.ts";
 
 export interface Proof {
@@ -113,8 +120,14 @@ function nextHintFor(
           : "")
       );
     }
+    const source = layoutSourceFrom(job.packDraft?.layoutSource, job.packCheck?.layoutSource);
+    const asFoundCount =
+      parseAsFoundCount(job.packDraft?.asFoundCount ?? "") ?? job.packCheck?.asFoundCellCount;
+    const asFoundCellV =
+      parseAsFoundCellVolts(job.packDraft?.asFoundCellV ?? "") ?? job.packCheck?.asFoundNominalV;
+    const layout = resolveLeadAcidLayout(pack, source, asFoundCount, asFoundCellV);
     return (
-      "Block the wheels. Measure each battery at rest. Then measure internal resistance with the IR meter. Write month and year from each date code. Do not invent a reading or an age." +
+      `Block the wheels. ${leadAcidMeasureHint(layout, source)} Then measure internal resistance with the IR meter. Write month and year from each date code. Do not invent a reading or an age.` +
       (missingBook
         ? " No service manual is on file. Stay on this meter-evidence path. Do not auto-add a manual."
         : "")

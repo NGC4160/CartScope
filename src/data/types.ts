@@ -8,6 +8,8 @@ export type Powertrain = "electric" | "gasoline";
 export type BatteryType = "lead-acid" | "lithium";
 export type CasePhase = "pack" | "codes" | "steps" | "report";
 export type CaseVerdict = "pass" | "fail" | "skip" | "na";
+/** How the tech chose the pack layout at the gate. Older records omit this = factory book. */
+export type PackLayoutSource = "factory-book" | "field-modified";
 
 export interface TerminalDef {
   id: string;
@@ -201,8 +203,14 @@ export interface PackCellReading {
 export interface PackCheckRecord {
   at: string;
   chemistry: BatteryType;
+  /** Layout used for pack checks and scaled limits (as-found when field-modified). */
   cellCount: number;
   nominalV: number;
+  layoutSource?: PackLayoutSource;
+  factoryCellCount?: number;
+  factoryNominalV?: number;
+  asFoundCellCount?: number;
+  asFoundNominalV?: number;
   cells: PackCellReading[];
   loadDropPct?: string;
   batteryAgeYears?: string;
@@ -328,4 +336,7 @@ export interface PackDraft {
   agePhoto?: string;
   testNote?: string;
   paste?: string;
+  layoutSource?: PackLayoutSource;
+  asFoundCount?: string;
+  asFoundCellV?: string;
 }
