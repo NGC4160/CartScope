@@ -14,6 +14,7 @@ import {
   type HeaderSnapshot,
 } from "./start-checks.ts";
 import { initialPhase } from "./case-flow.ts";
+import { startNeededChips } from "./job-header.ts";
 import { yearIssueLine, yearStatusNote } from "./year-compat.ts";
 
 /** Real Club Car DS IQ motor-braking path from `club-car-iq`. */
@@ -525,6 +526,7 @@ test("DS FE350 blank Year keeps Start blocked; 1990 stays blocked; 1996 starts",
     assert.ok(blank.messages.includes("Year is required."));
     assert.equal(blank.yearMessage, null);
     assert.equal(startBlockedReason(blank.yearMessage, blank.blockers), "Year is required.");
+    assert.deepEqual(startNeededChips({ gaps: blank.gaps }).map((c) => c.label), ["Year"]);
   }
 
   const wrong = attemptStartChecks({
@@ -538,6 +540,10 @@ test("DS FE350 blank Year keeps Start blocked; 1990 stays blocked; 1996 starts",
     assert.match(wrong.yearMessage ?? "", /1990/);
     assert.match(wrong.yearMessage ?? "", /1991–1996|1991-1996/);
     assert.ok(wrong.blockers.some((b) => b.kind === "year"));
+    assert.deepEqual(
+      startNeededChips({ gaps: wrong.gaps, yearInvalid: Boolean(wrong.yearMessage) }).map((c) => c.label),
+      ["Year"],
+    );
   }
 
   const started = attemptStartChecks({
@@ -673,10 +679,21 @@ test("bay UX must prove Yamaha YDRE Start leaves Job header on its own", () => {
 
 test("bay UX must prove FE350 blank Year cannot Start", () => {
   const src = readFileSync(new URL("../../scripts/qa-bay-ux.mjs", import.meta.url), "utf8");
+  assert.match(src, /runBlankYearStartBlocked/);
   assert.match(src, /FE350 blank Year/);
   assert.match(src, /Year is required/);
+  assert.match(src, /start-needed-chip-cartYear/);
+  assert.match(src, /year-glove-pad|year-pad-1/);
   assert.match(src, /FE350 1990/);
   assert.match(src, /mouseClickStart/);
+});
+
+test("Job header Start banner paints Year / Who / HCP chips from the same gaps", () => {
+  const src = readFileSync(new URL("../components/wizard/NewJobWizard.tsx", import.meta.url), "utf8");
+  assert.match(src, /startNeededChips/);
+  assert.match(src, /start-needed-chips/);
+  assert.match(src, /year-glove-pad/);
+  assert.match(src, /min-h-16/);
 });
 
 test("Start overlay catch lives outside the wizard and clicks the Start control", () => {

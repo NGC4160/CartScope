@@ -1,6 +1,11 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { jobHeaderGaps, jobHeaderSummary, keepWhoCheckedIt } from "./job-header.ts";
+import {
+  jobHeaderGaps,
+  jobHeaderSummary,
+  keepWhoCheckedIt,
+  startNeededChips,
+} from "./job-header.ts";
 
 test("empty electric header lists last name, job number, battery type, and who checked it", () => {
   const gaps = jobHeaderGaps({
@@ -100,6 +105,45 @@ test("Who checked it is required even when other header fields are filled", () =
   assert.equal(
     jobHeaderSummary(gaps),
     "Cannot start yet. Enter the name of who checked it.",
+  );
+});
+
+test("Start needed chips name Year, Who checked it, and Housecall Pro when those gaps apply", () => {
+  const empty = jobHeaderGaps({
+    lastName: "Test",
+    hcpJobNumber: "",
+    powertrain: "gasoline",
+    batteryType: "",
+    technician: "",
+    cartYear: "",
+  });
+  assert.deepEqual(
+    startNeededChips({ gaps: empty }).map((c) => c.label),
+    ["Year", "Who checked it", "Housecall Pro job number"],
+  );
+
+  const yearOnly = jobHeaderGaps({
+    lastName: "Test",
+    hcpJobNumber: "M72008",
+    powertrain: "gasoline",
+    batteryType: "",
+    technician: "Hayden Silva",
+    cartYear: "",
+  });
+  assert.deepEqual(startNeededChips({ gaps: yearOnly }).map((c) => c.id), ["cartYear"]);
+
+  const filled = jobHeaderGaps({
+    lastName: "Test",
+    hcpJobNumber: "M72008",
+    powertrain: "gasoline",
+    batteryType: "",
+    technician: "Hayden Silva",
+    cartYear: "1996",
+  });
+  assert.deepEqual(startNeededChips({ gaps: filled }), []);
+  assert.deepEqual(
+    startNeededChips({ gaps: filled, yearInvalid: true }).map((c) => c.label),
+    ["Year"],
   );
 });
 
