@@ -688,7 +688,10 @@ async function runHelperRedirect() {
     !/solenoid clicks|starter does not crank/i.test(await whoAfterJump.innerText()),
   );
   const sawHeading = page.getByRole("heading", { name: "What the tech saw" });
-  check("helper jump observation under what the tech saw", await sawHeading.locator("..").getByText(/solenoid clicks/i).isVisible());
+  check(
+    "helper jump observation under what the tech saw",
+    await sawHeading.locator("..").locator("p").filter({ hasText: /solenoid clicks/i }).isVisible(),
+  );
   await page.screenshot({ path: `${out}/bay-helper-redirect.png` });
   await page.close();
 }
