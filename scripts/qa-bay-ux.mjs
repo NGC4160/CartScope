@@ -1093,6 +1093,7 @@ async function runLiveFailList() {
   check("FE350 blank Year reason is visible", await blankBanner.isVisible());
   const blankText = await blankBanner.innerText();
   check("FE350 blank Year names Year is required", /Year is required/i.test(blankText), blankText);
+  check("FE350 blank Year chip is visible", await fe350.getByTestId("start-needed-chip-cartYear").isVisible());
   await mouseClickStart(fe350);
   await fe350.waitForTimeout(400);
   check("FE350 blank Year Start stays on header", (await fe350.getByTestId("start-checks").count()) === 1);
@@ -1106,6 +1107,7 @@ async function runLiveFailList() {
     /1990/.test(wrong1990) && /1991–1996|1991-1996/.test(wrong1990),
     wrong1990,
   );
+  check("FE350 1990 Year chip is visible", await fe350.getByTestId("start-needed-chip-cartYear").isVisible());
   await mouseClickStart(fe350);
   await fe350.waitForTimeout(400);
   check("FE350 1990 Start stays on header", (await fe350.getByTestId("start-checks").count()) === 1);
@@ -1155,6 +1157,75 @@ async function runLiveFailList() {
   await fe350.getByText(/CHECK 2/i).first().waitFor({ timeout: 10000 });
   check("FE350 gas after pick sticky Save left Check 1", await fe350.getByText(/CHECK 2/i).first().isVisible());
   await fe350.close();
+}
+
+/**
+ * Standing Goal 7/8 smoke. Kept off the pack/Save blast so a later
+ * Save miss cannot hide a blank-Year Start regression.
+ */
+async function runBlankYearStartBlocked() {
+  const page = await browser.newPage({ viewport: { width: 1024, height: 768 } });
+  page.on("pageerror", (e) => console.log("PAGEERROR", e.message));
+  await page.goto(BASE, { waitUntil: "networkidle" });
+  const neu = page.getByRole("button", { name: /New job/i });
+  if (await neu.count()) await neu.click();
+  await page.getByRole("button", { name: /Club Car/i }).click();
+  await page.getByRole("button", { name: /DS FE350/i }).click();
+  await page.getByRole("button", { name: /Engine will not crank/i }).click();
+  const headerBtn = page.getByRole("button", { name: /Job header/i });
+  if (await headerBtn.count()) await headerBtn.click();
+  await page.getByLabel(/Customer last name/i).fill("Fe350");
+
+  const yearChip = page.getByTestId("start-needed-chip-cartYear");
+  const whoChip = page.getByTestId("start-needed-chip-technician");
+  const hcpChip = page.getByTestId("start-needed-chip-hcpJobNumber");
+  check("blank Year standing chips show Year", await yearChip.isVisible());
+  check("blank Year standing chips show Who checked it", await whoChip.isVisible());
+  check("blank Year standing chips show Housecall Pro job number", await hcpChip.isVisible());
+
+  await page.getByLabel(/Housecall Pro job number/i).fill("HCP-5803");
+  await page.getByLabel(/Who checked it/i).fill("Hayden");
+  check("blank Year standing Who chip clears after pick", (await whoChip.count()) === 0);
+  check("blank Year standing HCP chip clears after pick", (await hcpChip.count()) === 0);
+  check("blank Year standing Year chip stays", await yearChip.isVisible());
+
+  const yearBox = page.getByLabel(/^Year$/i);
+  const yearSize = await yearBox.boundingBox();
+  check("blank Year field is glove-sized", Boolean(yearSize && yearSize.height >= 48), JSON.stringify(yearSize));
+  const padKey = page.getByTestId("year-pad-1");
+  check("blank Year number pad is visible", await padKey.isVisible());
+  const padSize = await padKey.boundingBox();
+  check("blank Year pad key is glove-sized", Boolean(padSize && padSize.height >= 48), JSON.stringify(padSize));
+
+  const start = page.getByTestId("start-checks");
+  check("blank Year standing Start not ready", (await start.getAttribute("data-start-ready")) === "false");
+  const banner = page.getByTestId("start-blocked-reason");
+  check("blank Year standing reason is visible", await banner.isVisible());
+  const bannerText = await banner.innerText();
+  check("blank Year standing names Year is required", /Year is required/i.test(bannerText), bannerText);
+  await mouseClickStart(page);
+  await page.waitForTimeout(400);
+  check("blank Year standing Start stays on header", (await page.getByTestId("start-checks").count()) === 1);
+
+  await page.getByTestId("year-pad-1").click();
+  await page.getByTestId("year-pad-9").click();
+  await page.getByTestId("year-pad-9").click();
+  await page.getByTestId("year-pad-6").click();
+  check("blank Year pad entered 1996", (await yearBox.inputValue()) === "1996");
+  check("blank Year pad Start ready", (await start.getAttribute("data-start-ready")) === "true");
+  check("blank Year pad cleared Year chip", (await yearChip.count()) === 0);
+
+  await page.getByTestId("year-pad-clear").click();
+  check("blank Year pad Clear empties Year", (await yearBox.inputValue()) === "");
+  check("blank Year pad Clear blocks Start", (await start.getAttribute("data-start-ready")) === "false");
+  check("blank Year pad Clear brings Year chip back", await yearChip.isVisible());
+  const cleared = await banner.innerText();
+  check("blank Year pad Clear names Year is required", /Year is required/i.test(cleared), cleared);
+  await mouseClickStart(page);
+  await page.waitForTimeout(400);
+  check("blank Year pad Clear Start stays on header", (await page.getByTestId("start-checks").count()) === 1);
+  await page.screenshot({ path: `${out}/blank-year-start-blocked.png` });
+  await page.close();
 }
 
 /**
@@ -1212,11 +1283,16 @@ async function runYamahaYdreStartToFirstCheck() {
 
 if (process.env.BAY_QA_ONLY === "yamaha-start") {
   await runYamahaYdreStartToFirstCheck();
+  await runBlankYearStartBlocked();
 } else if (process.env.BAY_QA_ONLY === "live") {
   await runYamahaYdreStartToFirstCheck();
+  await runBlankYearStartBlocked();
   await runLiveFailList();
+} else if (process.env.BAY_QA_ONLY === "blank-year") {
+  await runBlankYearStartBlocked();
 } else {
   await runYamahaYdreStartToFirstCheck();
+  await runBlankYearStartBlocked();
   await runAt(1024, 768, "tablet");
   await runAt(390, 844, "phone");
   await runFactoryCheck();

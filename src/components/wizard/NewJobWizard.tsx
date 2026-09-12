@@ -4,7 +4,12 @@ import { Field, HeaderNoteInput, inputClass } from "@/components/case/fields";
 import { Button } from "@/components/ui/button";
 import { MANUFACTURERS, packsFor } from "@/data/index";
 import type { BatteryType, ManufacturerId, ModelPack } from "@/data/types";
-import { JOB_HEADER_MESSAGES, jobHeaderGaps, jobHeaderSummary } from "@/lib/job-header";
+import {
+  JOB_HEADER_MESSAGES,
+  jobHeaderGaps,
+  jobHeaderSummary,
+  startNeededChips,
+} from "@/lib/job-header";
 import {
   attemptStartChecks,
   complaintHasFirstStep,
@@ -102,6 +107,10 @@ export function NewJobWizard({
   const blockers = startBlockers({ pack: model, symptomId, header, yearCheck });
   const bannerReason =
     yearIssue ?? blockers.find((b) => b.kind !== "year")?.message ?? blockers[0]?.message ?? "";
+  const neededChips = startNeededChips({
+    gaps,
+    yearInvalid: Boolean(yearIssue),
+  });
   const startReady = startIsReady(blockers);
   const complaintReady = complaintHasFirstStep(model, symptomId);
 
@@ -354,6 +363,7 @@ export function NewJobWizard({
             </Field>
             <Field label="Housecall Pro job number">
               <HeaderNoteInput
+                id="job-header-hcpJobNumber"
                 name="hcpJobNumber"
                 value={hcp}
                 onChange={setHcp}
@@ -367,6 +377,7 @@ export function NewJobWizard({
             </Field>
             <Field label="Who checked it">
               <HeaderNoteInput
+                id="job-header-technician"
                 name="technician"
                 value={technician}
                 onChange={setTechnician}
@@ -379,17 +390,21 @@ export function NewJobWizard({
                 <span className="mt-1 block text-sm text-danger">{JOB_HEADER_MESSAGES.technician}</span>
               ) : null}
             </Field>
-            <Field label="Year" hint="Type the four-digit year. The box stays empty until you type.">
+            <Field label="Year" hint="Tap the number pad or type the four-digit year. The box stays empty until you enter it.">
               <HeaderNoteInput
+                id="job-header-cartYear"
                 name="cartYear"
                 value={year}
                 onChange={(next) => setYear(sanitizeCartYearInput(next))}
                 inputMode="numeric"
+                enterKeyHint="done"
                 aria-label="Year"
                 aria-required
                 aria-invalid={gaps.includes("cartYear") || Boolean(yearMessage)}
                 aria-describedby="year-compat-note"
+                className={inputClass + " min-h-16 text-2xl tabular-nums tracking-wide"}
               />
+              <YearGlovePad year={year} onChange={setYear} />
               {gaps.includes("cartYear") ? (
                 <span className="mt-1 block text-sm text-danger">{JOB_HEADER_MESSAGES.cartYear}</span>
               ) : null}
@@ -485,6 +500,24 @@ export function NewJobWizard({
                 className="mb-2 rounded-md bg-danger-bg px-3 py-2 text-sm font-medium text-danger"
                 role="alert"
               >
+                {neededChips.length > 0 ? (
+                  <div
+                    data-testid="start-needed-chips"
+                    className="mb-2 flex flex-wrap gap-2"
+                  >
+                    {neededChips.map((chip) => (
+                      <button
+                        key={chip.id}
+                        type="button"
+                        data-testid={`start-needed-chip-${chip.id}`}
+                        className="min-h-12 rounded-md bg-surface px-3 text-sm font-semibold text-danger shadow-[var(--shadow-border)] touch-manipulation"
+                        onClick={() => focusJobHeaderField(chip.field)}
+                      >
+                        {chip.label}
+                      </button>
+                    ))}
+                  </div>
+                ) : null}
                 <p>Start is blocked. {bannerReason || startErrors[0]}</p>
                 {blockers
                   .filter((b) => b.kind !== "year" && b.message !== bannerReason)
@@ -539,6 +572,59 @@ export function NewJobWizard({
           </div>
         </form>
       ) : null}
+    </div>
+  );
+}
+
+function focusJobHeaderField(field: string) {
+  const el = document.getElementById(`job-header-${field}`);
+  if (!(el instanceof HTMLElement)) return;
+  el.focus();
+  el.scrollIntoView({ block: "center", behavior: "smooth" });
+}
+
+const YEAR_PAD_KEYS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "clear", "0", "back"] as const;
+
+function YearGlovePad({
+  year,
+  onChange,
+}: {
+  year: string;
+  onChange: (next: string) => void;
+}) {
+  function press(key: (typeof YEAR_PAD_KEYS)[number]) {
+    if (key === "clear") {
+      onChange("");
+      return;
+    }
+    if (key === "back") {
+      onChange(sanitizeCartYearInput(year.slice(0, -1)));
+      return;
+    }
+    onChange(sanitizeCartYearInput(year + key));
+  }
+
+  return (
+    <div
+      data-testid="year-glove-pad"
+      className="mt-2 grid grid-cols-3 gap-2"
+      role="group"
+      aria-label="Year number pad"
+    >
+      {YEAR_PAD_KEYS.map((key) => (
+        <button
+          key={key}
+          type="button"
+          data-testid={`year-pad-${key}`}
+          aria-label={
+            key === "clear" ? "Clear year" : key === "back" ? "Backspace year" : `Year digit ${key}`
+          }
+          onClick={() => press(key)}
+          className="min-h-14 rounded-md bg-surface text-lg font-semibold tabular-nums text-ink shadow-[var(--shadow-border)] touch-manipulation"
+        >
+          {key === "clear" ? "Clear" : key === "back" ? "Back" : key}
+        </button>
+      ))}
     </div>
   );
 }

@@ -53,6 +53,46 @@ export function jobHeaderSummary(gaps: JobHeaderGap[]): string | null {
   return `Cannot start yet. Enter the ${joinRequired(names)}.`;
 }
 
+/** Sticky Start chips — only the three bay-facing header gaps Goal 8 names. */
+export type StartNeededChipId = "cartYear" | "technician" | "hcpJobNumber";
+
+export type StartNeededChip = {
+  id: StartNeededChipId;
+  label: string;
+  field: StartNeededChipId;
+};
+
+export const START_NEEDED_CHIP_LABELS: Record<StartNeededChipId, string> = {
+  cartYear: "Year",
+  technician: "Who checked it",
+  hcpJobNumber: "Housecall Pro job number",
+};
+
+const START_NEEDED_CHIP_ORDER: StartNeededChipId[] = [
+  "cartYear",
+  "technician",
+  "hcpJobNumber",
+];
+
+/**
+ * Same Start-gate gaps the banner already knows. Year chip also shows when
+ * the typed year is on file but out of the pack range.
+ */
+export function startNeededChips(input: {
+  gaps: readonly JobHeaderGap[];
+  yearInvalid?: boolean;
+}): StartNeededChip[] {
+  const needed = new Set<StartNeededChipId>();
+  if (input.gaps.includes("cartYear") || input.yearInvalid) needed.add("cartYear");
+  if (input.gaps.includes("technician")) needed.add("technician");
+  if (input.gaps.includes("hcpJobNumber")) needed.add("hcpJobNumber");
+  return START_NEEDED_CHIP_ORDER.filter((id) => needed.has(id)).map((id) => ({
+    id,
+    label: START_NEEDED_CHIP_LABELS[id],
+    field: id,
+  }));
+}
+
 /**
  * Header tech name only. A Helper / What-the-tech-saw line must never replace it.
  * `incoming === undefined` keeps the name already on the job.
