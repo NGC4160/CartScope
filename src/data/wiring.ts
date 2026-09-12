@@ -564,7 +564,7 @@ export const WIRING_SHEETS: WiringSheet[] = [
   },
   {
     id: "txt36-nonpds-tree-1",
-    title: "TXT 36 V Non-PDS — troubleshooting tree sheet 1 (Fig. 7)",
+    title: "Fig. 7 Detailed Troubleshooting Diagram (Sheet 1 of 8)",
     manualRef:
       "2001+ EZ-GO TXT 36 V Service Manual (pub 28646-G01), Fig. 7 Detailed Troubleshooting Diagram (Sheet 1 of 8), page E-5 — Electronic Speed Control (Non-PDS)",
     src: "/wiring/txt36-nonpds-tree-1.jpg",
@@ -573,7 +573,7 @@ export const WIRING_SHEETS: WiringSheet[] = [
   },
   {
     id: "txt36-nonpds-tree-2",
-    title: "TXT 36 V Non-PDS — troubleshooting tree sheet 2 (Fig. 8)",
+    title: "Fig. 8 Detailed Troubleshooting Diagram (Sheet 2 of 8)",
     manualRef:
       "2001+ EZ-GO TXT 36 V Service Manual (pub 28646-G01), Fig. 8 Detailed Troubleshooting Diagram (Sheet 2 of 8), page E-6 — Electronic Speed Control (Non-PDS)",
     src: "/wiring/txt36-nonpds-tree-2.jpg",
@@ -582,7 +582,7 @@ export const WIRING_SHEETS: WiringSheet[] = [
   },
   {
     id: "txt36-nonpds-tree-3",
-    title: "TXT 36 V Non-PDS — troubleshooting tree sheet 3 (Fig. 9)",
+    title: "Fig. 9 Detailed Troubleshooting Diagram (Sheet 3 of 8)",
     manualRef:
       "2001+ EZ-GO TXT 36 V Service Manual (pub 28646-G01), Fig. 9 Detailed Troubleshooting Diagram (Sheet 3 of 8), page E-7 — Electronic Speed Control (Non-PDS)",
     src: "/wiring/txt36-nonpds-tree-3.jpg",
@@ -591,7 +591,7 @@ export const WIRING_SHEETS: WiringSheet[] = [
   },
   {
     id: "txt36-nonpds-tree-4",
-    title: "TXT 36 V Non-PDS — troubleshooting tree sheet 4 (Fig. 10)",
+    title: "Fig. 10 Detailed Troubleshooting Diagram (Sheet 4 of 8)",
     manualRef:
       "2001+ EZ-GO TXT 36 V Service Manual (pub 28646-G01), Fig. 10 Detailed Troubleshooting Diagram (Sheet 4 of 8), page E-8 — Electronic Speed Control (Non-PDS)",
     src: "/wiring/txt36-nonpds-tree-4.jpg",
@@ -600,7 +600,7 @@ export const WIRING_SHEETS: WiringSheet[] = [
   },
   {
     id: "txt36-nonpds-tree-5",
-    title: "TXT 36 V Non-PDS — troubleshooting tree sheet 5 (Fig. 11)",
+    title: "Fig. 11 Detailed Troubleshooting Diagram (Sheet 5 of 8)",
     manualRef:
       "2001+ EZ-GO TXT 36 V Service Manual (pub 28646-G01), Fig. 11 Detailed Troubleshooting Diagram (Sheet 5 of 8), page E-9 — Electronic Speed Control (Non-PDS)",
     src: "/wiring/txt36-nonpds-tree-5.jpg",
@@ -609,7 +609,7 @@ export const WIRING_SHEETS: WiringSheet[] = [
   },
   {
     id: "txt36-nonpds-tree-6",
-    title: "TXT 36 V Non-PDS — troubleshooting tree sheet 6 (Fig. 12)",
+    title: "Fig. 12 Detailed Troubleshooting Diagram (Sheet 6 of 8)",
     manualRef:
       "2001+ EZ-GO TXT 36 V Service Manual (pub 28646-G01), Fig. 12 Detailed Troubleshooting Diagram (Sheet 6 of 8), page E-10 — Electronic Speed Control (Non-PDS)",
     src: "/wiring/txt36-nonpds-tree-6.jpg",
@@ -618,7 +618,7 @@ export const WIRING_SHEETS: WiringSheet[] = [
   },
   {
     id: "txt36-nonpds-tree-7",
-    title: "TXT 36 V Non-PDS — troubleshooting tree sheet 7 (Fig. 13)",
+    title: "Fig. 13 Detailed Troubleshooting Diagram (Sheet 7 of 8)",
     manualRef:
       "2001+ EZ-GO TXT 36 V Service Manual (pub 28646-G01), Fig. 13 Detailed Troubleshooting Diagram (Sheet 7 of 8), page E-11 — Electronic Speed Control (Non-PDS)",
     src: "/wiring/txt36-nonpds-tree-7.jpg",
@@ -627,7 +627,7 @@ export const WIRING_SHEETS: WiringSheet[] = [
   },
   {
     id: "txt36-nonpds-tree-8",
-    title: "TXT 36 V Non-PDS — troubleshooting tree sheet 8 (Fig. 14)",
+    title: "Fig. 14 Detailed Troubleshooting Diagram (Sheet 8 of 8)",
     manualRef:
       "2001+ EZ-GO TXT 36 V Service Manual (pub 28646-G01), Fig. 14 Detailed Troubleshooting Diagram (Sheet 8 of 8), page E-12 — Electronic Speed Control (Non-PDS)",
     src: "/wiring/txt36-nonpds-tree-8.jpg",
@@ -636,7 +636,7 @@ export const WIRING_SHEETS: WiringSheet[] = [
   },
   {
     id: "txt36-pds-tree-1",
-    title: "TXT 36 V PDS — troubleshooting tree sheet 1 (Fig. 10)",
+    title: "Fig. 10 Detailed Troubleshooting Diagram (Sheet 1 of 10)",
     manualRef:
       "2001+ EZ-GO TXT 36 V Service Manual (pub 28646-G01), Fig. 10 Detailed Troubleshooting Diagram (Sheet 1 of 10), page F-10 — Electronic Speed Control (PDS)",
     src: "/wiring/txt36-pds-tree-1.jpg",
@@ -645,7 +645,7 @@ export const WIRING_SHEETS: WiringSheet[] = [
   },
   {
     id: "txt36-pds-tree-2",
-    title: "TXT 36 V PDS — troubleshooting tree sheet 2 (Fig. 11)",
+    title: "Fig. 11 Detailed Troubleshooting Diagram (Sheet 2 of 10)",
     manualRef:
       "2001+ EZ-GO TXT 36 V Service Manual (pub 28646-G01), Fig. 11 Detailed Troubleshooting Diagram (Sheet 2 of 10), page F-11 — Electronic Speed Control (PDS)",
     src: "/wiring/txt36-pds-tree-2.jpg",
@@ -654,7 +654,7 @@ export const WIRING_SHEETS: WiringSheet[] = [
   },
   {
     id: "txt36-pds-tree-3",
-    title: "TXT 36 V PDS — troubleshooting tree sheet 3 (Fig. 12)",
+    title: "Fig. 12 Detailed Troubleshooting Diagram (Sheet 3 of 10)",
     manualRef:
       "2001+ EZ-GO TXT 36 V Service Manual (pub 28646-G01), Fig. 12 Detailed Troubleshooting Diagram (Sheet 3 of 10), page F-12 — Electronic Speed Control (PDS)",
     src: "/wiring/txt36-pds-tree-3.jpg",
@@ -663,7 +663,7 @@ export const WIRING_SHEETS: WiringSheet[] = [
   },
   {
     id: "txt36-pds-tree-4",
-    title: "TXT 36 V PDS — troubleshooting tree sheet 4 (Fig. 13)",
+    title: "Fig. 13 Detailed Troubleshooting Diagram (Sheet 4 of 10)",
     manualRef:
       "2001+ EZ-GO TXT 36 V Service Manual (pub 28646-G01), Fig. 13 Detailed Troubleshooting Diagram (Sheet 4 of 10), page F-13 — Electronic Speed Control (PDS)",
     src: "/wiring/txt36-pds-tree-4.jpg",
@@ -672,7 +672,7 @@ export const WIRING_SHEETS: WiringSheet[] = [
   },
   {
     id: "txt36-pds-tree-5",
-    title: "TXT 36 V PDS — troubleshooting tree sheet 5 (Fig. 14)",
+    title: "Fig. 14 Detailed Troubleshooting Diagram (Sheet 5 of 10)",
     manualRef:
       "2001+ EZ-GO TXT 36 V Service Manual (pub 28646-G01), Fig. 14 Detailed Troubleshooting Diagram (Sheet 5 of 10), page F-14 — Electronic Speed Control (PDS)",
     src: "/wiring/txt36-pds-tree-5.jpg",
@@ -681,7 +681,7 @@ export const WIRING_SHEETS: WiringSheet[] = [
   },
   {
     id: "txt36-pds-tree-6",
-    title: "TXT 36 V PDS — troubleshooting tree sheet 6 (Fig. 15)",
+    title: "Fig. 15 Detailed Troubleshooting Diagram (Sheet 6 of 10)",
     manualRef:
       "2001+ EZ-GO TXT 36 V Service Manual (pub 28646-G01), Fig. 15 Detailed Troubleshooting Diagram (Sheet 6 of 10), page F-15 — Electronic Speed Control (PDS)",
     src: "/wiring/txt36-pds-tree-6.jpg",
@@ -690,7 +690,7 @@ export const WIRING_SHEETS: WiringSheet[] = [
   },
   {
     id: "txt36-pds-tree-7",
-    title: "TXT 36 V PDS — troubleshooting tree sheet 7 (Fig. 16)",
+    title: "Fig. 16 Detailed Troubleshooting Diagram (Sheet 7 of 10)",
     manualRef:
       "2001+ EZ-GO TXT 36 V Service Manual (pub 28646-G01), Fig. 16 Detailed Troubleshooting Diagram (Sheet 7 of 10), page F-16 — Electronic Speed Control (PDS)",
     src: "/wiring/txt36-pds-tree-7.jpg",
@@ -699,7 +699,7 @@ export const WIRING_SHEETS: WiringSheet[] = [
   },
   {
     id: "txt36-pds-tree-8",
-    title: "TXT 36 V PDS — troubleshooting tree sheet 8 (Fig. 17)",
+    title: "Fig. 17 Detailed Troubleshooting Diagram (Sheet 8 of 10)",
     manualRef:
       "2001+ EZ-GO TXT 36 V Service Manual (pub 28646-G01), Fig. 17 Detailed Troubleshooting Diagram (Sheet 8 of 10), page F-17 — Electronic Speed Control (PDS)",
     src: "/wiring/txt36-pds-tree-8.jpg",
@@ -708,7 +708,7 @@ export const WIRING_SHEETS: WiringSheet[] = [
   },
   {
     id: "txt36-pds-tree-9",
-    title: "TXT 36 V PDS — troubleshooting tree sheet 9 (Fig. 18)",
+    title: "Fig. 18 Detailed Troubleshooting Diagram (Sheet 9 of 10)",
     manualRef:
       "2001+ EZ-GO TXT 36 V Service Manual (pub 28646-G01), Fig. 18 Detailed Troubleshooting Diagram (Sheet 9 of 10), page F-18 — Electronic Speed Control (PDS)",
     src: "/wiring/txt36-pds-tree-9.jpg",
@@ -717,7 +717,7 @@ export const WIRING_SHEETS: WiringSheet[] = [
   },
   {
     id: "txt36-pds-tree-10",
-    title: "TXT 36 V PDS — troubleshooting tree sheet 10 (Fig. 19)",
+    title: "Fig. 19 Detailed Troubleshooting Diagram (Sheet 10 of 10)",
     manualRef:
       "2001+ EZ-GO TXT 36 V Service Manual (pub 28646-G01), Fig. 19 Detailed Troubleshooting Diagram (Sheet 10 of 10), page F-19 — Electronic Speed Control (PDS)",
     src: "/wiring/txt36-pds-tree-10.jpg",
