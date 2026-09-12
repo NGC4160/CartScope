@@ -448,26 +448,35 @@ test("YDRE DC pack keeps the three wire maps, then Ch.9 flowchart / trees / Z-2 
 
   const cart = getSheet("ydre-dc-1");
   assert.ok(cart);
-  assert.equal(cart.title, "YDRE DC — cart wire map (Fig. 8-19)");
-  assert.equal(cart.manualRef, "YDRA/E Service Manual, Figure 8-19, page 8-15");
+  assert.equal(cart.title, "YDRE DC MODELS WIRING DIAGRAM, Figure 8-19");
+  assert.equal(cart.manualRef, "YDRA/E Service Manual, YDRE DC MODELS WIRING DIAGRAM, Figure 8-19, page 8-15");
   assert.equal(cart.src, "/wiring/ydre-dc-1.jpg");
+  assert.doesNotMatch(cart.title, /cart wire map/i);
   assertPublicSrc(cart.src);
 
   const cruise = getSheet("ydre-dc-2");
   assert.ok(cruise);
-  assert.equal(cruise.title, "YDRE DC Cruise — cart wire map (Fig. 8-20)");
-  assert.equal(cruise.manualRef, "YDRA/E Service Manual, Figure 8-20, page 8-16");
+  assert.equal(cruise.title, "YDRE DC MODELS WIRING DIAGRAM — YDRE Cruise, Figure 8-20");
+  assert.equal(
+    cruise.manualRef,
+    "YDRA/E Service Manual, YDRE DC MODELS WIRING DIAGRAM — YDRE Cruise, Figure 8-20, page 8-16",
+  );
   assert.equal(cruise.src, "/wiring/ydre-dc-2.jpg");
   assert.doesNotMatch(cruise.manualRef, /page 8-20/);
+  assert.doesNotMatch(cruise.title, /cart wire map/i);
   assertPublicSrc(cruise.src);
 
   const mcu = getSheet("ydre-dc-mcu");
   assert.ok(mcu);
-  assert.equal(mcu.title, "YDRE DC — controller wire map (Fig. 8-24)");
-  assert.equal(mcu.manualRef, "YDRA/E Service Manual, Figure 8-24, page 8-20");
+  assert.equal(mcu.title, "MAIN CONTROLLER WIRING DIAGRAM – DC MODELS, Figure 8-24");
+  assert.equal(
+    mcu.manualRef,
+    "YDRA/E Service Manual, MAIN CONTROLLER WIRING DIAGRAM – DC MODELS, Figure 8-24, page 8-20",
+  );
   assert.equal(mcu.src, "/wiring/ydre-dc-mcu.jpg");
   assert.doesNotMatch(mcu.title, /Fig\. 8-20/);
   assert.doesNotMatch(mcu.manualRef, /Figure 8-20/);
+  assert.doesNotMatch(mcu.title, /controller wire map/i);
   assertPublicSrc(mcu.src);
 
   for (const expected of YDRE_DC_CH9_SHEETS) {
