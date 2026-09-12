@@ -494,8 +494,48 @@ test("YDRE DC pack keeps the three wire maps, then Ch.9 flowchart / trees / Z-2 
 
 const DCS_E6_ID = "dcs-e6-ten-pin-troubleshooting";
 const EZGO_TXT_DCS_SHEET_IDS = ["dcs-connector", "dcs-wiring", DCS_E6_ID];
+const DCS_WIRE_MAP_SHEETS: Array<{
+  id: string;
+  title: string;
+  manualRef: string;
+  src: string;
+  kind: "pinout" | "full";
+}> = [
+  {
+    id: "dcs-connector",
+    title: "Fig. E-7 Checking Voltage on Ten Pin Connector",
+    manualRef:
+      "TXT 96–01 DCS Service Manual (28407-G01), Fig. E-7 Checking Voltage on Ten Pin Connector, page E-6 — Electronic Speed Control (DCS)",
+    src: "/wiring/dcs-connector.jpg",
+    kind: "pinout",
+  },
+  {
+    id: "dcs-wiring",
+    title: "Fig. E-16 Wiring Diagram",
+    manualRef:
+      "TXT 96–01 DCS Service Manual (28407-G01), Fig. E-16 Wiring Diagram, page E-14 — Electronic Speed Control (DCS)",
+    src: "/wiring/dcs-wiring.jpg",
+    kind: "full",
+  },
+];
 
 test("TXT DCS pack keeps the two wire maps, then Fig. E-6 ten-pin troubleshooting tree", () => {
+  for (const expected of DCS_WIRE_MAP_SHEETS) {
+    const wireMap = getSheet(expected.id);
+    assert.ok(wireMap, expected.id);
+    assert.equal(wireMap.title, expected.title);
+    assert.equal(wireMap.manualRef, expected.manualRef);
+    assert.equal(wireMap.src, expected.src);
+    assert.equal(wireMap.kind, expected.kind);
+    assert.equal(wireMap.landscape, false);
+    assert.match(wireMap.manualRef, /28407-G01/);
+    assert.doesNotMatch(wireMap.title, /TXT DCS —/);
+    assert.doesNotMatch(wireMap.title, /controller 10-pin|controller wires/i);
+    assert.doesNotMatch(wireMap.manualRef, /Section E$/);
+    assert.doesNotMatch(wireMap.manualRef, /TXT 96–01 DCS Service Manual, Section E/);
+    assertPublicSrc(wireMap.src);
+  }
+
   const sheet = getSheet(DCS_E6_ID);
   assert.ok(sheet);
   assert.equal(sheet.id, DCS_E6_ID);
