@@ -20,6 +20,7 @@ import {
   persistJobsPayload,
   persistTabletJobs,
   pickRicherJobsRaw,
+  protectJobIds,
   rawContainsJobIds,
   resetJobsPersistForTests,
   setJobsBackupStorage,
@@ -104,6 +105,106 @@ function fieldModifiedPackCheck(): PackCheckRecord {
 beforeEach(() => {
   resetJobsPersistForTests();
 });
+
+function tinyJob(
+  id: string,
+  updatedAt: string,
+  status: JobRecord["status"] = "in-progress",
+): JobRecord {
+  return {
+    id,
+    createdAt: updatedAt,
+    updatedAt,
+    technician: "T",
+    serialNumber: "",
+    notes: "",
+    modelId: "yamaha-ydre-dc",
+    symptomId: "no-operation",
+    currentStepId: "yno-split",
+    status,
+    log: [],
+    lastName: "Old",
+    hcpJobNumber: "H",
+    cartYear: "2012",
+    cartMake: "Y",
+    cartModel: "Y",
+    batteryType: "lead-acid",
+    complaintNote: "",
+    fuelNote: "",
+    casePhase: status === "complete" ? "report" : "codes",
+  };
+}
+
+function makeQuotaDisk(
+  maxBytes: number,
+  mode: "throw" | "silent",
+): { disk: Map<string, string>; storage: TabletDisk } {
+  const disk = new Map<string, string>();
+  const usedExcept = (key: string) => {
+    let n = 0;
+    for (const [k, v] of disk) {
+      if (k !== key) n += v.length;
+    }
+    return n;
+  };
+  return {
+    disk,
+    storage: {
+      getItem: (key) => disk.get(key) ?? null,
+      setItem: (key, value) => {
+        const next = String(value);
+        const wouldUse = usedExcept(key) + next.length;
+        if (wouldUse > maxBytes) {
+          if (mode === "silent") return;
+          const err = new Error("The quota has been exceeded.");
+          err.name = "QuotaExceededError";
+          throw err;
+        }
+        disk.set(key, next);
+      },
+      removeItem: (key) => {
+        disk.delete(key);
+      },
+    },
+  };
+}
+
+function manyOldJobs(count: number): JobRecord[] {
+  const start = Date.parse("2026-01-01T00:00:00.000Z");
+  return Array.from({ length: count }, (_, i) =>
+    tinyJob(
+      `job_old_${String(i).padStart(3, "0")}`,
+      new Date(start + i * 1000).toISOString(),
+      i % 3 === 0 ? "complete" : "in-progress",
+    ),
+  );
+}
+
+function assertLsHoldsFieldModified(raw: string | null, jobId: string) {
+  assert.ok(raw, "create/save must write cartscope-jobs-v1 before reload");
+  assert.ok(rawContainsJobIds(raw, [jobId]), "current job id must be in localStorage");
+  assert.match(raw, new RegExp(jobId));
+  assert.match(raw, /field-modified/);
+  assert.match(raw, /asFoundCellCount":4/);
+  const found = jobOnThisTablet(parsePersistedJobs(raw) ?? [], jobId);
+  assert.equal(found?.packCheck?.layoutSource, "field-modified");
+  assert.equal(found?.packCheck?.asFoundCellCount, 4);
+}
+
+/** Mirror store createJob + savePackCheck: persist the new job, then the Field-modified pack. */
+async function createJobThenSavePackCheck(existing: JobRecord[], next: JobRecord) {
+  const created = { ...next, packCheck: undefined, packDraft: undefined };
+  await persistTabletJobs([created, ...existing]);
+  const saved: JobRecord = {
+    ...next,
+    updatedAt: "2026-09-13T12:00:00.000Z",
+    packCheck: fieldModifiedPackCheck(),
+    packDraft: fieldModifiedDraft(),
+  };
+  return persistTabletJobs(
+    [created, ...existing].map((job) => (job.id === next.id ? saved : job)),
+  );
+}
 
 function fieldModifiedJob(id = "job_fieldmod"): JobRecord {
   return {
@@ -643,6 +744,122 @@ describe("job persist storage", { concurrency: false }, () => {
       assert.ok(rawContainsJobIds(raw, [next.id]));
       assert.match(String(raw), /field-modified/);
       assert.match(String(raw), /asFoundCellCount":4/);
+    } finally {
+      if (prevWindow) Object.defineProperty(globalThis, "window", prevWindow);
+      else Reflect.deleteProperty(globalThis, "window");
+      if (prevLocal) Object.defineProperty(globalThis, "localStorage", prevLocal);
+      else Reflect.deleteProperty(globalThis, "localStorage");
+    }
+  });
+
+  test("protectJobIds keeps the newest job, first among ties", () => {
+    const older = tinyJob("job_old", "2026-01-01T00:00:00.000Z");
+    const newest = fieldModifiedJob("job_rqvbdvq7jx");
+    newest.updatedAt = "2026-09-13T12:00:00.000Z";
+    assert.deepEqual(protectJobIds([newest, older]), ["job_rqvbdvq7jx"]);
+    const tied = fieldModifiedJob("job_tied");
+    tied.updatedAt = newest.updatedAt;
+    assert.deepEqual(protectJobIds([tied, newest, older]), ["job_tied"]);
+  });
+
+  test("silent near-quota LS with 91 jobs still lands Field-modified id before reload", async () => {
+    const prevWindow = Object.getOwnPropertyDescriptor(globalThis, "window");
+    const prevLocal = Object.getOwnPropertyDescriptor(globalThis, "localStorage");
+    const olds = manyOldJobs(91);
+    const seed = persistJobsPayload(olds);
+    const next = fieldModifiedJob("job_rqvbdvq7jx");
+    next.updatedAt = "2026-09-13T12:00:00.000Z";
+    const { storage } = makeQuotaDisk(seed.length, "silent");
+    installBrowserStorage(storage);
+    storage.setItem(JOBS_STORAGE_KEY, seed);
+    assert.equal(parsePersistedJobs(storage.getItem(JOBS_STORAGE_KEY))?.length, 91);
+    assert.equal(rawContainsJobIds(storage.getItem(JOBS_STORAGE_KEY), [next.id]), false);
+    try {
+      const result = await persistTabletJobs([next, ...olds]);
+      assert.equal(result.ok, true);
+      assert.equal(result.localStorage, true, "prune must free the 91-job blob and rewrite");
+      const raw = storage.getItem(JOBS_STORAGE_KEY);
+      assertLsHoldsFieldModified(raw, next.id);
+      const stored = parsePersistedJobs(raw) ?? [];
+      assert.ok(stored.length <= 91, "must drop enough oldest jobs to fit");
+      assert.ok(stored.length >= 1);
+    } finally {
+      if (prevWindow) Object.defineProperty(globalThis, "window", prevWindow);
+      else Reflect.deleteProperty(globalThis, "window");
+      if (prevLocal) Object.defineProperty(globalThis, "localStorage", prevLocal);
+      else Reflect.deleteProperty(globalThis, "localStorage");
+    }
+  });
+
+  test("throwing near-quota LS prunes completed first then oldest updatedAt", async () => {
+    const prevWindow = Object.getOwnPropertyDescriptor(globalThis, "window");
+    const prevLocal = Object.getOwnPropertyDescriptor(globalThis, "localStorage");
+    const completeNewer = tinyJob("job_complete", "2026-06-01T00:00:00.000Z", "complete");
+    const inProgressOlder = tinyJob("job_open", "2026-01-01T00:00:00.000Z", "in-progress");
+    const next = fieldModifiedJob("job_rqvbdvq7jx");
+    next.updatedAt = "2026-09-13T12:00:00.000Z";
+    const twoKeepOpen = persistJobsPayload([next, inProgressOlder]);
+    const { storage } = makeQuotaDisk(twoKeepOpen.length + 128, "throw");
+    installBrowserStorage(storage);
+    try {
+      const result = await persistTabletJobs([next, inProgressOlder, completeNewer]);
+      assert.equal(result.ok, true);
+      assert.equal(result.localStorage, true);
+      const raw = storage.getItem(JOBS_STORAGE_KEY);
+      assertLsHoldsFieldModified(raw, next.id);
+      assert.ok(rawContainsJobIds(raw, [inProgressOlder.id]));
+      assert.equal(rawContainsJobIds(raw, [completeNewer.id]), false);
+    } finally {
+      if (prevWindow) Object.defineProperty(globalThis, "window", prevWindow);
+      else Reflect.deleteProperty(globalThis, "window");
+      if (prevLocal) Object.defineProperty(globalThis, "localStorage", prevLocal);
+      else Reflect.deleteProperty(globalThis, "localStorage");
+    }
+  });
+
+  test("createJob then savePackCheck writes Field-modified id into a full 91-job LS key", async () => {
+    const prevWindow = Object.getOwnPropertyDescriptor(globalThis, "window");
+    const prevLocal = Object.getOwnPropertyDescriptor(globalThis, "localStorage");
+    const olds = manyOldJobs(91);
+    const seed = persistJobsPayload(olds);
+    const next = fieldModifiedJob("job_rqvbdvq7jx");
+    const { storage } = makeQuotaDisk(seed.length, "silent");
+    installBrowserStorage(storage);
+    storage.setItem(JOBS_STORAGE_KEY, seed);
+    try {
+      const result = await createJobThenSavePackCheck(olds, next);
+      assert.equal(result.ok, true);
+      assert.equal(result.localStorage, true);
+      const raw = storage.getItem(JOBS_STORAGE_KEY);
+      assertLsHoldsFieldModified(raw, next.id);
+      assert.equal(
+        parsePersistedJobs(raw)?.some((job) => job.id === next.id),
+        true,
+      );
+    } finally {
+      if (prevWindow) Object.defineProperty(globalThis, "window", prevWindow);
+      else Reflect.deleteProperty(globalThis, "window");
+      if (prevLocal) Object.defineProperty(globalThis, "localStorage", prevLocal);
+      else Reflect.deleteProperty(globalThis, "localStorage");
+    }
+  });
+
+  test("IDB backup still durable-succeeds when LS cannot hold even the current job", async () => {
+    const prevWindow = Object.getOwnPropertyDescriptor(globalThis, "window");
+    const prevLocal = Object.getOwnPropertyDescriptor(globalThis, "localStorage");
+    const next = fieldModifiedJob("job_e6umrx8qx8");
+    const { storage } = makeQuotaDisk(0, "silent");
+    const backup = makeDisk();
+    installBrowserStorage(storage);
+    setJobsBackupStorage(backup.storage);
+    try {
+      const result = await persistTabletJobs([next]);
+      assert.equal(result.localStorage, false);
+      assert.equal(result.backup, true);
+      assert.equal(result.ok, true);
+      assert.equal(rawContainsJobIds(storage.getItem(JOBS_STORAGE_KEY), [next.id]), false);
+      const backupRaw = backup.storage.getItem(JOBS_STORAGE_KEY);
+      assertLsHoldsFieldModified(backupRaw, next.id);
     } finally {
       if (prevWindow) Object.defineProperty(globalThis, "window", prevWindow);
       else Reflect.deleteProperty(globalThis, "window");
