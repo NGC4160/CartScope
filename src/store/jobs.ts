@@ -8,6 +8,7 @@ import {
   mergeJobState,
   partializeJobState,
   persistTabletJobs,
+  type TabletWriteResult,
 } from "@/lib/jobs-persist";
 import { sheetsForPack } from "@/data/wiring";
 import { helperManualsNote, snapshotManualStatus } from "@/lib/report-continuity";
@@ -55,11 +56,15 @@ export interface CreateJobInput {
 
 interface JobState {
   jobs: JobRecord[];
-  createJob: (input: CreateJobInput) => JobRecord;
+  createJob: (input: CreateJobInput) => Promise<JobRecord>;
   getJob: (id: string) => JobRecord | undefined;
   patchJob: (jobId: string, patch: Partial<JobRecord>) => void;
   setPhase: (jobId: string, phase: CasePhase) => void;
-  savePackCheck: (jobId: string, record: PackCheckRecord, testBattery?: TestBatteryNote) => void;
+  savePackCheck: (
+    jobId: string,
+    record: PackCheckRecord,
+    testBattery?: TestBatteryNote,
+  ) => Promise<TabletWriteResult | undefined>;
   saveCodeSave: (jobId: string, record: CodeSaveRecord) => void;
   submitReading: (
     jobId: string,
@@ -96,14 +101,17 @@ function touch(job: JobRecord, patch: Partial<JobRecord>): JobRecord {
 export const useJobStore = create<JobState>()(
   persist(
     (set, get) => {
-      const commitJobs = (jobs: JobRecord[]) => {
+      const commitJobs = async (jobs: JobRecord[]): Promise<TabletWriteResult> => {
         markJobsSessionMutated();
-        set({ jobs });
-        persistTabletJobs(jobs);
+        const result = await persistTabletJobs(jobs);
+        if (result.ok) {
+          set({ jobs });
+        }
+        return result;
       };
       return {
         jobs: [],
-        createJob: (input) => {
+        createJob: async (input) => {
           const now = new Date().toISOString();
           const pack = getPack(input.modelId);
           const manualStatus = pack
@@ -136,7 +144,7 @@ export const useJobStore = create<JobState>()(
             aiLog: manualsNote ? [{ at: now, role: "assistant", text: manualsNote }] : [],
             techObservation: "",
           };
-          commitJobs([job, ...get().jobs]);
+          await commitJobs([job, ...get().jobs]);
           return job;
         },
         getJob: (id) => get().jobs.find((j) => j.id === id),
@@ -146,9 +154,9 @@ export const useJobStore = create<JobState>()(
         setPhase: (jobId, phase) => {
           commitJobs(get().jobs.map((j) => (j.id === jobId ? touch(j, { casePhase: phase }) : j)));
         },
-        savePackCheck: (jobId, record, testBattery) => {
+        savePackCheck: async (jobId, record, testBattery) => {
           const job = get().jobs.find((j) => j.id === jobId);
-          if (!job) return;
+          if (!job) return undefined;
           const pack = getPack(job.modelId);
           const nextPhase =
             record.verdict === "fail" && !testBattery?.used
@@ -156,7 +164,7 @@ export const useJobStore = create<JobState>()(
               : pack
                 ? phaseAfterPack(pack)
                 : "steps";
-          commitJobs(
+          return commitJobs(
             get().jobs.map((j) =>
               j.id === jobId
                 ? touch(j, {

@@ -20,12 +20,12 @@ export function hydrateJobStore(): Promise<void> {
   if (hydrateFinished && persistApi.hasHydrated()) return Promise.resolve();
   if (!hydrateInFlight) {
     hydrateInFlight = Promise.resolve(persistApi.rehydrate())
-      .then(() => {
+      .then(async () => {
         hydrateFinished = true;
         const jobs = useJobStore.getState().jobs;
         if (!jobs.length) return;
         if (!jobsMatchDurable(readLiveJobsRaw(), jobs)) {
-          persistTabletJobs(jobs);
+          await persistTabletJobs(jobs);
         }
       })
       .finally(() => {
@@ -48,7 +48,7 @@ export function useHydrated() {
       setHydrated(true);
       const jobs = useJobStore.getState().jobs;
       if (jobs.length && !jobsMatchDurable(readLiveJobsRaw(), jobs)) {
-        persistTabletJobs(jobs);
+        void persistTabletJobs(jobs);
       }
       return;
     }
