@@ -1,6 +1,12 @@
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { createJSONStorage, persist } from "zustand/middleware";
 import { getPack } from "@/data/index";
+import {
+  JOBS_STORAGE_KEY,
+  getJobStorage,
+  mergeJobState,
+  partializeJobState,
+} from "@/lib/jobs-persist";
 import { sheetsForPack } from "@/data/wiring";
 import { helperManualsNote, snapshotManualStatus } from "@/lib/report-continuity";
 import type {
@@ -374,7 +380,16 @@ export const useJobStore = create<JobState>()(
         });
       },
     }),
-    { name: "cartscope-jobs-v1" },
+    {
+      name: JOBS_STORAGE_KEY,
+      storage: createJSONStorage(() => getJobStorage()),
+      partialize: partializeJobState,
+      merge: mergeJobState,
+      // TanStack Start SSR has no localStorage. Auto-hydrate there marks the
+      // store ready with jobs: [] and the bench missing-job screen wins. Client
+      // useHydrated() rehydrates from the tablet store after mount.
+      skipHydration: true,
+    },
   ),
 );
 
