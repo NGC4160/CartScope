@@ -4,12 +4,19 @@ export const JOBS_STORAGE_KEY = "cartscope-jobs-v1";
 
 const memory = new Map<string, string>();
 
-/** localStorage when it exists; in-memory on SSR / blocked storage so persist stays enabled. */
-export function getJobStorage(): {
+export type JobStorageAdapter = {
   getItem: (name: string) => string | null;
   setItem: (name: string, value: string) => void;
   removeItem: (name: string) => void;
-} {
+};
+
+/**
+ * Zustand 5 `createJSONStorage(getStorage)` calls `getStorage()` once and caches
+ * that object. A factory that returned `localStorage` or a new memory Map on SSR
+ * pinned the Map for the module lifetime — client saves never reached the tablet.
+ * This adapter is stable; each method tries `window.localStorage` at call time.
+ */
+function liveLocalStorage(): Storage | null {
   try {
     if (typeof window !== "undefined" && window.localStorage) {
       window.localStorage.getItem(JOBS_STORAGE_KEY);
@@ -18,15 +25,36 @@ export function getJobStorage(): {
   } catch {
     /* private mode, iframe block, or SSR */
   }
-  return {
-    getItem: (name) => memory.get(name) ?? null,
-    setItem: (name, value) => {
-      memory.set(name, value);
-    },
-    removeItem: (name) => {
-      memory.delete(name);
-    },
-  };
+  return null;
+}
+
+export const jobStorage: JobStorageAdapter = {
+  getItem(name) {
+    const live = liveLocalStorage();
+    if (live) return live.getItem(name);
+    return memory.get(name) ?? null;
+  },
+  setItem(name, value) {
+    const live = liveLocalStorage();
+    if (live) {
+      live.setItem(name, value);
+      return;
+    }
+    memory.set(name, value);
+  },
+  removeItem(name) {
+    const live = liveLocalStorage();
+    if (live) {
+      live.removeItem(name);
+      return;
+    }
+    memory.delete(name);
+  },
+};
+
+/** Always the same adapter. Safe to pass to Zustand 5 `createJSONStorage`. */
+export function getJobStorage(): JobStorageAdapter {
+  return jobStorage;
 }
 
 /** JSON-safe clone so persist cannot drop the whole tablet store on a bad field. */
