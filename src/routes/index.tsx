@@ -11,6 +11,7 @@ import { caseTitle, statusLabel } from "@/lib/case-flow";
 import { wizardStaysOpen, benchUrl, benchPathHasJob } from "@/lib/wizard-nav";
 import { formatTime } from "@/lib/utils";
 import { useHydrated } from "@/hooks/use-hydrated";
+import { lastTabletWrite, TABLET_PERSIST_FAILED } from "@/lib/jobs-persist";
 import { useJobStore, type CreateJobInput } from "@/store/jobs";
 
 export const Route = createFileRoute("/")({ component: Home });
@@ -31,7 +32,11 @@ function Home() {
   async function startJob(input: CreateJobInput) {
     holdOpen.current = true;
     setFresh(true);
-    const job = createJob(input);
+    const job = await createJob(input);
+    const write = lastTabletWrite();
+    if (write && !write.ok) {
+      return { ok: false as const, message: TABLET_PERSIST_FAILED };
+    }
     const path = benchUrl(job.id);
     try {
       await navigate({ to: "/bench/$jobId", params: { jobId: job.id } });

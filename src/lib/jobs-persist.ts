@@ -13,9 +13,18 @@ let sessionMutated = false;
 /** Test-injected backup (IndexedDB stand-in). Production uses IndexedDB when present. */
 let backupKv: JobStorageAdapter | null = null;
 
+/** Last persistTabletRaw result — never ok for memory-only. */
+let lastWrite: TabletWriteResult | null = null;
+
+/** Serialize durable writes so a late clock-N payload cannot clobber clock-N+1. */
+let writeTail: Promise<void> = Promise.resolve();
+
+export const TABLET_PERSIST_FAILED =
+  "Could not save this case on the tablet. Check storage and try Save again.";
+
 export type JobStorageAdapter = {
   getItem: (name: string) => string | null | Promise<string | null>;
-  setItem: (name: string, value: string) => void;
+  setItem: (name: string, value: string) => void | Promise<void | TabletWriteResult>;
   removeItem: (name: string) => void;
 };
 
@@ -105,11 +114,18 @@ export async function readJobsBackup(name: string): Promise<string | null> {
   }
 }
 
+function backupContainsValue(read: string | null, value: string): boolean {
+  if (read !== value) return false;
+  const ids = (parsePersistedJobs(value) ?? []).map((job) => job.id);
+  return rawContainsJobIds(read, ids);
+}
+
 export async function writeJobsBackup(name: string, value: string): Promise<boolean> {
   if (backupKv) {
     try {
-      backupKv.setItem(name, value);
-      return backupKv.getItem(name) === value;
+      await backupKv.setItem(name, value);
+      const read = await backupKv.getItem(name);
+      return backupContainsValue(typeof read === "string" ? read : null, value);
     } catch {
       return false;
     }
@@ -118,7 +134,7 @@ export async function writeJobsBackup(name: string, value: string): Promise<bool
   try {
     await withIdb("readwrite", (store) => store.put(value, name));
     const read = await readJobsBackup(name);
-    return read === value;
+    return backupContainsValue(read, value);
   } catch {
     return false;
   }
@@ -149,11 +165,31 @@ export function jobsSessionMutated(): boolean {
   return sessionMutated;
 }
 
+export function lastTabletWrite(): TabletWriteResult | null {
+  return lastWrite;
+}
+
+/** Drain queued durable writes (zustand persist setItem is async). */
+export function flushJobsPersist(): Promise<void> {
+  return writeTail;
+}
+
 export function resetJobsPersistForTests(): void {
   memory.clear();
   writeClock = 0;
   sessionMutated = false;
   backupKv = null;
+  lastWrite = null;
+  writeTail = Promise.resolve();
+}
+
+function enqueueWrite<T>(fn: () => Promise<T>): Promise<T> {
+  const run = writeTail.then(fn, fn);
+  writeTail = run.then(
+    () => undefined,
+    () => undefined,
+  );
+  return run;
 }
 
 export function writeClockFromRaw(raw: string | null | undefined): number {
@@ -211,6 +247,11 @@ export function pickRicherJobsRaw(...raws: Array<string | null | undefined>): st
   return best;
 }
 
+function localStorageHolds(name: string, value: string, ids: readonly string[]): boolean {
+  const read = safeLsGet(name);
+  return read === value && rawContainsJobIds(read, ids);
+}
+
 function tryWriteLocalStorage(name: string, value: string, ids: readonly string[]): boolean {
   const live = liveLocalStorage();
   if (!live) return false;
@@ -224,54 +265,89 @@ function tryWriteLocalStorage(name: string, value: string, ids: readonly string[
       return false;
     }
   }
-  const read = safeLsGet(name);
-  return read === value && rawContainsJobIds(read, ids);
+  return localStorageHolds(name, value, ids);
 }
 
-function writeBackupSyncOrFire(name: string, value: string, ids: readonly string[]): boolean {
-  if (backupKv) {
-    try {
-      backupKv.setItem(name, value);
-      const read = backupKv.getItem(name);
-      if (typeof read === "string") return read === value && rawContainsJobIds(read, ids);
-      return false;
-    } catch {
-      return false;
+function dropOldestJob(jobs: JobRecord[]): JobRecord[] | null {
+  if (jobs.length <= 1) return null;
+  let oldest = 0;
+  for (let i = 1; i < jobs.length; i++) {
+    if ((Date.parse(jobs[i]!.updatedAt) || 0) <= (Date.parse(jobs[oldest]!.updatedAt) || 0)) {
+      oldest = i;
     }
   }
-  void writeJobsBackup(name, value);
+  return jobs.filter((_, index) => index !== oldest);
+}
+
+/** Retry, clear the key, then drop oldest jobs until a verified write lands. */
+function writeLocalStorageOrPrune(name: string, value: string, ids: readonly string[]): boolean {
+  if (tryWriteLocalStorage(name, value, ids)) return true;
+  if (tryWriteLocalStorage(name, value, ids)) return true;
+  let jobs = parsePersistedJobs(value);
+  if (!jobs) return false;
+  while (jobs.length > 1) {
+    const next = dropOldestJob(jobs);
+    if (!next) break;
+    jobs = next;
+    const pruned = persistJobsPayload(jobs);
+    if (tryWriteLocalStorage(name, pruned, jobs.map((job) => job.id))) return true;
+  }
   return false;
 }
 
+async function writeBackupVerified(
+  name: string,
+  value: string,
+  ids: readonly string[],
+): Promise<boolean> {
+  const wrote = await writeJobsBackup(name, value);
+  if (!wrote) return false;
+  const read = await readJobsBackup(name);
+  return typeof read === "string" && read === value && rawContainsJobIds(read, ids);
+}
+
+async function writeTabletNow(
+  name: string,
+  value: string,
+  ids?: readonly string[],
+): Promise<TabletWriteResult> {
+  const expectedIds = ids ?? (parsePersistedJobs(value) ?? []).map((job) => job.id);
+  const lsOk = writeLocalStorageOrPrune(name, value, expectedIds);
+  let backupOk = false;
+  if (!lsOk) {
+    backupOk = await writeBackupVerified(name, value, expectedIds);
+  } else {
+    void writeJobsBackup(name, value);
+  }
+  if (!lsOk && !backupOk) {
+    memory.set(name, value);
+  } else {
+    memory.delete(name);
+  }
+  const result: TabletWriteResult = {
+    ok: lsOk || backupOk,
+    localStorage: lsOk,
+    backup: backupOk,
+  };
+  lastWrite = result;
+  return result;
+}
+
 /**
- * Write the full jobs list, then read it back. Never throw — memory-only is a
- * last resort after localStorage verify + retry + backup have been tried.
+ * Write the full jobs list, then read it back. `ok` is only true after a
+ * verified localStorage write and/or a verified, awaited IndexedDB backup.
+ * Memory-only never counts as success.
  */
 export function persistTabletRaw(
   name: string,
   value: string,
   ids?: readonly string[],
-): TabletWriteResult {
-  const expectedIds = ids ?? (parsePersistedJobs(value) ?? []).map((job) => job.id);
-  let lsOk = tryWriteLocalStorage(name, value, expectedIds);
-  if (!lsOk) {
-    lsOk = tryWriteLocalStorage(name, value, expectedIds);
-  }
-  const backupOk = writeBackupSyncOrFire(name, value, expectedIds);
-  if (!lsOk) {
-    memory.set(name, value);
-  } else {
-    memory.delete(name);
-  }
-  return {
-    ok: lsOk || backupOk || memory.get(name) === value,
-    localStorage: lsOk,
-    backup: backupOk,
-  };
+): Promise<TabletWriteResult> {
+  return enqueueWrite(() => writeTabletNow(name, value, ids));
 }
 
 /** Durable-write the full tablet job list and verify the key contains every id. */
-export function persistTabletJobs(jobs: JobRecord[]): TabletWriteResult {
+export function persistTabletJobs(jobs: JobRecord[]): Promise<TabletWriteResult> {
   return persistTabletRaw(
     JOBS_STORAGE_KEY,
     persistJobsPayload(jobs),
@@ -305,11 +381,8 @@ export const jobStorage: JobStorageAdapter = {
   },
   setItem(name, value) {
     const jobs = parsePersistedJobs(value);
-    if (jobs) {
-      persistTabletJobs(jobs);
-      return;
-    }
-    persistTabletRaw(name, value);
+    if (jobs) return persistTabletJobs(jobs);
+    return persistTabletRaw(name, value);
   },
   removeItem(name) {
     try {

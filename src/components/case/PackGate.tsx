@@ -48,6 +48,7 @@ import {
   parseAgeMonthYear,
   parseVolts,
 } from "@/lib/pack-rules";
+import { TABLET_PERSIST_FAILED } from "@/lib/jobs-persist";
 import { useJobStore } from "@/store/jobs";
 
 function draftsFrom(
@@ -296,6 +297,16 @@ export function PackGate({
     return message;
   }
 
+  async function persistRecord(
+    record: PackCheckRecord,
+    testBattery?: Parameters<typeof save>[2],
+  ): Promise<string | void> {
+    const result = await save(job.id, record, testBattery);
+    if (result && !result.ok) {
+      return showBlockers([], TABLET_PERSIST_FAILED);
+    }
+  }
+
   function liveEval() {
     const snap = liveRef.current;
     if (lithium) return { pass: true, issues: [] as string[] };
@@ -371,10 +382,12 @@ export function PackGate({
       showBlockers(missing);
       return;
     }
-    save(job.id, buildRecord("fail", liveEval().issues));
-    setBlockers([]);
-    setError(null);
-    setTestPath(false);
+    void persistRecord(buildRecord("fail", liveEval().issues)).then((blocked) => {
+      if (blocked) return;
+      setBlockers([]);
+      setError(null);
+      setTestPath(false);
+    });
   }
 
   function readPasteRaw(): string {
@@ -431,10 +444,10 @@ export function PackGate({
     setBlockers([]);
     setError(null);
     if (decision.action === "save-pass") {
-      save(job.id, buildRecord("pass", irNote ? [irNote] : []));
+      void persistRecord(buildRecord("pass", irNote ? [irNote] : []));
       return;
     }
-    save(job.id, buildRecord("fail", decision.issues), {
+    void persistRecord(buildRecord("fail", decision.issues), {
       used: true,
       measuredProblem: snap.testNote.trim(),
     });
