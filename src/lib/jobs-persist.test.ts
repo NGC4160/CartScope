@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { describe, test } from "node:test";
+import { beforeEach, describe, test } from "node:test";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import type { JobRecord, PackCheckRecord, PackDraft } from "../data/types.ts";
@@ -10,11 +10,19 @@ import {
   jobOnThisTablet,
   jobStorage,
   jobsFromPersistedState,
+  jobsMatchDurable,
+  markJobsSessionMutated,
   mergeJobState,
   parsePersistedJobs,
   partializeJobState,
   persistJobsPayload,
+  persistTabletJobs,
+  pickRicherJobsRaw,
+  rawContainsJobIds,
+  resetJobsPersistForTests,
+  setJobsBackupStorage,
   snapshotJobs,
+  writeClockFromRaw,
 } from "./jobs-persist.ts";
 
 type TabletDisk = {
@@ -46,7 +54,10 @@ function hideBrowserStorage() {
 
 function installBrowserStorage(storage: TabletDisk) {
   Object.defineProperty(globalThis, "localStorage", { value: storage, configurable: true });
-  Object.defineProperty(globalThis, "window", { value: { localStorage: storage }, configurable: true });
+  Object.defineProperty(globalThis, "window", {
+    value: { localStorage: storage },
+    configurable: true,
+  });
 }
 
 function fieldModifiedDraft(): PackDraft {
@@ -87,6 +98,10 @@ function fieldModifiedPackCheck(): PackCheckRecord {
     issues: [],
   };
 }
+
+beforeEach(() => {
+  resetJobsPersistForTests();
+});
 
 function fieldModifiedJob(id = "job_fieldmod"): JobRecord {
   return {
@@ -181,151 +196,297 @@ test("jobsFromPersistedState rejects a non-array jobs field", () => {
 });
 
 describe("job persist storage", { concurrency: false }, () => {
-test("skipHydration persist rehydrate keeps a field-modified job by id", async () => {
-  const prevWindow = Object.getOwnPropertyDescriptor(globalThis, "window");
-  const prevLocal = Object.getOwnPropertyDescriptor(globalThis, "localStorage");
-  const { storage } = makeDisk();
-  installBrowserStorage(storage);
-  try {
+  test("skipHydration persist rehydrate keeps a field-modified job by id", async () => {
+    const prevWindow = Object.getOwnPropertyDescriptor(globalThis, "window");
+    const prevLocal = Object.getOwnPropertyDescriptor(globalThis, "localStorage");
+    const { storage } = makeDisk();
+    installBrowserStorage(storage);
+    try {
+      type Mini = { jobs: JobRecord[]; save: (job: JobRecord) => void };
+      const useMini = create<Mini>()(
+        persist(
+          (set, get) => ({
+            jobs: [],
+            save: (job) => set({ jobs: [job, ...get().jobs] }),
+          }),
+          {
+            name: JOBS_STORAGE_KEY,
+            storage: createJSONStorage(() => getJobStorage()),
+            partialize: partializeJobState,
+            merge: mergeJobState,
+            skipHydration: true,
+          },
+        ),
+      );
 
-  type Mini = { jobs: JobRecord[]; save: (job: JobRecord) => void };
-  const useMini = create<Mini>()(
-    persist(
-      (set, get) => ({
-        jobs: [],
-        save: (job) => set({ jobs: [job, ...get().jobs] }),
-      }),
-      {
+      const job = fieldModifiedJob();
+      useMini.getState().save(job);
+      const raw = storage.getItem(JOBS_STORAGE_KEY);
+      const persisted = parsePersistedJobs(raw);
+      assert.ok(jobOnThisTablet(persisted ?? [], job.id));
+
+      useMini.setState({ jobs: [] });
+      assert.ok(raw);
+      storage.setItem(JOBS_STORAGE_KEY, raw);
+      await useMini.persist.rehydrate();
+      const after = jobOnThisTablet(useMini.getState().jobs, job.id);
+      assert.ok(after, "rehydrate must restore the field-modified job");
+      assert.equal(after.packCheck?.asFoundCellCount, 4);
+      assert.equal(after.packDraft?.asFoundCellV, "12");
+      assert.equal(after.packCheck?.cells.length, 4);
+      assert.deepEqual(packLayoutStampLines(after.packCheck!), [
+        "Factory book layout: 6 × 8 V",
+        "Field-modified as-found: 4 × 12 V (48 V pack)",
+      ]);
+    } finally {
+      if (prevWindow) Object.defineProperty(globalThis, "window", prevWindow);
+      else Reflect.deleteProperty(globalThis, "window");
+      if (prevLocal) Object.defineProperty(globalThis, "localStorage", prevLocal);
+      else Reflect.deleteProperty(globalThis, "localStorage");
+    }
+  });
+
+  test("SSR-cached persist adapter writes Field-modified jobs to localStorage and survives hard reload", async () => {
+    const prevWindow = Object.getOwnPropertyDescriptor(globalThis, "window");
+    const prevLocal = Object.getOwnPropertyDescriptor(globalThis, "localStorage");
+
+    try {
+      hideBrowserStorage();
+      assert.equal(getJobStorage(), jobStorage);
+      // Zustand 5 createJSONStorage assigns storage = getStorage() immediately.
+      const ssrBound = createJSONStorage(() => getJobStorage());
+      assert.ok(ssrBound);
+
+      const { disk, storage } = makeDisk();
+      installBrowserStorage(storage);
+      assert.equal(
+        getJobStorage(),
+        jobStorage,
+        "factory must keep the same adapter after window appears",
+      );
+
+      type Mini = { jobs: JobRecord[]; save: (job: JobRecord) => void };
+      const persistOpts = {
         name: JOBS_STORAGE_KEY,
-        storage: createJSONStorage(() => getJobStorage()),
+        storage: ssrBound,
         partialize: partializeJobState,
         merge: mergeJobState,
-        skipHydration: true,
-      },
-    ),
-  );
+        skipHydration: true as const,
+      };
+      const useMini = create<Mini>()(
+        persist(
+          (set, get) => ({
+            jobs: [],
+            save: (job) => set({ jobs: [job, ...get().jobs] }),
+          }),
+          persistOpts,
+        ),
+      );
 
-  const job = fieldModifiedJob();
-  useMini.getState().save(job);
-  const raw = storage.getItem(JOBS_STORAGE_KEY);
-  const persisted = parsePersistedJobs(raw);
-  assert.ok(jobOnThisTablet(persisted ?? [], job.id));
+      const job = fieldModifiedJob();
+      useMini.getState().save(job);
 
-  useMini.setState({ jobs: [] });
-  assert.ok(raw);
-  storage.setItem(JOBS_STORAGE_KEY, raw);
-  await useMini.persist.rehydrate();
-  const after = jobOnThisTablet(useMini.getState().jobs, job.id);
-  assert.ok(after, "rehydrate must restore the field-modified job");
-  assert.equal(after.packCheck?.asFoundCellCount, 4);
-  assert.equal(after.packDraft?.asFoundCellV, "12");
-  assert.equal(after.packCheck?.cells.length, 4);
-  assert.deepEqual(packLayoutStampLines(after.packCheck!), [
-    "Factory book layout: 6 × 8 V",
-    "Field-modified as-found: 4 × 12 V (48 V pack)",
-  ]);
-  } finally {
-    if (prevWindow) Object.defineProperty(globalThis, "window", prevWindow);
-    else Reflect.deleteProperty(globalThis, "window");
-    if (prevLocal) Object.defineProperty(globalThis, "localStorage", prevLocal);
-    else Reflect.deleteProperty(globalThis, "localStorage");
-  }
-});
+      const raw = storage.getItem(JOBS_STORAGE_KEY);
+      assert.ok(raw, "save must land in window.localStorage, not the SSR memory Map");
+      assert.ok(disk.has(JOBS_STORAGE_KEY));
+      const persisted = parsePersistedJobs(raw);
+      assert.ok(jobOnThisTablet(persisted ?? [], job.id));
+      assert.equal(jobOnThisTablet(persisted ?? [], job.id)?.packCheck?.cells.length, 4);
 
-test("SSR-cached persist adapter writes Field-modified jobs to localStorage and survives hard reload", async () => {
-  const prevWindow = Object.getOwnPropertyDescriptor(globalThis, "window");
-  const prevLocal = Object.getOwnPropertyDescriptor(globalThis, "localStorage");
+      hideBrowserStorage();
+      assert.equal(
+        jobStorage.getItem(JOBS_STORAGE_KEY),
+        null,
+        "save must not write the in-memory Map when localStorage exists",
+      );
 
-  try {
-    hideBrowserStorage();
-    assert.equal(getJobStorage(), jobStorage);
-    // Zustand 5 createJSONStorage assigns storage = getStorage() immediately.
-    const ssrBound = createJSONStorage(() => getJobStorage());
-    assert.ok(ssrBound);
+      // New store instance after a hard reload. Bind persist on SSR again, then
+      // rehydrate on the client from the same localStorage disk.
+      const reloadBound = createJSONStorage(() => getJobStorage());
+      installBrowserStorage(storage);
+      const useReloaded = create<Mini>()(
+        persist(
+          (set, get) => ({
+            jobs: [],
+            save: (job) => set({ jobs: [job, ...get().jobs] }),
+          }),
+          {
+            name: JOBS_STORAGE_KEY,
+            storage: reloadBound,
+            partialize: partializeJobState,
+            merge: mergeJobState,
+            skipHydration: true,
+          },
+        ),
+      );
+      assert.equal(useReloaded.getState().jobs.length, 0);
+      await useReloaded.persist.rehydrate();
+      const after = jobOnThisTablet(useReloaded.getState().jobs, job.id);
+      assert.ok(after, "hard reload must restore the field-modified job from localStorage");
+      assert.equal(after.packCheck?.layoutSource, "field-modified");
+      assert.equal(after.packCheck?.factoryCellCount, 6);
+      assert.equal(after.packCheck?.factoryNominalV, 8);
+      assert.equal(after.packCheck?.asFoundCellCount, 4);
+      assert.equal(after.packCheck?.asFoundNominalV, 12);
+      assert.equal(after.packCheck?.cells.length, 4);
+      assert.equal(after.packCheck?.cells[0]?.volts, "12.80");
+      assert.equal(after.packDraft?.layoutSource, "field-modified");
+      assert.equal(after.packDraft?.asFoundCount, "4");
+      assert.equal(after.packDraft?.asFoundCellV, "12");
+      assert.equal(after.packDraft?.cells.length, 4);
+      assert.deepEqual(packLayoutStampLines(after.packCheck!), [
+        "Factory book layout: 6 × 8 V",
+        "Field-modified as-found: 4 × 12 V (48 V pack)",
+      ]);
+    } finally {
+      if (prevWindow) Object.defineProperty(globalThis, "window", prevWindow);
+      else Reflect.deleteProperty(globalThis, "window");
+      if (prevLocal) Object.defineProperty(globalThis, "localStorage", prevLocal);
+      else Reflect.deleteProperty(globalThis, "localStorage");
+    }
+  });
 
+  test("mutation durable-writes the full jobs list and read-back verifies the key", () => {
+    const prevWindow = Object.getOwnPropertyDescriptor(globalThis, "window");
+    const prevLocal = Object.getOwnPropertyDescriptor(globalThis, "localStorage");
     const { disk, storage } = makeDisk();
     installBrowserStorage(storage);
-    assert.equal(getJobStorage(), jobStorage, "factory must keep the same adapter after window appears");
+    try {
+      const older = fieldModifiedJob("job_hbpyoadfzt");
+      older.packCheck = {
+        ...older.packCheck!,
+        layoutSource: "factory-book",
+        asFoundCellCount: undefined,
+      };
+      const olderRaw = persistJobsPayload([older]);
+      storage.setItem(JOBS_STORAGE_KEY, olderRaw);
+      assert.ok(rawContainsJobIds(olderRaw, [older.id]));
 
-    type Mini = { jobs: JobRecord[]; save: (job: JobRecord) => void };
-    const persistOpts = {
-      name: JOBS_STORAGE_KEY,
-      storage: ssrBound,
-      partialize: partializeJobState,
-      merge: mergeJobState,
-      skipHydration: true as const,
+      type Mini = { jobs: JobRecord[]; save: (job: JobRecord) => void };
+      const useMini = create<Mini>()(
+        persist(
+          (set, get) => ({
+            jobs: [older],
+            save: (job) => {
+              const jobs = [job, ...get().jobs.filter((j) => j.id !== job.id)];
+              set({ jobs });
+              persistTabletJobs(jobs);
+            },
+          }),
+          {
+            name: JOBS_STORAGE_KEY,
+            storage: createJSONStorage(() => getJobStorage()),
+            partialize: partializeJobState,
+            merge: mergeJobState,
+            skipHydration: true,
+          },
+        ),
+      );
+
+      const next = fieldModifiedJob("job_zrnbe7jojv");
+      useMini.getState().save(next);
+
+      const raw = storage.getItem(JOBS_STORAGE_KEY);
+      assert.ok(raw, "create/save must write cartscope-jobs-v1");
+      assert.ok(disk.has(JOBS_STORAGE_KEY));
+      assert.ok(jobsMatchDurable(raw, useMini.getState().jobs));
+      assert.ok(rawContainsJobIds(raw, [older.id, next.id]));
+      assert.match(raw, /job_zrnbe7jojv/);
+      assert.match(raw, /field-modified/);
+      assert.match(raw, /asFoundCellCount":4/);
+      const found = jobOnThisTablet(parsePersistedJobs(raw) ?? [], next.id);
+      assert.equal(found?.packCheck?.layoutSource, "field-modified");
+      assert.equal(found?.packCheck?.asFoundCellCount, 4);
+      assert.ok(writeClockFromRaw(raw)! > writeClockFromRaw(olderRaw)!);
+    } finally {
+      if (prevWindow) Object.defineProperty(globalThis, "window", prevWindow);
+      else Reflect.deleteProperty(globalThis, "window");
+      if (prevLocal) Object.defineProperty(globalThis, "localStorage", prevLocal);
+      else Reflect.deleteProperty(globalThis, "localStorage");
+    }
+  });
+
+  test("cannot silently keep a stale localStorage blob while memory has newer jobs", () => {
+    const prevWindow = Object.getOwnPropertyDescriptor(globalThis, "window");
+    const prevLocal = Object.getOwnPropertyDescriptor(globalThis, "localStorage");
+    const staleJob = fieldModifiedJob("job_hbpyoadfzt");
+    let frozen = persistJobsPayload([staleJob]);
+    const backup = makeDisk();
+    const sabotaged: TabletDisk = {
+      getItem: () => frozen,
+      setItem: () => {
+        /* pretend write — DevTools still shows the older job */
+      },
+      removeItem: () => {},
     };
-    const useMini = create<Mini>()(
-      persist(
-        (set, get) => ({
-          jobs: [],
-          save: (job) => set({ jobs: [job, ...get().jobs] }),
-        }),
-        persistOpts,
-      ),
-    );
+    installBrowserStorage(sabotaged);
+    setJobsBackupStorage(backup.storage);
+    try {
+      const next = fieldModifiedJob("job_zrnbe7jojv");
+      const result = persistTabletJobs([next, staleJob]);
+      assert.equal(result.localStorage, false, "verify must fail when getItem stays stale");
+      assert.equal(result.backup, true, "fallback must receive the full list");
+      assert.equal(frozen.includes("job_zrnbe7jojv"), false, "stale origin key is unchanged");
+      const backupRaw = backup.storage.getItem(JOBS_STORAGE_KEY);
+      assert.ok(rawContainsJobIds(backupRaw, [next.id, staleJob.id]));
+      assert.match(String(backupRaw), /field-modified/);
+      const richer = pickRicherJobsRaw(frozen, backupRaw);
+      assert.ok(jobOnThisTablet(parsePersistedJobs(richer) ?? [], next.id));
+    } finally {
+      if (prevWindow) Object.defineProperty(globalThis, "window", prevWindow);
+      else Reflect.deleteProperty(globalThis, "window");
+      if (prevLocal) Object.defineProperty(globalThis, "localStorage", prevLocal);
+      else Reflect.deleteProperty(globalThis, "localStorage");
+    }
+  });
 
-    const job = fieldModifiedJob();
-    useMini.getState().save(job);
-
-    const raw = storage.getItem(JOBS_STORAGE_KEY);
-    assert.ok(raw, "save must land in window.localStorage, not the SSR memory Map");
-    assert.ok(disk.has(JOBS_STORAGE_KEY));
-    const persisted = parsePersistedJobs(raw);
-    assert.ok(jobOnThisTablet(persisted ?? [], job.id));
-    assert.equal(jobOnThisTablet(persisted ?? [], job.id)?.packCheck?.cells.length, 4);
-
-    hideBrowserStorage();
-    assert.equal(
-      jobStorage.getItem(JOBS_STORAGE_KEY),
-      null,
-      "save must not write the in-memory Map when localStorage exists",
-    );
-
-    // New store instance after a hard reload. Bind persist on SSR again, then
-    // rehydrate on the client from the same localStorage disk.
-    const reloadBound = createJSONStorage(() => getJobStorage());
+  test("quota throw retries after clearing, then falls back instead of memory-only", () => {
+    const prevWindow = Object.getOwnPropertyDescriptor(globalThis, "window");
+    const prevLocal = Object.getOwnPropertyDescriptor(globalThis, "localStorage");
+    const disk = new Map<string, string>();
+    let throwsLeft = 3;
+    const backup = makeDisk();
+    const storage: TabletDisk = {
+      getItem: (key) => disk.get(key) ?? null,
+      setItem: (key, value) => {
+        if (throwsLeft > 0) {
+          throwsLeft -= 1;
+          const err = new Error("The quota has been exceeded.");
+          err.name = "QuotaExceededError";
+          throw err;
+        }
+        disk.set(key, String(value));
+      },
+      removeItem: (key) => {
+        disk.delete(key);
+      },
+    };
     installBrowserStorage(storage);
-    const useReloaded = create<Mini>()(
-      persist(
-        (set, get) => ({
-          jobs: [],
-          save: (job) => set({ jobs: [job, ...get().jobs] }),
-        }),
-        {
-          name: JOBS_STORAGE_KEY,
-          storage: reloadBound,
-          partialize: partializeJobState,
-          merge: mergeJobState,
-          skipHydration: true,
-        },
-      ),
-    );
-    assert.equal(useReloaded.getState().jobs.length, 0);
-    await useReloaded.persist.rehydrate();
-    const after = jobOnThisTablet(useReloaded.getState().jobs, job.id);
-    assert.ok(after, "hard reload must restore the field-modified job from localStorage");
-    assert.equal(after.packCheck?.layoutSource, "field-modified");
-    assert.equal(after.packCheck?.factoryCellCount, 6);
-    assert.equal(after.packCheck?.factoryNominalV, 8);
-    assert.equal(after.packCheck?.asFoundCellCount, 4);
-    assert.equal(after.packCheck?.asFoundNominalV, 12);
-    assert.equal(after.packCheck?.cells.length, 4);
-    assert.equal(after.packCheck?.cells[0]?.volts, "12.80");
-    assert.equal(after.packDraft?.layoutSource, "field-modified");
-    assert.equal(after.packDraft?.asFoundCount, "4");
-    assert.equal(after.packDraft?.asFoundCellV, "12");
-    assert.equal(after.packDraft?.cells.length, 4);
-    assert.deepEqual(packLayoutStampLines(after.packCheck!), [
-      "Factory book layout: 6 × 8 V",
-      "Field-modified as-found: 4 × 12 V (48 V pack)",
-    ]);
-  } finally {
-    if (prevWindow) Object.defineProperty(globalThis, "window", prevWindow);
-    else Reflect.deleteProperty(globalThis, "window");
-    if (prevLocal) Object.defineProperty(globalThis, "localStorage", prevLocal);
-    else Reflect.deleteProperty(globalThis, "localStorage");
-  }
-});
-});
+    setJobsBackupStorage(backup.storage);
+    try {
+      const next = fieldModifiedJob("job_zrnbe7jojv");
+      const result = persistTabletJobs([next]);
+      assert.equal(result.ok, true);
+      const raw = storage.getItem(JOBS_STORAGE_KEY) ?? backup.storage.getItem(JOBS_STORAGE_KEY);
+      assert.ok(rawContainsJobIds(raw, [next.id]));
+      assert.match(String(raw), /asFoundCellCount":4/);
+      if (!result.localStorage) {
+        assert.equal(result.backup, true);
+      }
+    } finally {
+      if (prevWindow) Object.defineProperty(globalThis, "window", prevWindow);
+      else Reflect.deleteProperty(globalThis, "window");
+      if (prevLocal) Object.defineProperty(globalThis, "localStorage", prevLocal);
+      else Reflect.deleteProperty(globalThis, "localStorage");
+    }
+  });
 
+  test("session mutation merge keeps memory jobs when disk is older", () => {
+    const current = { jobs: [fieldModifiedJob("job_zrnbe7jojv")] };
+    const stale = { jobs: [fieldModifiedJob("job_hbpyoadfzt")] };
+    markJobsSessionMutated();
+    const merged = mergeJobState(stale, current);
+    assert.equal(merged.jobs[0]?.id, "job_zrnbe7jojv");
+    assert.equal(jobOnThisTablet(merged.jobs, "job_hbpyoadfzt"), undefined);
+  });
+});
