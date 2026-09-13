@@ -247,12 +247,60 @@ export function pickRicherJobsRaw(...raws: Array<string | null | undefined>): st
   return best;
 }
 
+function jobUpdatedAtMs(job: JobRecord): number {
+  return Date.parse(job.updatedAt) || 0;
+}
+
 function localStorageHolds(name: string, value: string, ids: readonly string[]): boolean {
   const read = safeLsGet(name);
   return read === value && rawContainsJobIds(read, ids);
 }
 
-function tryWriteLocalStorage(name: string, value: string, ids: readonly string[]): boolean {
+function clearLocalStorageKey(name: string): void {
+  try {
+    liveLocalStorage()?.removeItem(name);
+  } catch {
+    /* ignore */
+  }
+}
+
+/**
+ * Jobs that must stay in localStorage: the newest updatedAt (the case just
+ * saved). Ties keep the earlier list index — createJob prepends the new job.
+ */
+export function protectJobIds(jobs: readonly JobRecord[]): string[] {
+  if (!jobs.length) return [];
+  let best = 0;
+  let bestMs = jobUpdatedAtMs(jobs[0]!);
+  for (let i = 1; i < jobs.length; i++) {
+    const ms = jobUpdatedAtMs(jobs[i]!);
+    if (ms > bestMs) {
+      best = i;
+      bestMs = ms;
+    }
+  }
+  return [jobs[best]!.id];
+}
+
+function dropPrunableJob(jobs: JobRecord[], keepIds: ReadonlySet<string>): JobRecord[] | null {
+  const candidates = jobs
+    .map((job, index) => ({ job, index }))
+    .filter(({ job }) => !keepIds.has(job.id));
+  if (!candidates.length) return null;
+  candidates.sort((a, b) => {
+    const aDone = a.job.status === "complete" ? 0 : 1;
+    const bDone = b.job.status === "complete" ? 0 : 1;
+    if (aDone !== bDone) return aDone - bDone;
+    const aMs = jobUpdatedAtMs(a.job);
+    const bMs = jobUpdatedAtMs(b.job);
+    if (aMs !== bMs) return aMs - bMs;
+    return a.index - b.index;
+  });
+  const dropIndex = candidates[0]!.index;
+  return jobs.filter((_, index) => index !== dropIndex);
+}
+
+function writeLocalStorageOnce(name: string, value: string, ids: readonly string[]): boolean {
   const live = liveLocalStorage();
   if (!live) return false;
   try {
@@ -268,31 +316,36 @@ function tryWriteLocalStorage(name: string, value: string, ids: readonly string[
   return localStorageHolds(name, value, ids);
 }
 
-function dropOldestJob(jobs: JobRecord[]): JobRecord[] | null {
-  if (jobs.length <= 1) return null;
-  let oldest = 0;
-  for (let i = 1; i < jobs.length; i++) {
-    if ((Date.parse(jobs[i]!.updatedAt) || 0) <= (Date.parse(jobs[oldest]!.updatedAt) || 0)) {
-      oldest = i;
-    }
-  }
-  return jobs.filter((_, index) => index !== oldest);
+/**
+ * Write and read-back verify. QuotaExceeded is not the only failure: some
+ * tablets no-op setItem when the key is already near quota and leave the old
+ * blob in place. Always free the key and retry when verify fails.
+ */
+function tryWriteLocalStorage(name: string, value: string, ids: readonly string[]): boolean {
+  if (writeLocalStorageOnce(name, value, ids)) return true;
+  clearLocalStorageKey(name);
+  return writeLocalStorageOnce(name, value, ids);
 }
 
-/** Retry, clear the key, then drop oldest jobs until a verified write lands. */
-function writeLocalStorageOrPrune(name: string, value: string, ids: readonly string[]): boolean {
-  if (tryWriteLocalStorage(name, value, ids)) return true;
-  if (tryWriteLocalStorage(name, value, ids)) return true;
+/**
+ * Land `keepIds` in localStorage. If the full list cannot fit, drop completed
+ * jobs first, then oldest updatedAt — never the just-saved job — and rewrite
+ * until that job verifies or localStorage cannot hold it.
+ */
+function writeLocalStorageOrPrune(name: string, value: string, keepIds: readonly string[]): boolean {
+  if (tryWriteLocalStorage(name, value, keepIds)) return true;
   let jobs = parsePersistedJobs(value);
   if (!jobs) return false;
-  while (jobs.length > 1) {
-    const next = dropOldestJob(jobs);
+  const keep = new Set(keepIds.length ? keepIds : protectJobIds(jobs));
+  if (!keep.size) return false;
+  while (true) {
+    const next = dropPrunableJob(jobs, keep);
     if (!next) break;
     jobs = next;
     const pruned = persistJobsPayload(jobs);
-    if (tryWriteLocalStorage(name, pruned, jobs.map((job) => job.id))) return true;
+    if (tryWriteLocalStorage(name, pruned, [...keep])) return true;
   }
-  return false;
+  return rawContainsJobIds(safeLsGet(name), [...keep]);
 }
 
 async function writeBackupVerified(
@@ -311,8 +364,10 @@ async function writeTabletNow(
   value: string,
   ids?: readonly string[],
 ): Promise<TabletWriteResult> {
-  const expectedIds = ids ?? (parsePersistedJobs(value) ?? []).map((job) => job.id);
-  const lsOk = writeLocalStorageOrPrune(name, value, expectedIds);
+  const parsed = parsePersistedJobs(value) ?? [];
+  const expectedIds = ids ?? parsed.map((job) => job.id);
+  const keepIds = protectJobIds(parsed);
+  const lsOk = writeLocalStorageOrPrune(name, value, keepIds.length ? keepIds : expectedIds);
   let backupOk = false;
   if (!lsOk) {
     backupOk = await writeBackupVerified(name, value, expectedIds);
@@ -346,7 +401,7 @@ export function persistTabletRaw(
   return enqueueWrite(() => writeTabletNow(name, value, ids));
 }
 
-/** Durable-write the full tablet job list and verify the key contains every id. */
+/** Durable-write the tablet job list. localStorage is pruned until the current job verifies. */
 export function persistTabletJobs(jobs: JobRecord[]): Promise<TabletWriteResult> {
   return persistTabletRaw(
     JOBS_STORAGE_KEY,
