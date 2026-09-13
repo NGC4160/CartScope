@@ -10,12 +10,14 @@ import { WIRING_SHEETS } from "@/data/wiring";
 import { caseTitle, statusLabel } from "@/lib/case-flow";
 import { wizardStaysOpen, benchUrl, benchPathHasJob } from "@/lib/wizard-nav";
 import { formatTime } from "@/lib/utils";
+import { useHydrated } from "@/hooks/use-hydrated";
 import { useJobStore, type CreateJobInput } from "@/store/jobs";
 
 export const Route = createFileRoute("/")({ component: Home });
 
 function Home() {
   const navigate = useNavigate();
+  const hydrated = useHydrated();
   const jobs = useJobStore((s) => s.jobs);
   const createJob = useJobStore((s) => s.createJob);
   const [fresh, setFresh] = useState(false);
@@ -71,7 +73,9 @@ function Home() {
           </p>
         </div>
 
-        {showWizard ? (
+        {!hydrated ? (
+          <p className="text-sm text-ink-muted">Loading cases…</p>
+        ) : showWizard ? (
           <>
             <StartOverlayCatch />
             <NewJobWizard

@@ -1,7 +1,13 @@
 import { createRootRoute, HeadContent, Outlet, Scripts } from "@tanstack/react-router";
 import { AuthProvider } from "@/lib/auth/provider";
 import { PreviewHostBridge } from "@/components/preview-host-bridge";
+import { useHydrated } from "@/hooks/use-hydrated";
 import appCss from "../styles.css?url";
+
+function JobsPersistBridge() {
+  useHydrated();
+  return null;
+}
 
 const APP_NAME = "CartScope";
 
@@ -37,6 +43,7 @@ export const Route = createRootRoute({
       </head>
       <body className="bg-paper text-ink">
         <PreviewHostBridge />
+        <JobsPersistBridge />
         <AuthProvider>
           <Outlet />
         </AuthProvider>
