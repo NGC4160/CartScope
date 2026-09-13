@@ -382,6 +382,8 @@ export const useJobStore = create<JobState>()(
     }),
     {
       name: JOBS_STORAGE_KEY,
+      // getJobStorage() is one adapter; its methods resolve localStorage at
+      // call time. Zustand 5 createJSONStorage caches getStorage() immediately.
       storage: createJSONStorage(() => getJobStorage()),
       partialize: partializeJobState,
       merge: mergeJobState,
