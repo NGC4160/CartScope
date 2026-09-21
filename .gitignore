@@ -12,6 +12,9 @@ coverage/
 .env
 .env.*
 !.env.example
+
+# Local shared-jobs file used by `npm run dev` when Blob is not configured
+.data/
 *.pem
 .DS_Store
 Thumbs.db
