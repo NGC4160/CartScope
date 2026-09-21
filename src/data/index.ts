@@ -14,7 +14,9 @@ import { clubCarTempoEric } from "@/data/packs/club-car-tempo-eric";
 import { clubCarTempoGas } from "@/data/packs/club-car-tempo-gas";
 import { clubCarVillagerGas } from "@/data/packs/club-car-villager-gas";
 import { clubCarVillagerIqPlus } from "@/data/packs/club-car-villager-iqplus";
+import { ezgoExpressL6 } from "@/data/packs/ezgo-express-l6";
 import { ezgoExpressS4 } from "@/data/packs/ezgo-express-s4";
+import { ezgoExpressS6 } from "@/data/packs/ezgo-express-s6";
 import { ezgoMarathonGas } from "@/data/packs/ezgo-marathon-gas";
 import { ezgoPds36 } from "@/data/packs/ezgo-pds-36";
 import { ezgoRxv } from "@/data/packs/ezgo-rxv";
@@ -23,6 +25,7 @@ import { ezgoTxt36NonPds } from "@/data/packs/ezgo-txt-36-non-pds";
 import { ezgoTxtDcs } from "@/data/packs/ezgo-txt-dcs";
 import { ezgoTxtGas } from "@/data/packs/ezgo-txt-gas";
 import { yamahaG29 } from "@/data/packs/yamaha-g29";
+import { starSirius } from "@/data/packs/star-sirius";
 import { yamahaYdra } from "@/data/packs/yamaha-ydra";
 import { yamahaYdreAc } from "@/data/packs/yamaha-ydre-ac";
 
@@ -47,11 +50,14 @@ export const MODEL_PACKS: ModelPack[] = [
   ezgoTxt,
   ezgoRxv,
   ezgoExpressS4,
+  ezgoExpressL6,
+  ezgoExpressS6,
   ezgoTxtGas,
   ezgoMarathonGas,
   yamahaYdra,
   yamahaG29,
   yamahaYdreAc,
+  starSirius,
 ].map((p) => applyShopTermsToPack(p));
 
 export const MANUFACTURERS: { id: ManufacturerId; label: string; blurb: string }[] = [
@@ -63,12 +69,17 @@ export const MANUFACTURERS: { id: ManufacturerId; label: string; blurb: string }
   {
     id: "ezgo",
     label: "EZ-GO",
-    blurb: "TXT, RXV, Express S4, and Marathon gas carts.",
+    blurb: "TXT, RXV, Express S4 / L6 / S6, and Marathon gas carts.",
   },
   {
     id: "yamaha",
     label: "Yamaha",
     blurb: "Drive / G29 gas and electric carts.",
+  },
+  {
+    id: "star",
+    label: "Star EV",
+    blurb: "Sirius body electrical and Star chassis (Curtis 1243).",
   },
 ];
 

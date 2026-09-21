@@ -8,7 +8,7 @@ export const clubCarPrecedentExcel = buildClubCarIq({
   architecture: "Excel electric · cart computer · gas pedal sensor · 16-pin plug",
   diagramTitle: "Power and control picture — Precedent Excel 48 V",
   diagramNotes: [
-    "Excel shares Tow/Run, MCOR (gas pedal sensor), cart computer safety lock, and the 16-pin plug with IQ. Use Excel controller part numbers. Do not put an IQ controller in an Excel cart.",
+    "Excel shares Tow/Run, MCOR (gas pedal sensor), cart computer safety lock, and the 16-pin plug with IQ. Use Excel controller part numbers. Do not put an IQ controller in an Excel cart. 2014 Excel with a PowerDrive charger uses the 2014 M&S 105062901 Section 13 plates — not the IQ pack (2004–2011) and not ERIC.",
     "The Tow/Run switch is in the battery negative path. Turn it to Tow before you take battery cables off.",
     "The solenoid is the main power switch. It sends big power to the motor. The coil is still 180–190 Ω. MCOR voltage and ohms use the same Test Procedure 4 window (0.32–4.65 V / 5.67–7.43 kΩ).",
     "2009–2011 Villager/Transporter IQ Plus is a different transportation pack (supplement 103373107).",

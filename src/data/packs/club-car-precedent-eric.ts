@@ -4,18 +4,18 @@ export const clubCarPrecedentEric = buildClubCarIq({
   id: "club-car-precedent-eric",
   name: "Precedent ERIC",
   fullName: "Club Car Precedent ERIC Excel (48 V)",
-  years: "2015–2019 Precedent electric (manual 105157201, 2015; 2017 gas/electric M&S)",
+  years: "2014–2019 Precedent electric (2014 M&S 105062901 ERIC; 2015 manual 105157201; 2017 gas/electric M&S)",
   architecture: "ERIC Excel electric · ERIC charger · gas pedal sensor · 16-pin plug",
   diagramTitle: "Power and control picture — Precedent ERIC 48 V",
   diagramNotes: [
-    "2015+ Precedent electric uses ERIC charging. ERIC stands for Efficient Reliable Intelligent Charging. It replaces the older PowerDrive cart computer charge path.",
+    "2014+ Precedent electric can use ERIC charging (2014 M&S 105062901, Section 28). ERIC stands for Efficient Reliable Intelligent Charging. It replaces the older PowerDrive cart computer charge path. A 2014 Excel cart with a PowerDrive charger is the Excel pack, not this one.",
     "The Tow/Run switch is in the battery negative path. Turn it to Tow before you take battery cables off.",
     "The solenoid is the main power switch. It sends big power to the motor. Drive lockout with the charger plugged in is still the first check. Do not test a dead cart with the ERIC cord latched.",
     "MCOR (gas pedal sensor) and solenoid coil numbers match IQ/Excel: 180–190 Ω coil, MCOR 0.32–4.65 V / 5.67–7.43 kΩ.",
   ],
   controllerName: "Excel / ERIC controller",
   controllerDesc:
-    "This is the Excel-family electric controller used with ERIC charging on 2015–2019 Precedent. It uses the same MCOR and solenoid path as earlier Excel. ERIC charger talk replaces the older PowerDrive cart computer talk. Heat cutback still starts above 85 °C on the heat sink.",
+    "This is the Excel-family electric controller used with ERIC charging on 2014–2019 Precedent. It uses the same MCOR and solenoid path as earlier Excel. ERIC charger talk replaces the older PowerDrive cart computer talk. Heat cutback still starts above 85 °C on the heat sink.",
   computerName: "ERIC charge module",
   computerKind: "charger",
   computerDesc:

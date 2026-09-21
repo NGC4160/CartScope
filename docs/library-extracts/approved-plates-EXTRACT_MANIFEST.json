@@ -1,0 +1,50 @@
+{
+  "goal": "CartScope approved wiring plates — Express L6/S6, 2014 Precedent, Star/Sirius",
+  "notes": [
+    "Do not invent diagrams. ICON / Revenge skipped — source gas manual is parts-only.",
+    "Curtis 1268 and Lester were not in this extract set.",
+    "Star chassis WD is a Cartaholics community 2007 Curtis 1243 scan — titles say so."
+  ],
+  "extracted": [
+    {
+      "packs": ["ezgo-express-l6", "ezgo-express-s6"],
+      "source": "EZGO Express L6 S6 Electric Wiring Diagrams from SM 625621",
+      "pages": "F-8 through F-13 (ESC plates) and L-2 / L-5 / L-6 (electrical). Skipped TOC, procedure text, ITS photos, and rear suspension."
+    },
+    {
+      "packs": ["club-car-precedent-excel"],
+      "source": "2014 Club Car Precedent M&S 105062901 extract — Section 13 Excel / PowerDrive",
+      "pages": "Figures 13-1 through 13-5 wiring + Troubleshooting Guide 1 (13-9/13-10) + Guide 2 (13-11/13-12)"
+    },
+    {
+      "packs": ["club-car-precedent-gas"],
+      "source": "2014 Club Car Precedent M&S 105062901 extract — Section 19 gasoline",
+      "pages": "Figures 19-1 through 19-5 TPS / accessory / instrument wiring"
+    },
+    {
+      "packs": ["club-car-precedent-eric"],
+      "source": "2014 Club Car Precedent M&S 105062901 extract — Section 28 ERIC",
+      "pages": "Figures 28-1 through 28-7 wiring + Troubleshooting Guide 1 (28-12/28-13) + Guide 2 (28-15/28-16). ERIC picker years now 2014–2019."
+    },
+    {
+      "packs": ["star-sirius"],
+      "source": "Star-chassis-wiring-diagram-2007-Curtis1243 (Cartaholics) + SIRIUS Service Manual V 1.06 body electrical extract",
+      "pages": "Community chassis schematic; Sirius combination switch 314–315; Headlight Wiring Diagram 316; Turn Signal Wiring Diagram 317; 2024 cruise harness 324"
+    }
+  ],
+  "skipped": [
+    {
+      "reason": "ICON gas manual is parts catalog only — no schematic pages",
+      "items": ["ICON / Revenge"]
+    },
+    {
+      "reason": "procedure text, component photos, or already-covered sections",
+      "items": [
+        "Express L6/S6 Section M rear suspension",
+        "2014 Precedent test-procedure photos and electrical-component removal",
+        "Sirius replacement-procedure photos"
+      ]
+    }
+  ],
+  "languageRule": "Adopt printed service-manual wording for titles and manualRef (Ryan via Chief)."
+}

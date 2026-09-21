@@ -156,16 +156,27 @@ test("PDS pack shows Library map, then F-6 intro and Fig. 7–8 support, then tr
   assert.ok(!sheetsForPack("ezgo-txt-36-non-pds").some((s) => isPdsSheet(s.id)));
 });
 
+const ERIC_2014_SHEET_IDS = [
+  "prec14-eric-28-1",
+  "prec14-eric-28-3",
+  "prec14-eric-28-4",
+  "prec14-eric-28-5",
+  "prec14-eric-28-7",
+  "prec14-eric-tg1-p1",
+  "prec14-eric-tg1-p2",
+  "prec14-eric-tg2-p1",
+  "prec14-eric-tg2-p2",
+];
 const ERIC_2017_SHEET_IDS = ["eric-main", "eric-instrument", "eric-batteries", "eric-lights"];
 
-test("Precedent ERIC 2017 pack lists only ERIC Excel sheets, not the 2019 main harness", () => {
+test("Precedent ERIC pack leads with 2014 ERIC plates, then 2017 ERIC Excel sheets, not the 2019 main harness", () => {
   const sheets = sheetsForPack("club-car-precedent-eric");
   const ids = sheets.map((s) => s.id);
-  assert.deepEqual(ids, ERIC_2017_SHEET_IDS);
+  assert.deepEqual(ids, [...ERIC_2014_SHEET_IDS, ...ERIC_2017_SHEET_IDS]);
   assert.ok(!ids.includes("prec19-e-main"));
   assert.ok(!sheets.some((s) => s.title === "2019 Precedent electric — main wire bundle"));
 
-  for (const id of ERIC_2017_SHEET_IDS) {
+  for (const id of [...ERIC_2014_SHEET_IDS, ...ERIC_2017_SHEET_IDS]) {
     const sheet = getSheet(id);
     assert.ok(sheet, id);
     assertPublicSrc(sheet.src);
@@ -586,4 +597,155 @@ test("TXT DCS pack keeps the two wire maps, then Fig. E-6 ten-pin troubleshootin
   assert.ok(!sheetsForPack("ezgo-pds-36").some((s) => s.id === DCS_E6_ID));
   assert.ok(!sheetsForPack("ezgo-txt-tct").some((s) => s.id === DCS_E6_ID));
   assert.ok(!sheetsForPack("ezgo-txt-36-non-pds").some((s) => s.id === DCS_E6_ID));
+});
+
+const L6S6_SHEET_IDS = [
+  "l6s6-fig10",
+  "l6s6-fig8-fig9",
+  "l6s6-fig11",
+  "l6s6-fig12",
+  "l6s6-fig13",
+  "l6s6-fig14",
+  "l6s6-l-fig2",
+  "l6s6-l-fig5",
+  "l6s6-l-fig6-7",
+];
+
+const L6S6_SHEETS: Array<{ id: string; title: string; src: string }> = [
+  {
+    id: "l6s6-fig10",
+    title: "Fig. 10 48 Volt Wiring Diagram",
+    src: "/wiring/express-l6s6-fig10-48v-wiring.jpg",
+  },
+  {
+    id: "l6s6-fig8-fig9",
+    title: "Fig. 8 48 volt Fault Codes / Fig. 9 Controller Connectors and Connections",
+    src: "/wiring/express-l6s6-fig8-fault-codes-fig9-connectors.jpg",
+  },
+  {
+    id: "l6s6-l-fig2",
+    title: "Fig. 2 Wiring Diagram",
+    src: "/wiring/express-l6s6-l-fig2-wiring.jpg",
+  },
+];
+
+test("Express L6 and S6 share SM 625621 plates and stay off S4", () => {
+  assert.deepEqual(sheetsForPack("ezgo-express-l6").map((s) => s.id), L6S6_SHEET_IDS);
+  assert.deepEqual(sheetsForPack("ezgo-express-s6").map((s) => s.id), L6S6_SHEET_IDS);
+  assert.ok(!sheetsForPack("ezgo-express-s4").some((s) => L6S6_SHEET_IDS.includes(s.id)));
+  assert.ok(!L6S6_SHEET_IDS.some((id) => sheetsForPack("ezgo-express-s4").some((s) => s.id === id)));
+
+  for (const expected of L6S6_SHEETS) {
+    const sheet = getSheet(expected.id);
+    assert.ok(sheet, expected.id);
+    assert.equal(sheet.title, expected.title);
+    assert.equal(sheet.src, expected.src);
+    assert.match(sheet.manualRef, /625621/);
+    assertPublicSrc(sheet.src);
+  }
+
+  for (const id of L6S6_SHEET_IDS) {
+    const sheet = getSheet(id);
+    assert.ok(sheet, id);
+    assertPublicSrc(sheet.src);
+  }
+});
+
+const PREC14_EXCEL_SHEET_IDS = [
+  "prec14-excel-13-4",
+  "prec14-excel-13-1",
+  "prec14-excel-13-2",
+  "prec14-excel-tg1-p1",
+  "prec14-excel-tg1-p2",
+  "prec14-excel-tg2-p1",
+  "prec14-excel-tg2-p2",
+];
+
+test("2014 Precedent Excel / PowerDrive plates lead the Excel pack with printed titles", () => {
+  const ids = sheetsForPack("club-car-precedent-excel").map((s) => s.id);
+  assert.deepEqual(ids.slice(0, PREC14_EXCEL_SHEET_IDS.length), PREC14_EXCEL_SHEET_IDS);
+  assert.ok(ids.includes("excel-main"));
+
+  const main = getSheet("prec14-excel-13-4");
+  assert.ok(main);
+  assert.equal(main.title, "Figure 13-4 / Figure 13-5 Wiring Diagram – Excel System with MCOR3");
+  assert.match(main.manualRef, /105062901/);
+  assert.match(main.manualRef, /PowerDrive/);
+  assert.equal(main.landscape, true);
+  assertPublicSrc(main.src);
+
+  const tg1 = getSheet("prec14-excel-tg1-p1");
+  assert.ok(tg1);
+  assert.equal(tg1.title, "Troubleshooting Guide 1, page 13-9");
+  assertPublicSrc(tg1.src);
+
+  assert.ok(!sheetsForPack("club-car-precedent-iq").some((s) => s.id.startsWith("prec14-")));
+  assert.ok(!sheetsForPack("club-car-precedent-eric").some((s) => s.id.startsWith("prec14-excel-")));
+});
+
+test("2014 Precedent ERIC plates use Section 28 printed titles and stay off Excel / IQ", () => {
+  const main = getSheet("prec14-eric-28-1");
+  assert.ok(main);
+  assert.equal(main.title, "Figure 28-1 / Figure 28-2 Wiring Diagram – Excel System with ERIC Charging");
+  assert.match(main.manualRef, /105062901/);
+  assert.match(main.manualRef, /28-4/);
+  assertPublicSrc(main.src);
+
+  const tg2 = getSheet("prec14-eric-tg2-p2");
+  assert.ok(tg2);
+  assert.equal(tg2.title, "Troubleshooting Guide 2, page 28-16");
+  assertPublicSrc(tg2.src);
+
+  assert.ok(!sheetsForPack("club-car-precedent-excel").some((s) => s.id.startsWith("prec14-eric-")));
+  assert.ok(!sheetsForPack("club-car-precedent-iq").some((s) => s.id.startsWith("prec14-eric-")));
+});
+
+test("2014 Precedent gasoline plates land on the gas pack with printed TPS titles", () => {
+  const ids = sheetsForPack("club-car-precedent-gas").map((s) => s.id);
+  assert.deepEqual(ids.slice(0, 3), ["prec14-gas-19-1", "prec14-gas-19-3", "prec14-gas-19-5"]);
+
+  const tps = getSheet("prec14-gas-19-1");
+  assert.ok(tps);
+  assert.equal(tps.title, "Figure 19-1 / Figure 19-2 Wiring Diagram – Precedent Gasoline Vehicle with TPS");
+  assert.match(tps.manualRef, /105062901/);
+  assertPublicSrc(tps.src);
+
+  assert.ok(!sheetsForPack("club-car-precedent-excel").some((s) => s.id.startsWith("prec14-gas-")));
+});
+
+const STAR_SHEET_IDS = [
+  "star-curtis1243-2007",
+  "sirius-combo-314",
+  "sirius-combo-315",
+  "sirius-headlight-316",
+  "sirius-turn-317",
+  "sirius-cruise-324",
+];
+
+test("Star Sirius pack lists community Curtis 1243 chassis then factory Sirius body plates", () => {
+  assert.deepEqual(sheetsForPack("star-sirius").map((s) => s.id), STAR_SHEET_IDS);
+
+  const chassis = getSheet("star-curtis1243-2007");
+  assert.ok(chassis);
+  assert.match(chassis.title, /Curtis 1243/);
+  assert.match(chassis.title, /Cartaholics community/);
+  assert.match(chassis.manualRef, /community/i);
+  assert.match(chassis.manualRef, /1243-43301/);
+  assert.equal(chassis.landscape, true);
+  assertPublicSrc(chassis.src);
+
+  const head = getSheet("sirius-headlight-316");
+  assert.ok(head);
+  assert.equal(head.title, "Sirius Headlight Wiring Diagram, page 316");
+  assert.match(head.manualRef, /V 1\.06/);
+  assertPublicSrc(head.src);
+
+  for (const packId of packsWithWiring()) {
+    if (packId === "star-sirius") continue;
+    assert.ok(!sheetsForPack(packId).some((s) => STAR_SHEET_IDS.includes(s.id)), packId);
+  }
+
+  assert.equal(getSheet("icon-revenge-wiring"), undefined);
+  assert.ok(!packsWithWiring().includes("icon-revenge"));
+  assert.ok(!packsWithWiring().includes("icon-gas"));
 });
