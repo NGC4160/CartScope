@@ -1,9 +1,11 @@
 import { closedOpen, cont, dx, obs, ohm, volt, yesNo } from "@/data/helpers";
 import { dcPowerLayout } from "@/data/layouts";
-import type { Diagnosis, DiagnosticStep, ModelPack, SymptomDef } from "@/data/types";
+import type { Diagnosis, DiagnosticStep, ManufacturerId, ModelPack, SymptomDef } from "@/data/types";
 
 export interface EzgoDcSpec {
   id: string;
+  manufacturer?: ManufacturerId;
+  manufacturerLabel?: string;
   name: string;
   fullName: string;
   years: string;
@@ -454,8 +456,8 @@ export function buildEzgoDc(spec: EzgoDcSpec): ModelPack {
 
   return {
     id: spec.id,
-    manufacturer: "ezgo",
-    manufacturerLabel: "EZ-GO",
+    manufacturer: spec.manufacturer ?? "ezgo",
+    manufacturerLabel: spec.manufacturerLabel ?? "EZ-GO",
     name: spec.name,
     fullName: spec.fullName,
     voltage: spec.voltage,

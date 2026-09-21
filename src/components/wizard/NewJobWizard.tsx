@@ -238,7 +238,7 @@ export function NewJobWizard({
       </ol>
 
       {step === 1 ? (
-        <div className="grid gap-3 sm:grid-cols-3">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {MANUFACTURERS.map((m) => (
             <button
               key={m.id}

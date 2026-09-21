@@ -16,6 +16,7 @@ import {
   yearInRanges,
   yearIssueLine,
 } from "./year-compat.ts";
+import { getPack } from "../data/index.ts";
 
 const FE350_YEARS =
   "1991–1996 Club Car DS gasoline (Kawasaki FE350; 1995–96 DS gas/electric; 2000 Club Car Service Manual). FE290 DS/Villager is a separate pack.";
@@ -299,6 +300,31 @@ test("FE350 helper and unsupported banner are the same string across two calls",
     assert.match(ok.message ?? "", /1991–1996/);
     assert.doesNotMatch(ok.message ?? "", /1991–1990/);
   }
+});
+
+test("2014 electric Precedent matches Excel PowerDrive and ERIC, not IQ 2004–2011", () => {
+  const iq = getPack("club-car-precedent-iq");
+  const excel = getPack("club-car-precedent-excel");
+  const eric = getPack("club-car-precedent-eric");
+  assert.ok(iq && excel && eric);
+
+  const check = (pack: typeof iq, year: string) =>
+    yearCompatibility({
+      cartYear: year,
+      packYears: pack!.years,
+      packName: pack!.name,
+      packId: pack!.id,
+      yearMin: pack!.yearMin,
+      yearMax: pack!.yearMax,
+    });
+
+  assert.equal(check(iq, "2014").status, "unsupported");
+  assert.equal(check(excel, "2014").status, "ok");
+  assert.equal(check(eric, "2014").status, "ok");
+  assert.equal(check(iq, "2010").status, "ok");
+  assert.match(eric.years, /2014–2019/);
+  assert.match(iq.years, /2004–2011/);
+  assert.match(excel.years, /2008–2014/);
 });
 
 test("yearIssueLine rewrites an inverted 1991–1990 banner onto the field 1991–1996 string", () => {

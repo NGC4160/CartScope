@@ -993,6 +993,312 @@ export const WIRING_SHEETS: WiringSheet[] = [
     kind: "accessory",
     landscape: false,
   },
+  // Express L6 / S6 — SM 625621 Section F ESC + Section L electrical. Shared by both picker packs.
+  {
+    id: "l6s6-fig8-fig9",
+    title: "Fig. 8 48 volt Fault Codes / Fig. 9 Controller Connectors and Connections",
+    manualRef:
+      "Express L6/S6 Electric Service Manual 625621, Fig. 8 48 volt Fault Codes / Fig. 9 Controller Connectors and Connections, page F-8 — Electronic Speed Control",
+    src: "/wiring/express-l6s6-fig8-fault-codes-fig9-connectors.jpg",
+    kind: "pinout",
+    landscape: false,
+  },
+  {
+    id: "l6s6-fig10",
+    title: "Fig. 10 48 Volt Wiring Diagram",
+    manualRef:
+      "Express L6/S6 Electric Service Manual 625621, Fig. 10 48 Volt Wiring Diagram, page F-9 — Electronic Speed Control",
+    src: "/wiring/express-l6s6-fig10-48v-wiring.jpg",
+    kind: "full",
+    landscape: false,
+  },
+  {
+    id: "l6s6-fig11",
+    title: "Fig. 11 J-1 Pin Connector Diagnostics",
+    manualRef:
+      "Express L6/S6 Electric Service Manual 625621, Fig. 11 J-1 Pin Connector Diagnostics, page F-10 — Electronic Speed Control",
+    src: "/wiring/express-l6s6-fig11-j1-diagnostics.jpg",
+    kind: "pinout",
+    landscape: false,
+  },
+  {
+    id: "l6s6-fig12",
+    title: "Fig. 12 J-1 Pin Connector Diagnostics (Continued)",
+    manualRef:
+      "Express L6/S6 Electric Service Manual 625621, Fig. 12 J-1 Pin Connector Diagnostics (Continued), page F-11 — Electronic Speed Control",
+    src: "/wiring/express-l6s6-fig12-j1-diagnostics-cont.jpg",
+    kind: "pinout",
+    landscape: false,
+  },
+  {
+    id: "l6s6-fig13",
+    title: "Fig. 13 J-2 Pin Connector Diagnostics",
+    manualRef:
+      "Express L6/S6 Electric Service Manual 625621, Fig. 13 J-2 Pin Connector Diagnostics, page F-12 — Electronic Speed Control",
+    src: "/wiring/express-l6s6-fig13-j2-diagnostics.jpg",
+    kind: "pinout",
+    landscape: false,
+  },
+  {
+    id: "l6s6-fig14",
+    title: "Fig. 14 Secondary Wiring Diagnostics",
+    manualRef:
+      "Express L6/S6 Electric Service Manual 625621, Fig. 14 Secondary Wiring Diagnostics, page F-13 — Electronic Speed Control",
+    src: "/wiring/express-l6s6-fig14-secondary-wiring.jpg",
+    kind: "harness",
+    landscape: false,
+  },
+  {
+    id: "l6s6-l-fig2",
+    title: "Fig. 2 Wiring Diagram",
+    manualRef: "Express L6/S6 Electric Service Manual 625621, Fig. 2 Wiring Diagram, page L-2 — Electrical System",
+    src: "/wiring/express-l6s6-l-fig2-wiring.jpg",
+    kind: "accessory",
+    landscape: false,
+  },
+  {
+    id: "l6s6-l-fig5",
+    title: "Fig. 5 Ignition Switch & Fuse Block",
+    manualRef:
+      "Express L6/S6 Electric Service Manual 625621, Fig. 5 Ignition Switch & Fuse Block, page L-5 — Electrical System",
+    src: "/wiring/express-l6s6-l-fig5-ignition-fuse.jpg",
+    kind: "pinout",
+    landscape: false,
+  },
+  {
+    id: "l6s6-l-fig6-7",
+    title: "Fig. 6 Horn / Fig. 7 Turn Signal & Hour Meter",
+    manualRef:
+      "Express L6/S6 Electric Service Manual 625621, Fig. 6 Horn / Fig. 7 Turn Signal & Hour Meter, page L-6 — Electrical System",
+    src: "/wiring/express-l6s6-l-fig6-horn-fig7-turn-hour.jpg",
+    kind: "accessory",
+    landscape: false,
+  },
+  // 2014 Precedent M&S 105062901 — Excel / PowerDrive (Section 13)
+  {
+    id: "prec14-excel-13-1",
+    title: "Figure 13-1 Precedent Electric Vehicle Instrument Panel Wiring Diagram",
+    manualRef:
+      "2014 Precedent Golf Car Maintenance and Service Manual 105062901, Figure 13-1 Precedent Electric Vehicle Instrument Panel Wiring Diagram, page 13-3 — Excel System Troubleshooting: with PowerDrive Charger",
+    src: "/wiring/prec14-excel-fig13-1-instrument.jpg",
+    kind: "harness",
+    landscape: false,
+  },
+  {
+    id: "prec14-excel-13-2",
+    title: "Figure 13-2 / Figure 13-3 Precedent Electric Vehicle Accessory Wiring Diagram",
+    manualRef:
+      "2014 Precedent Golf Car Maintenance and Service Manual 105062901, Figure 13-2 / Figure 13-3 Precedent Electric Vehicle Accessory Wiring Diagram, pages 13-4 / 13-5 — Excel System Troubleshooting: with PowerDrive Charger",
+    src: "/wiring/prec14-excel-fig13-2-accessory.jpg",
+    kind: "accessory",
+    landscape: true,
+  },
+  {
+    id: "prec14-excel-13-4",
+    title: "Figure 13-4 / Figure 13-5 Wiring Diagram – Excel System with MCOR3",
+    manualRef:
+      "2014 Precedent Golf Car Maintenance and Service Manual 105062901, Figure 13-4 / Figure 13-5 Wiring Diagram – Excel System with MCOR3, pages 13-6 / 13-7 — Excel System Troubleshooting: with PowerDrive Charger",
+    src: "/wiring/prec14-excel-fig13-4-mcor3.jpg",
+    kind: "full",
+    landscape: true,
+  },
+  {
+    id: "prec14-excel-tg1-p1",
+    title: "Troubleshooting Guide 1, page 13-9",
+    manualRef:
+      "2014 Precedent Golf Car Maintenance and Service Manual 105062901, Troubleshooting Guide 1, page 13-9 — Excel System Troubleshooting: with PowerDrive Charger",
+    src: "/wiring/prec14-excel-tg1-p1.png",
+    kind: "control",
+    landscape: false,
+  },
+  {
+    id: "prec14-excel-tg1-p2",
+    title: "Troubleshooting Guide 1, page 13-10",
+    manualRef:
+      "2014 Precedent Golf Car Maintenance and Service Manual 105062901, Troubleshooting Guide 1, page 13-10 — Excel System Troubleshooting: with PowerDrive Charger",
+    src: "/wiring/prec14-excel-tg1-p2.png",
+    kind: "control",
+    landscape: false,
+  },
+  {
+    id: "prec14-excel-tg2-p1",
+    title: "Troubleshooting Guide 2, page 13-11",
+    manualRef:
+      "2014 Precedent Golf Car Maintenance and Service Manual 105062901, Troubleshooting Guide 2, page 13-11 — Excel System Troubleshooting: with PowerDrive Charger",
+    src: "/wiring/prec14-excel-tg2-p1.png",
+    kind: "control",
+    landscape: false,
+  },
+  {
+    id: "prec14-excel-tg2-p2",
+    title: "Troubleshooting Guide 2, page 13-12",
+    manualRef:
+      "2014 Precedent Golf Car Maintenance and Service Manual 105062901, Troubleshooting Guide 2, page 13-12 — Excel System Troubleshooting: with PowerDrive Charger",
+    src: "/wiring/prec14-excel-tg2-p2.png",
+    kind: "control",
+    landscape: false,
+  },
+  // 2014 Precedent M&S 105062901 — gasoline (Section 19)
+  {
+    id: "prec14-gas-19-1",
+    title: "Figure 19-1 / Figure 19-2 Wiring Diagram – Precedent Gasoline Vehicle with TPS",
+    manualRef:
+      "2014 Precedent Golf Car Maintenance and Service Manual 105062901, Figure 19-1 / Figure 19-2 Wiring Diagram – Precedent Gasoline Vehicle with TPS, pages 19-7 / 19-8",
+    src: "/wiring/prec14-gas-fig19-1-tps.jpg",
+    kind: "full",
+    landscape: true,
+  },
+  {
+    id: "prec14-gas-19-3",
+    title: "Figure 19-3 / Figure 19-4 Precedent Gasoline Vehicle Accessory Wiring Diagram (Optional)",
+    manualRef:
+      "2014 Precedent Golf Car Maintenance and Service Manual 105062901, Figure 19-3 / Figure 19-4 Precedent Gasoline Vehicle Accessory Wiring Diagram (Optional), pages 19-9 / 19-10",
+    src: "/wiring/prec14-gas-fig19-3-accessory.jpg",
+    kind: "accessory",
+    landscape: true,
+  },
+  {
+    id: "prec14-gas-19-5",
+    title: "Figure 19-5 Precedent Gasoline Vehicle Instrument Panel Wiring Diagram",
+    manualRef:
+      "2014 Precedent Golf Car Maintenance and Service Manual 105062901, Figure 19-5 Precedent Gasoline Vehicle Instrument Panel Wiring Diagram, page 19-11",
+    src: "/wiring/prec14-gas-fig19-5-instrument.jpg",
+    kind: "harness",
+    landscape: false,
+  },
+  // 2014 Precedent M&S 105062901 — ERIC (Section 28)
+  {
+    id: "prec14-eric-28-1",
+    title: "Figure 28-1 / Figure 28-2 Wiring Diagram – Excel System with ERIC Charging",
+    manualRef:
+      "2014 Precedent Golf Car Maintenance and Service Manual 105062901, Figure 28-1 / Figure 28-2 Wiring Diagram – Excel System with ERIC Charging, pages 28-4 / 28-5",
+    src: "/wiring/prec14-eric-fig28-1-main.jpg",
+    kind: "full",
+    landscape: true,
+  },
+  {
+    id: "prec14-eric-28-3",
+    title: "Figure 28-3 Instrument Panel Wiring Diagram – Precedent with ERIC Charging",
+    manualRef:
+      "2014 Precedent Golf Car Maintenance and Service Manual 105062901, Figure 28-3 Instrument Panel Wiring Diagram – Precedent with ERIC Charging, page 28-6",
+    src: "/wiring/prec14-eric-fig28-3-instrument.jpg",
+    kind: "harness",
+    landscape: false,
+  },
+  {
+    id: "prec14-eric-28-4",
+    title: "Figure 28-4 Battery Wiring Diagram – Precedent with ERIC Charging",
+    manualRef:
+      "2014 Precedent Golf Car Maintenance and Service Manual 105062901, Figure 28-4 Battery Wiring Diagram – Precedent with ERIC Charging, page 28-7",
+    src: "/wiring/prec14-eric-fig28-4-batteries.jpg",
+    kind: "charge",
+    landscape: false,
+  },
+  {
+    id: "prec14-eric-28-5",
+    title: "Figure 28-5 / Figure 28-6 Precedent Electric Vehicle Accessory Wiring Diagram",
+    manualRef:
+      "2014 Precedent Golf Car Maintenance and Service Manual 105062901, Figure 28-5 / Figure 28-6 Precedent Electric Vehicle Accessory Wiring Diagram, pages 28-8 / 28-9",
+    src: "/wiring/prec14-eric-fig28-5-accessory.jpg",
+    kind: "accessory",
+    landscape: true,
+  },
+  {
+    id: "prec14-eric-28-7",
+    title: "Figure 28-7 Sonic Weld and 10k Ohm Resistor Locations (Approximate)",
+    manualRef:
+      "2014 Precedent Golf Car Maintenance and Service Manual 105062901, Figure 28-7 Sonic Weld and 10k Ohm Resistor Locations (Approximate), page 28-10",
+    src: "/wiring/prec14-eric-fig28-7-sonic.jpg",
+    kind: "pinout",
+    landscape: false,
+  },
+  {
+    id: "prec14-eric-tg1-p1",
+    title: "Troubleshooting Guide 1, page 28-12",
+    manualRef:
+      "2014 Precedent Golf Car Maintenance and Service Manual 105062901, Troubleshooting Guide 1, page 28-12 — Excel System Troubleshooting: with ERIC Charging",
+    src: "/wiring/prec14-eric-tg1-p1.png",
+    kind: "control",
+    landscape: false,
+  },
+  {
+    id: "prec14-eric-tg1-p2",
+    title: "Troubleshooting Guide 1, page 28-13",
+    manualRef:
+      "2014 Precedent Golf Car Maintenance and Service Manual 105062901, Troubleshooting Guide 1, page 28-13 — Excel System Troubleshooting: with ERIC Charging",
+    src: "/wiring/prec14-eric-tg1-p2.png",
+    kind: "control",
+    landscape: false,
+  },
+  {
+    id: "prec14-eric-tg2-p1",
+    title: "Troubleshooting Guide 2, page 28-15",
+    manualRef:
+      "2014 Precedent Golf Car Maintenance and Service Manual 105062901, Troubleshooting Guide 2, page 28-15 — Excel System Troubleshooting: with ERIC Charging",
+    src: "/wiring/prec14-eric-tg2-p1.png",
+    kind: "control",
+    landscape: false,
+  },
+  {
+    id: "prec14-eric-tg2-p2",
+    title: "Troubleshooting Guide 2, page 28-16",
+    manualRef:
+      "2014 Precedent Golf Car Maintenance and Service Manual 105062901, Troubleshooting Guide 2, page 28-16 — Excel System Troubleshooting: with ERIC Charging",
+    src: "/wiring/prec14-eric-tg2-p2.png",
+    kind: "control",
+    landscape: false,
+  },
+  // Star EV — community chassis WD + factory Sirius body electrical
+  {
+    id: "star-curtis1243-2007",
+    title: "VII Schematic diagram of the electrical system — 2007 Curtis 1243 (Cartaholics community)",
+    manualRef:
+      "Star-chassis-wiring-diagram-2007-Curtis1243 (Cartaholics community), VII Schematic diagram of the electrical system — Curtis 1243-43301. Community scan, not a factory Star SM plate.",
+    src: "/wiring/star-chassis-curtis1243-2007-cartaholics.jpg",
+    kind: "full",
+    landscape: true,
+  },
+  {
+    id: "sirius-combo-314",
+    title: "Testing the Combination Switch, page 314",
+    manualRef: "Sirius Service Manual V 1.06 (5-27-25), Testing the Combination Switch, page 314 — Body Electrical",
+    src: "/wiring/sirius-combination-switch-p314.jpg",
+    kind: "pinout",
+    landscape: false,
+  },
+  {
+    id: "sirius-combo-315",
+    title: "Testing the Combination Switch, page 315",
+    manualRef: "Sirius Service Manual V 1.06 (5-27-25), Testing the Combination Switch, page 315 — Body Electrical",
+    src: "/wiring/sirius-combination-switch-p315.jpg",
+    kind: "pinout",
+    landscape: false,
+  },
+  {
+    id: "sirius-headlight-316",
+    title: "Sirius Headlight Wiring Diagram, page 316",
+    manualRef: "Sirius Service Manual V 1.06 (5-27-25), Sirius Headlight Wiring Diagram, page 316 — Body Electrical",
+    src: "/wiring/sirius-headlight-wiring-p316.jpg",
+    kind: "accessory",
+    landscape: false,
+  },
+  {
+    id: "sirius-turn-317",
+    title: "Sirius Turn Signal Wiring Diagram, page 317",
+    manualRef: "Sirius Service Manual V 1.06 (5-27-25), Sirius Turn Signal Wiring Diagram, page 317 — Body Electrical",
+    src: "/wiring/sirius-turn-signal-wiring-p317.jpg",
+    kind: "accessory",
+    landscape: false,
+  },
+  {
+    id: "sirius-cruise-324",
+    title: "2024 Star Sirius Add-on Cruise Control Wiring Harness, page 324",
+    manualRef:
+      "Sirius Service Manual V 1.06 (5-27-25), 2024 Star Sirius Add-on Cruise Control Wiring Harness, page 324 — Body Electrical",
+    src: "/wiring/sirius-cruise-harness-p324.jpg",
+    kind: "harness",
+    landscape: false,
+  },
 ];
 
 const BY_PACK: Record<string, string[]> = {
@@ -1002,9 +1308,46 @@ const BY_PACK: Record<string, string[]> = {
   "club-car-ds-iq": ["iq-main", "iq-tg1-p1", "iq-tg1-p2", "iq-tg1-p3", "iq-tg2-p1", "iq-tg2-p2"],
   "club-car-ds-pdplus": ["pdplus-main", "pdplus-zplug"],
   "club-car-ds-vglide": ["vglide-schematic", "vglide-control", "vglide-power"],
-  "club-car-precedent-eric": ["eric-main", "eric-instrument", "eric-batteries", "eric-lights"],
-  "club-car-precedent-excel": ["excel-main", "excel-accessories", "excel-sonic"],
-  "club-car-precedent-gas": ["tempo-ex40-main", "tempo-ex40-dash", "tempo-ex40-engine", "ex40-main", "ex40-alt", "fe350-main", "fe350-accessories", "prec19-g-main"],
+  "club-car-precedent-eric": [
+    "prec14-eric-28-1",
+    "prec14-eric-28-3",
+    "prec14-eric-28-4",
+    "prec14-eric-28-5",
+    "prec14-eric-28-7",
+    "prec14-eric-tg1-p1",
+    "prec14-eric-tg1-p2",
+    "prec14-eric-tg2-p1",
+    "prec14-eric-tg2-p2",
+    "eric-main",
+    "eric-instrument",
+    "eric-batteries",
+    "eric-lights",
+  ],
+  "club-car-precedent-excel": [
+    "prec14-excel-13-4",
+    "prec14-excel-13-1",
+    "prec14-excel-13-2",
+    "prec14-excel-tg1-p1",
+    "prec14-excel-tg1-p2",
+    "prec14-excel-tg2-p1",
+    "prec14-excel-tg2-p2",
+    "excel-main",
+    "excel-accessories",
+    "excel-sonic",
+  ],
+  "club-car-precedent-gas": [
+    "prec14-gas-19-1",
+    "prec14-gas-19-3",
+    "prec14-gas-19-5",
+    "tempo-ex40-main",
+    "tempo-ex40-dash",
+    "tempo-ex40-engine",
+    "ex40-main",
+    "ex40-alt",
+    "fe350-main",
+    "fe350-accessories",
+    "prec19-g-main",
+  ],
   "club-car-precedent-iq": [
     "iq-main",
     "iq-accessories",
@@ -1030,7 +1373,29 @@ const BY_PACK: Record<string, string[]> = {
   "club-car-tempo-gas": ["tempo-kohler-engine", "tempo-kohler-main", "tempo-kohler-dash"],
   "club-car-villager-gas": ["ex40-main", "ex40-alt", "fe350-main", "fe350-accessories", "prec19-g-main"],
   "club-car-villager-iqplus": ["excel-main", "excel-accessories", "excel-sonic"],
+  "ezgo-express-l6": [
+    "l6s6-fig10",
+    "l6s6-fig8-fig9",
+    "l6s6-fig11",
+    "l6s6-fig12",
+    "l6s6-fig13",
+    "l6s6-fig14",
+    "l6s6-l-fig2",
+    "l6s6-l-fig5",
+    "l6s6-l-fig6-7",
+  ],
   "ezgo-express-s4": ["txt-tct-esc", "s4-electrical-1", "s4-electrical-2", "s4-electrical-3", "s4-electrical-4"],
+  "ezgo-express-s6": [
+    "l6s6-fig10",
+    "l6s6-fig8-fig9",
+    "l6s6-fig11",
+    "l6s6-fig12",
+    "l6s6-fig13",
+    "l6s6-fig14",
+    "l6s6-l-fig2",
+    "l6s6-l-fig5",
+    "l6s6-l-fig6-7",
+  ],
   "ezgo-marathon-gas": [
     "marathon-solenoid",
     "marathon-solenoid-2",
@@ -1071,6 +1436,14 @@ const BY_PACK: Record<string, string[]> = {
   "ezgo-txt-gas": ["ezgas-l2", "ezgas-l9", "ezgas-l10", "ezgas-l11"],
   "ezgo-txt-tct": ["txt-electrical-1", "txt-electrical-2", "txt-electrical-3", "txt-electrical-4", "txt-tct-esc"],
   "yamaha-ydra": ["ydra-carb", "ydra-efi", "ydra-efi-2"],
+  "star-sirius": [
+    "star-curtis1243-2007",
+    "sirius-combo-314",
+    "sirius-combo-315",
+    "sirius-headlight-316",
+    "sirius-turn-317",
+    "sirius-cruise-324",
+  ],
   "yamaha-ydre-ac": ["ydre-ac-1", "ydre-ac-mcu-1", "ydre-ac-mcu-2"],
   "yamaha-ydre-dc": [
     "ydre-dc-1",
