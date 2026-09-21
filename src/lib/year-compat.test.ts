@@ -16,7 +16,6 @@ import {
   yearInRanges,
   yearIssueLine,
 } from "./year-compat.ts";
-import { getPack } from "../data/index.ts";
 
 const FE350_YEARS =
   "1991–1996 Club Car DS gasoline (Kawasaki FE350; 1995–96 DS gas/electric; 2000 Club Car Service Manual). FE290 DS/Villager is a separate pack.";
@@ -303,28 +302,26 @@ test("FE350 helper and unsupported banner are the same string across two calls",
 });
 
 test("2014 electric Precedent matches Excel PowerDrive and ERIC, not IQ 2004–2011", () => {
-  const iq = getPack("club-car-precedent-iq");
-  const excel = getPack("club-car-precedent-excel");
-  const eric = getPack("club-car-precedent-eric");
-  assert.ok(iq && excel && eric);
+  const iqSrc = readFileSync(new URL("../data/packs/club-car-precedent.ts", import.meta.url), "utf8");
+  const excelSrc = readFileSync(new URL("../data/packs/club-car-precedent-excel.ts", import.meta.url), "utf8");
+  const ericSrc = readFileSync(new URL("../data/packs/club-car-precedent-eric.ts", import.meta.url), "utf8");
+  assert.match(iqSrc, /2004–2011 Precedent IQ/);
+  assert.match(excelSrc, /2008–2014 Precedent Excel/);
+  assert.match(ericSrc, /2014–2019 Precedent electric/);
 
-  const check = (pack: typeof iq, year: string) =>
-    yearCompatibility({
-      cartYear: year,
-      packYears: pack!.years,
-      packName: pack!.name,
-      packId: pack!.id,
-      yearMin: pack!.yearMin,
-      yearMax: pack!.yearMax,
-    });
+  const iqYears = "2004–2011 Precedent IQ (manual 102907701, 2006–2007; 2009–2011 electric Precedent M&S)";
+  const excelYears =
+    "2008–2014 Precedent Excel (manual 103373101, 2008 IQ System and Excel M&S; 2009–2011 electric Precedent)";
+  const ericYears =
+    "2014–2019 Precedent electric (2014 M&S 105062901 ERIC; 2015 manual 105157201; 2017 gas/electric M&S)";
 
-  assert.equal(check(iq, "2014").status, "unsupported");
-  assert.equal(check(excel, "2014").status, "ok");
-  assert.equal(check(eric, "2014").status, "ok");
-  assert.equal(check(iq, "2010").status, "ok");
-  assert.match(eric.years, /2014–2019/);
-  assert.match(iq.years, /2004–2011/);
-  assert.match(excel.years, /2008–2014/);
+  const check = (packId: string, packName: string, packYears: string, year: string) =>
+    yearCompatibility({ cartYear: year, packYears, packName, packId });
+
+  assert.equal(check("club-car-precedent-iq", "Precedent IQ", iqYears, "2014").status, "unsupported");
+  assert.equal(check("club-car-precedent-excel", "Precedent Excel", excelYears, "2014").status, "ok");
+  assert.equal(check("club-car-precedent-eric", "Precedent ERIC", ericYears, "2014").status, "ok");
+  assert.equal(check("club-car-precedent-iq", "Precedent IQ", iqYears, "2010").status, "ok");
 });
 
 test("yearIssueLine rewrites an inverted 1991–1990 banner onto the field 1991–1996 string", () => {
