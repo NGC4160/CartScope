@@ -31,7 +31,9 @@ function Bench() {
       <AppShell>
         <main className="mx-auto max-w-lg px-4 py-16 text-center">
           <h1 className="font-display text-2xl font-semibold">This job is not on this tablet</h1>
-          <p className="mt-2 text-sm text-ink-muted">Jobs stay on this tablet only.</p>
+          <p className="mt-2 text-sm text-ink-muted">
+            Cases sync across shop tablets. This device keeps a local cache.
+          </p>
           <Button className="mt-6" onClick={() => void navigate({ to: "/" })}>
             New job
           </Button>

@@ -432,8 +432,9 @@ export function CaseReport({
         ) : null}
 
         <p className="mt-8 text-[11px] text-ink-subtle">
-          These numbers follow the factory check list for this cart, plus the shop pack and code rules. The full case
-          stays on this tablet. A shop brain copy with no last name and no job number is made when you confirm.
+          These numbers follow the factory check list for this cart, plus the shop pack and code rules. Cases sync
+          across shop tablets. This device keeps a local cache. A shop brain copy with no last name and no job number
+          is made when you confirm.
         </p>
       </div>
     </form>

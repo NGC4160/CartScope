@@ -66,7 +66,8 @@ export function BrainStatus({
         {waiting ? <li className="text-ink">Brain copy waiting — retry</li> : null}
       </ul>
       <p className="mt-2 text-sm text-ink-muted">
-        The shop copy has no last name and no job number. The full case stays on this tablet.
+        The shop copy has no last name and no job number. Cases sync across shop tablets. This device keeps a local
+        cache.
       </p>
       {copy?.filename ? (
         <p className="mt-1 font-mono text-xs text-ink-subtle">{copy.path}</p>
