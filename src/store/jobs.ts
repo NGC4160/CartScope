@@ -10,6 +10,7 @@ import {
   persistTabletJobs,
   type TabletWriteResult,
 } from "@/lib/jobs-persist";
+import { scheduleSharedPush } from "@/lib/shared-jobs-client";
 import { sheetsForPack } from "@/data/wiring";
 import { helperManualsNote, snapshotManualStatus } from "@/lib/report-continuity";
 import type {
@@ -106,6 +107,7 @@ export const useJobStore = create<JobState>()(
         const result = await persistTabletJobs(jobs);
         if (result.ok) {
           set({ jobs });
+          scheduleSharedPush(jobs);
         }
         return result;
       };

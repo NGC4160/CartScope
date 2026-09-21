@@ -1,5 +1,11 @@
 import { useEffect, useState } from "react";
-import { jobsMatchDurable, persistTabletJobs, readLiveJobsRaw } from "@/lib/jobs-persist";
+import {
+  jobsMatchDurable,
+  jobsSessionMutated,
+  persistTabletJobs,
+  readLiveJobsRaw,
+} from "@/lib/jobs-persist";
+import { hydrateSharedJobs } from "@/lib/shared-jobs-client";
 import { useJobStore } from "@/store/jobs";
 
 let hydrateInFlight: Promise<void> | null = null;
@@ -23,10 +29,17 @@ export function hydrateJobStore(): Promise<void> {
       .then(async () => {
         hydrateFinished = true;
         const jobs = useJobStore.getState().jobs;
-        if (!jobs.length) return;
-        if (!jobsMatchDurable(readLiveJobsRaw(), jobs)) {
+        if (jobs.length && !jobsMatchDurable(readLiveJobsRaw(), jobs)) {
           await persistTabletJobs(jobs);
         }
+        void hydrateSharedJobs({
+          getJobs: () => useJobStore.getState().jobs,
+          setJobs: async (next) => {
+            useJobStore.setState({ jobs: next });
+            await persistTabletJobs(next);
+          },
+          sessionMutated: jobsSessionMutated(),
+        });
       })
       .finally(() => {
         hydrateInFlight = null;
