@@ -35,6 +35,9 @@ import { tomberlinEmergeSevcon } from "@/data/packs/tomberlin-emerge-sevcon";
 import { evolutionAc } from "@/data/packs/evolution-ac";
 import { evolutionD5 } from "@/data/packs/evolution-d5";
 import { badboyCurtis1232e } from "@/data/packs/badboy-curtis-1232e";
+import { badboyAmbushGas } from "@/data/packs/badboy-ambush-gas";
+import { badboyAmbushElectric } from "@/data/packs/badboy-ambush-electric";
+import { badboyRecoilIs } from "@/data/packs/badboy-recoil-is";
 
 export const MODEL_PACKS: ModelPack[] = [
   clubCarDsVGlide,
@@ -72,6 +75,9 @@ export const MODEL_PACKS: ModelPack[] = [
   evolutionAc,
   evolutionD5,
   badboyCurtis1232e,
+  badboyAmbushGas,
+  badboyAmbushElectric,
+  badboyRecoilIs,
 ].map((p) => applyShopTermsToPack(p));
 
 export const MANUFACTURERS: { id: ManufacturerId; label: string; blurb: string }[] = [
@@ -108,7 +114,7 @@ export const MANUFACTURERS: { id: ManufacturerId; label: string; blurb: string }
   {
     id: "badboy",
     label: "Bad Boy",
-    blurb: "Curtis 1232E/SE controller plates (Ambush / Recoil later).",
+    blurb: "Curtis 1232E/SE, Ambush gas / electric, and Recoil iS 72 V.",
   },
 ];
 

@@ -408,6 +408,7 @@ export function buildClubCarVGlide(): ModelPack {
       "The solenoid coil is 55–60 Ω (Test Procedure 5). Do not use an IQ 180–190 Ω or PowerDrive 190–250 Ω coil.",
       "Resistor string first-to-last ≈ 0.6 Ω (Test Procedure 6). Do not touch hot resistors.",
       "Unplug batteries at battery 1 minus (Figure 19-1) before ohms work. Reverse is half pack voltage by design.",
+      "2000 V-Glide supplement plates are also on this pack: Figure 11-2 Speed Controller (wiper current path) and Figure 11-3 Vehicle Wiring Diagram.",
     ],
     components,
     wires,

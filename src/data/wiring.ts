@@ -1525,15 +1525,249 @@ export const WIRING_SHEETS: WiringSheet[] = [
     kind: "harness",
     landscape: false,
   },
+  // Bad Boy Ambush — Jesse binder Batch 2
+  {
+    id: "bb-ambush-fig2",
+    title: "Fig. 2 Gas Powertrain And 4WD Electrical Schematic",
+    manualRef:
+      "Bad Boy Ambush Repair and Service Manual — Electrical, Fig. 2 Gas Powertrain And 4WD Electrical Schematic, page J-2",
+    src: "/wiring/bb-ambush-fig2-gas-4wd.jpg",
+    kind: "full",
+    landscape: false,
+  },
+  {
+    id: "bb-ambush-fig5",
+    title: "Fig. 5 Main Harness Wiring Diagram",
+    manualRef: "Bad Boy Ambush Repair and Service Manual — Electrical, Fig. 5 Main Harness Wiring Diagram, page J-7",
+    src: "/wiring/bb-ambush-fig5-main-harness.jpg",
+    kind: "harness",
+    landscape: false,
+  },
+  {
+    id: "bb-ambush-fig6",
+    title: "Fig. 6 Accessory Wiring Diagram",
+    manualRef: "Bad Boy Ambush Repair and Service Manual — Electrical, Fig. 6 Accessory Wiring Diagram, page J-8",
+    src: "/wiring/bb-ambush-fig6-accessory.jpg",
+    kind: "accessory",
+    landscape: false,
+  },
+  {
+    id: "bb-ambush-fig10",
+    title: "Fig. 10 Electric Powertrain Electrical Schematic",
+    manualRef:
+      "Bad Boy Ambush Repair and Service Manual — Electrical, Fig. 10 Electric Powertrain Electrical Schematic, page J-12",
+    src: "/wiring/bb-ambush-fig10-electric-powertrain.jpg",
+    kind: "full",
+    landscape: false,
+  },
+  {
+    id: "bb-ambush-fig22-23",
+    title: "Fig. 22 Speed Controller Pin Connector / Fig. 23 Powertrain Controller Pin Connector",
+    manualRef:
+      "Bad Boy Ambush Repair and Service Manual — Troubleshooting, Fig. 22 Speed Controller Pin Connector / Fig. 23 Powertrain Controller Pin Connector, page T-21",
+    src: "/wiring/bb-ambush-fig22-23-pin-connectors.jpg",
+    kind: "pinout",
+    landscape: false,
+  },
+  // Bad Boy Recoil iS 72 V — Jesse binder Batch 2
+  {
+    id: "bb-recoil-battery",
+    title: "Battery Layout",
+    manualRef:
+      "Recoil iS 72 V Electrical Service Guide (9/11/2012), Battery Layout — six 12 V in series, B+ / B− 72 V, page 46",
+    src: "/wiring/bb-recoil-battery-layout.jpg",
+    kind: "power",
+    landscape: false,
+  },
+  {
+    id: "bb-recoil-electrical",
+    title: "Electrical Information – Recoil",
+    manualRef:
+      "Recoil iS 72 V Electrical Service Guide (9/11/2012), Electrical Information – Recoil, FRONT-SLAVE / REAR-MASTER 35-pin, page 81",
+    src: "/wiring/bb-recoil-electrical-info.jpg",
+    kind: "pinout",
+    landscape: false,
+  },
+  // Club Car DS 2000 supplements — gap fill vs 1995–96 Fig. 19 / 20 / 21 plates
+  {
+    id: "ds2000-vglide-fig11-2",
+    title: "2000 V-Glide 36 V — Figure 11-2 Speed Controller",
+    manualRef:
+      "2000 V-Glide 36-Volt Vehicle Maintenance and Service Supplement, Figure 11-2 Speed Controller, page 11-3",
+    src: "/wiring/ds2000-vglide-fig11-2-speed-controller.jpg",
+    kind: "control",
+    landscape: false,
+  },
+  {
+    id: "ds2000-vglide-fig11-3",
+    title: "2000 V-Glide 36 V — Figure 11-3 Vehicle Wiring Diagram",
+    manualRef:
+      "2000 V-Glide 36-Volt Vehicle Maintenance and Service Supplement, Figure 11-3 Vehicle Wiring Diagram, page 11-4",
+    src: "/wiring/ds2000-vglide-fig11-3-vehicle.jpg",
+    kind: "full",
+    landscape: false,
+  },
+  {
+    id: "ds2000-pdplus-fig11-1",
+    title: "2000 PowerDrive Plus — Figure 11-1 Wiring Schematic",
+    manualRef:
+      "2000 PowerDrive Plus Vehicle Maintenance and Service Supplement, Figure 11-1 Wiring Schematic, page 11-2",
+    src: "/wiring/ds2000-pdplus-fig11-1-schematic.jpg",
+    kind: "full",
+    landscape: false,
+  },
+  {
+    id: "ds2000-pdplus-fig11-2",
+    title: "2000 PowerDrive Plus — Figure 11-2 Wiring Schematic",
+    manualRef:
+      "2000 PowerDrive Plus Vehicle Maintenance and Service Supplement, Figure 11-2 Wiring Schematic, page 11-3",
+    src: "/wiring/ds2000-pdplus-fig11-2-schematic.jpg",
+    kind: "full",
+    landscape: false,
+  },
+  {
+    id: "ds2000-pdplus-fig11-3",
+    title: "2000 PowerDrive Plus — Figure 11-3 Wiring Diagram",
+    manualRef:
+      "2000 PowerDrive Plus Vehicle Maintenance and Service Supplement, Figure 11-3 Wiring Diagram, page 11-4",
+    src: "/wiring/ds2000-pdplus-fig11-3-diagram.jpg",
+    kind: "full",
+    landscape: false,
+  },
+  {
+    id: "ds2000-pdplus-fig11-4",
+    title: "2000 PowerDrive Plus — Figure 11-4 23-Pin Connector Plug",
+    manualRef:
+      "2000 PowerDrive Plus Vehicle Maintenance and Service Supplement, Figure 11-4 23-Pin Connector Plug, page 11-6",
+    src: "/wiring/ds2000-pdplus-fig11-4-23pin.jpg",
+    kind: "pinout",
+    landscape: false,
+  },
+  {
+    id: "ds2000-pdplus-fig11-5",
+    title: "2000 PowerDrive Plus — Figure 11-5 Onboard Computer Circuit",
+    manualRef:
+      "2000 PowerDrive Plus Vehicle Maintenance and Service Supplement, Figure 11-5 Onboard Computer Circuit, page 11-7",
+    src: "/wiring/ds2000-pdplus-fig11-5-obc.jpg",
+    kind: "control",
+    landscape: false,
+  },
+  {
+    id: "ds2000-pdplus-fig11-6",
+    title: "2000 PowerDrive Plus — Figure 11-6 Tow Switch Circuit/Components",
+    manualRef:
+      "2000 PowerDrive Plus Vehicle Maintenance and Service Supplement, Figure 11-6 Tow Switch Circuit/Components, page 11-8",
+    src: "/wiring/ds2000-pdplus-fig11-6-tow.jpg",
+    kind: "control",
+    landscape: false,
+  },
+  {
+    id: "ds2000-pdplus-fig11-7",
+    title: "2000 PowerDrive Plus — Figure 11-7 Solid State Speed Control Circuit",
+    manualRef:
+      "2000 PowerDrive Plus Vehicle Maintenance and Service Supplement, Figure 11-7 Solid State Speed Control Circuit, page 11-9",
+    src: "/wiring/ds2000-pdplus-fig11-7-speed.jpg",
+    kind: "control",
+    landscape: false,
+  },
+  {
+    id: "ds2000-pdplus-fig11-8",
+    title: "2000 PowerDrive Plus — Figure 11-8 Power Circuit",
+    manualRef:
+      "2000 PowerDrive Plus Vehicle Maintenance and Service Supplement, Figure 11-8 Power Circuit, page 11-10",
+    src: "/wiring/ds2000-pdplus-fig11-8-power.jpg",
+    kind: "power",
+    landscape: false,
+  },
+  {
+    id: "ds2000-pdplus-fig11-9",
+    title: "2000 PowerDrive Plus — Figure 11-9 Charge Circuit",
+    manualRef:
+      "2000 PowerDrive Plus Vehicle Maintenance and Service Supplement, Figure 11-9 Charge Circuit, page 11-11",
+    src: "/wiring/ds2000-pdplus-fig11-9-charge.jpg",
+    kind: "charge",
+    landscape: false,
+  },
+  {
+    id: "ds2000-pd48-fig11-2",
+    title: "2000 PowerDrive System 48 — Figure 11-2 Wiring Diagram – DS and Villager 4 Electric Vehicles",
+    manualRef:
+      "2000 PowerDrive System 48 Vehicle Maintenance and Service Supplement, Figure 11-2 Wiring Diagram – DS and Villager 4 Electric Vehicles, page 11-3",
+    src: "/wiring/ds2000-pd48-fig11-2-ds-villager4.jpg",
+    kind: "full",
+    landscape: false,
+  },
+  {
+    id: "ds2000-pd48-fig11-3",
+    title: "2000 PowerDrive System 48 — Figure 11-3 Wiring Diagram – Turf 1 and Carryall 1",
+    manualRef:
+      "2000 PowerDrive System 48 Vehicle Maintenance and Service Supplement, Figure 11-3 Wiring Diagram – Turf 1 and Carryall 1, page 11-4",
+    src: "/wiring/ds2000-pd48-fig11-3-turf1-carryall1.jpg",
+    kind: "full",
+    landscape: false,
+  },
+  {
+    id: "ds2000-pd48-fig11-4",
+    title: "2000 PowerDrive System 48 — Figure 11-4 Wiring Diagram – Turf 2 and Carryall 2",
+    manualRef:
+      "2000 PowerDrive System 48 Vehicle Maintenance and Service Supplement, Figure 11-4 Wiring Diagram – Turf 2 and Carryall 2, page 11-5",
+    src: "/wiring/ds2000-pd48-fig11-4-turf2-carryall2.jpg",
+    kind: "full",
+    landscape: false,
+  },
+  {
+    id: "ds2000-pd48-fig11-5",
+    title: "2000 PowerDrive System 48 — Figure 11-5 Wiring Diagram – Carryall 6 and TransPorter Vehicles",
+    manualRef:
+      "2000 PowerDrive System 48 Vehicle Maintenance and Service Supplement, Figure 11-5 Wiring Diagram – Carryall 6 and TransPorter Vehicles, page 11-6",
+    src: "/wiring/ds2000-pd48-fig11-5-carryall6-transporter.jpg",
+    kind: "full",
+    landscape: false,
+  },
+  {
+    id: "ds2000-pd48-fig11-6",
+    title: "2000 PowerDrive System 48 — Figure 11-6 Wiring Diagram – Villager 6 and 8 Vehicles",
+    manualRef:
+      "2000 PowerDrive System 48 Vehicle Maintenance and Service Supplement, Figure 11-6 Wiring Diagram – Villager 6 and 8 Vehicles, page 11-7",
+    src: "/wiring/ds2000-pd48-fig11-6-villager6-8.jpg",
+    kind: "full",
+    landscape: false,
+  },
 ];
 
 const BY_PACK: Record<string, string[]> = {
-  "club-car-ds-electric": ["pd48-multistep", "pd48-cvpot"],
+  "club-car-ds-electric": [
+    "pd48-multistep",
+    "pd48-cvpot",
+    "ds2000-pd48-fig11-2",
+    "ds2000-pd48-fig11-3",
+    "ds2000-pd48-fig11-4",
+    "ds2000-pd48-fig11-5",
+    "ds2000-pd48-fig11-6",
+  ],
   "club-car-ds-fe290": ["fe350-main", "fe350-accessories", "dsgas-circuits", "dsgas-kill", "dsgas-oil"],
   "club-car-ds-gas": ["fe350-main", "fe350-accessories", "dsgas-circuits", "dsgas-kill", "dsgas-oil"],
   "club-car-ds-iq": ["iq-main", "iq-tg1-p1", "iq-tg1-p2", "iq-tg1-p3", "iq-tg2-p1", "iq-tg2-p2"],
-  "club-car-ds-pdplus": ["pdplus-main", "pdplus-zplug"],
-  "club-car-ds-vglide": ["vglide-schematic", "vglide-control", "vglide-power"],
+  "club-car-ds-pdplus": [
+    "pdplus-main",
+    "pdplus-zplug",
+    "ds2000-pdplus-fig11-1",
+    "ds2000-pdplus-fig11-2",
+    "ds2000-pdplus-fig11-3",
+    "ds2000-pdplus-fig11-4",
+    "ds2000-pdplus-fig11-5",
+    "ds2000-pdplus-fig11-6",
+    "ds2000-pdplus-fig11-7",
+    "ds2000-pdplus-fig11-8",
+    "ds2000-pdplus-fig11-9",
+  ],
+  "club-car-ds-vglide": [
+    "vglide-schematic",
+    "vglide-control",
+    "vglide-power",
+    "ds2000-vglide-fig11-2",
+    "ds2000-vglide-fig11-3",
+  ],
   "club-car-precedent-eric": [
     "prec14-eric-28-1",
     "prec14-eric-28-3",
@@ -1694,6 +1928,9 @@ const BY_PACK: Record<string, string[]> = {
     "bb-curtis-fig5",
     "bb-curtis-fig6",
   ],
+  "badboy-ambush-gas": ["bb-ambush-fig2", "bb-ambush-fig5", "bb-ambush-fig6"],
+  "badboy-ambush-electric": ["bb-ambush-fig10", "bb-ambush-fig22-23", "bb-ambush-fig5", "bb-ambush-fig6"],
+  "badboy-recoil-is": ["bb-recoil-electrical", "bb-recoil-battery"],
   "star-sirius": [
     "star-curtis1243-2007",
     "sirius-combo-314",

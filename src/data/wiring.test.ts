@@ -896,6 +896,139 @@ test("Bad Boy Curtis 1232E pack lists Figure 3 / 35-pin / Table 2 / throttle fig
   assert.equal(fig5.title, "Figure 5: Wiring for Type 2 Throttles");
   assertPublicSrc(fig5.src);
 
+  assert.ok(packsWithWiring().includes("badboy-ambush-gas"));
+  assert.ok(packsWithWiring().includes("badboy-ambush-electric"));
+  assert.ok(packsWithWiring().includes("badboy-recoil-is"));
   assert.ok(!packsWithWiring().includes("badboy-ambush"));
   assert.ok(!packsWithWiring().includes("badboy-recoil"));
+});
+
+const BB_AMBUSH_GAS_IDS = ["bb-ambush-fig2", "bb-ambush-fig5", "bb-ambush-fig6"];
+const BB_AMBUSH_ELEC_IDS = ["bb-ambush-fig10", "bb-ambush-fig22-23", "bb-ambush-fig5", "bb-ambush-fig6"];
+const BB_AMBUSH_SHARED_IDS = ["bb-ambush-fig5", "bb-ambush-fig6"];
+const BB_RECOIL_IDS = ["bb-recoil-electrical", "bb-recoil-battery"];
+const DS2000_VGLIDE_IDS = ["ds2000-vglide-fig11-2", "ds2000-vglide-fig11-3"];
+const DS2000_PDPLUS_IDS = [
+  "ds2000-pdplus-fig11-1",
+  "ds2000-pdplus-fig11-2",
+  "ds2000-pdplus-fig11-3",
+  "ds2000-pdplus-fig11-4",
+  "ds2000-pdplus-fig11-5",
+  "ds2000-pdplus-fig11-6",
+  "ds2000-pdplus-fig11-7",
+  "ds2000-pdplus-fig11-8",
+  "ds2000-pdplus-fig11-9",
+];
+const DS2000_PD48_IDS = [
+  "ds2000-pd48-fig11-2",
+  "ds2000-pd48-fig11-3",
+  "ds2000-pd48-fig11-4",
+  "ds2000-pd48-fig11-5",
+  "ds2000-pd48-fig11-6",
+];
+
+test("Bad Boy Ambush gas / electric packs use printed Section J / T titles", () => {
+  assert.deepEqual(sheetsForPack("badboy-ambush-gas").map((s) => s.id), BB_AMBUSH_GAS_IDS);
+  assert.deepEqual(sheetsForPack("badboy-ambush-electric").map((s) => s.id), BB_AMBUSH_ELEC_IDS);
+
+  const gas = getSheet("bb-ambush-fig2");
+  assert.ok(gas);
+  assert.equal(gas.title, "Fig. 2 Gas Powertrain And 4WD Electrical Schematic");
+  assert.match(gas.manualRef, /page J-2/);
+  assertPublicSrc(gas.src);
+
+  const harness = getSheet("bb-ambush-fig5");
+  assert.ok(harness);
+  assert.equal(harness.title, "Fig. 5 Main Harness Wiring Diagram");
+  assertPublicSrc(harness.src);
+
+  const elec = getSheet("bb-ambush-fig10");
+  assert.ok(elec);
+  assert.equal(elec.title, "Fig. 10 Electric Powertrain Electrical Schematic");
+  assertPublicSrc(elec.src);
+
+  const pins = getSheet("bb-ambush-fig22-23");
+  assert.ok(pins);
+  assert.match(pins.title, /Fig\. 22/);
+  assert.match(pins.title, /Fig\. 23/);
+  assert.equal(pins.kind, "pinout");
+  assertPublicSrc(pins.src);
+
+  assert.ok(!sheetsForPack("badboy-ambush-gas").some((s) => s.id === "bb-ambush-fig10"));
+  assert.ok(!sheetsForPack("badboy-ambush-electric").some((s) => s.id === "bb-ambush-fig2"));
+  assert.ok(!sheetsForPack("badboy-curtis-1232e").some((s) => BB_AMBUSH_GAS_IDS.includes(s.id)));
+  assert.ok(!sheetsForPack("badboy-curtis-1232e").some((s) => s.id === "bb-ambush-fig10"));
+
+  for (const packId of packsWithWiring()) {
+    if (packId === "badboy-ambush-gas" || packId === "badboy-ambush-electric") continue;
+    assert.ok(
+      !sheetsForPack(packId).some((s) => BB_AMBUSH_SHARED_IDS.includes(s.id)),
+      packId,
+    );
+  }
+});
+
+test("Bad Boy Recoil iS 72 V pack lists Electrical Information and Battery Layout only", () => {
+  assertPackOnly("badboy-recoil-is", BB_RECOIL_IDS);
+
+  const info = getSheet("bb-recoil-electrical");
+  assert.ok(info);
+  assert.equal(info.title, "Electrical Information – Recoil");
+  assert.match(info.manualRef, /FRONT-SLAVE/);
+  assertPublicSrc(info.src);
+
+  const batt = getSheet("bb-recoil-battery");
+  assert.ok(batt);
+  assert.equal(batt.title, "Battery Layout");
+  assert.match(batt.manualRef, /page 46/);
+  assertPublicSrc(batt.src);
+});
+
+test("Club Car DS 2000 plates fill gaps and keep 1995–96 titles on the same packs", () => {
+  const vglide = sheetsForPack("club-car-ds-vglide").map((s) => s.id);
+  assert.deepEqual(vglide.slice(0, 3), ["vglide-schematic", "vglide-control", "vglide-power"]);
+  assert.deepEqual(vglide.slice(3), DS2000_VGLIDE_IDS);
+
+  const pdplus = sheetsForPack("club-car-ds-pdplus").map((s) => s.id);
+  assert.deepEqual(pdplus.slice(0, 2), ["pdplus-main", "pdplus-zplug"]);
+  assert.deepEqual(pdplus.slice(2), DS2000_PDPLUS_IDS);
+
+  const pd48 = sheetsForPack("club-car-ds-electric").map((s) => s.id);
+  assert.deepEqual(pd48.slice(0, 2), ["pd48-multistep", "pd48-cvpot"]);
+  assert.deepEqual(pd48.slice(2), DS2000_PD48_IDS);
+
+  const v3 = getSheet("ds2000-vglide-fig11-3");
+  assert.ok(v3);
+  assert.equal(v3.title, "2000 V-Glide 36 V — Figure 11-3 Vehicle Wiring Diagram");
+  assert.match(v3.manualRef, /2000 V-Glide/);
+  assertPublicSrc(v3.src);
+
+  const pin23 = getSheet("ds2000-pdplus-fig11-4");
+  assert.ok(pin23);
+  assert.equal(pin23.title, "2000 PowerDrive Plus — Figure 11-4 23-Pin Connector Plug");
+  assert.equal(pin23.kind, "pinout");
+  assertPublicSrc(pin23.src);
+
+  const dsVillager = getSheet("ds2000-pd48-fig11-2");
+  assert.ok(dsVillager);
+  assert.match(dsVillager.title, /DS and Villager 4/);
+  assertPublicSrc(dsVillager.src);
+
+  assert.equal(getSheet("vglide-schematic")?.title, "V-Glide 36 V — control, power, and charge map (Fig. 19-2)");
+  assert.equal(getSheet("pdplus-zplug")?.title, "PowerDrive Plus — controller plug pins (Fig. 21-4)");
+  assert.equal(getSheet("pd48-multistep")?.title, "PowerDrive System 48 — stepped gas-pedal sensor wires (Fig. 20-2)");
+
+  assert.ok(!sheetsForPack("club-car-ds-iq").some((s) => s.id.startsWith("ds2000-")));
+  for (const packId of packsWithWiring()) {
+    if (packId === "club-car-ds-vglide") continue;
+    assert.ok(!sheetsForPack(packId).some((s) => DS2000_VGLIDE_IDS.includes(s.id)), packId);
+  }
+  for (const packId of packsWithWiring()) {
+    if (packId === "club-car-ds-pdplus") continue;
+    assert.ok(!sheetsForPack(packId).some((s) => DS2000_PDPLUS_IDS.includes(s.id)), packId);
+  }
+  for (const packId of packsWithWiring()) {
+    if (packId === "club-car-ds-electric") continue;
+    assert.ok(!sheetsForPack(packId).some((s) => DS2000_PD48_IDS.includes(s.id)), packId);
+  }
 });

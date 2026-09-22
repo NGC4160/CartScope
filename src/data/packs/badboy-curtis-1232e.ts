@@ -11,7 +11,7 @@ export const badboyCurtis1232e = buildAcDrive({
   diagramTitle: "Power and control picture — Curtis 1232E/SE (Bad Boy binder)",
   diagramNotes: [
     "Plates from the Bad Boy Buggy Curtis controller manual (os 31 – May 2017): Figure 3 Basic Wiring Diagram, 35-pin AMPSEAL / Table 2 Low Power Connections, and Figure 4–6 throttle wiring.",
-    "This is the generic Curtis 1232E/SE schematic — not a Bad Boy Ambush or Recoil vehicle harness. Those binders come in a later batch.",
+    "This is the generic Curtis 1232E/SE schematic. Ambush vehicle harnesses are on the Ambush gas / electric packs. Recoil iS 72 V dual-controller plates are on the Recoil iS pack.",
     "Main contactor coil must be wired to the controller as shown in Figure 3. Throttle Type 1 / 2 / 3 are separate figures — match the throttle on the cart.",
   ],
   controllerName: "Curtis 1232E / 1232SE",
@@ -28,5 +28,5 @@ export const badboyCurtis1232e = buildAcDrive({
   packMinV: 24,
   manualPrefix: "Curtis 1232E/SE Manual os 31 – May 2017 — Installation and Wiring",
   errorNotes:
-    "Curtis 1232E/SE: Status LED / 1313 programmer. Write the code from Table 6 before you key-cycle. Figure 3 is the basic vehicle schematic. Table 2 is the 35-pin map. Ambush / Recoil vehicle harnesses are not on this pack yet.",
+    "Curtis 1232E/SE: Status LED / 1313 programmer. Write the code from Table 6 before you key-cycle. Figure 3 is the basic vehicle schematic. Table 2 is the 35-pin map. Ambush / Recoil vehicle harnesses are on their own packs.",
 });
