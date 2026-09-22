@@ -4,7 +4,7 @@ import type { Diagnosis, DiagnosticStep, ModelPack, SymptomDef } from "@/data/ty
 
 export interface GasSpec {
   id: string;
-  manufacturer: "club-car" | "ezgo" | "yamaha";
+  manufacturer: "club-car" | "ezgo" | "yamaha" | "badboy";
   manufacturerLabel: string;
   name: string;
   fullName: string;

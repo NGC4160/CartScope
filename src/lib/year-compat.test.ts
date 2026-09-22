@@ -324,6 +324,160 @@ test("2014 electric Precedent matches Excel PowerDrive and ERIC, not IQ 2004–2
   assert.equal(check("club-car-precedent-iq", "Precedent IQ", iqYears, "2010").status, "ok");
 });
 
+test("Tomberlin EMerge year bounds stay on the matching controller pack", () => {
+  const ge403 = yearCompatibility({
+    cartYear: "2008",
+    packYears: "2007–2009 EMerge GE403 / GE4003",
+    packName: "EMerge GE403",
+    packId: "tomberlin-emerge-ge403",
+    yearMin: 2007,
+    yearMax: 2009,
+  });
+  const ge403Late = yearCompatibility({
+    cartYear: "2012",
+    packYears: "2007–2009 EMerge GE403 / GE4003",
+    packName: "EMerge GE403",
+    packId: "tomberlin-emerge-ge403",
+    yearMin: 2007,
+    yearMax: 2009,
+  });
+  const c1268 = yearCompatibility({
+    cartYear: "2012",
+    packYears: "2009–2014 EMerge Curtis 1268",
+    packName: "EMerge Curtis 1268",
+    packId: "tomberlin-emerge-curtis1268",
+    yearMin: 2009,
+    yearMax: 2014,
+  });
+  const sevcon = yearCompatibility({
+    cartYear: "2018",
+    packYears: "2015–2023 EMerge Sevcon Gen4",
+    packName: "EMerge Sevcon Gen4",
+    packId: "tomberlin-emerge-sevcon",
+    yearMin: 2015,
+    yearMax: 2023,
+  });
+  const sevconEarly = yearCompatibility({
+    cartYear: "2012",
+    packYears: "2015–2023 EMerge Sevcon Gen4",
+    packName: "EMerge Sevcon Gen4",
+    packId: "tomberlin-emerge-sevcon",
+    yearMin: 2015,
+    yearMax: 2023,
+  });
+
+  assert.equal(ge403.status, "ok");
+  assert.equal(ge403Late.status, "unsupported");
+  assert.equal(c1268.status, "ok");
+  assert.equal(sevcon.status, "ok");
+  assert.equal(sevconEarly.status, "unsupported");
+});
+
+test("GEM 2013 e-Series year bounds accept 2013 and reject 2014", () => {
+  const ok = yearCompatibility({
+    cartYear: "2013",
+    packYears: "2013 GEM e-Series e2 / e4 / e6 / eS / eL / eL XD (Service Manual 9924112, Chapter 5 Electrical)",
+    packName: "2013 e-Series",
+    packId: "gem-eseries-2013",
+    yearMin: 2013,
+    yearMax: 2013,
+  });
+  const late = yearCompatibility({
+    cartYear: "2014",
+    packYears: "2013 GEM e-Series e2 / e4 / e6 / eS / eL / eL XD (Service Manual 9924112, Chapter 5 Electrical)",
+    packName: "2013 e-Series",
+    packId: "gem-eseries-2013",
+    yearMin: 2013,
+    yearMax: 2013,
+  });
+  assert.equal(ok.status, "ok");
+  assert.equal(late.status, "unsupported");
+});
+
+test("EZ-GO 2Five year bounds accept 2012 and reject 2017", () => {
+  const ok = yearCompatibility({
+    cartYear: "2012",
+    packYears: "2010–2016 EZ-GO 2Five (Repair and Service Manual, Section K — after 1 February 2012 harness)",
+    packName: "2Five",
+    packId: "ezgo-2five",
+    yearMin: 2010,
+    yearMax: 2016,
+  });
+  const late = yearCompatibility({
+    cartYear: "2017",
+    packYears: "2010–2016 EZ-GO 2Five (Repair and Service Manual, Section K — after 1 February 2012 harness)",
+    packName: "2Five",
+    packId: "ezgo-2five",
+    yearMin: 2010,
+    yearMax: 2016,
+  });
+  assert.equal(ok.status, "ok");
+  assert.equal(late.status, "unsupported");
+});
+
+test("EZ-GO electric 1989–1994 year bounds accept 1992 and reject 1995", () => {
+  const ok = yearCompatibility({
+    cartYear: "1992",
+    packYears: "1989–1994 EZ-GO electric (Operation and Service Manual — resistor-coil Section K and solid-state Section N)",
+    packName: "Electric 1989–1994",
+    packId: "ezgo-electric-1989-1994",
+    yearMin: 1989,
+    yearMax: 1994,
+  });
+  const late = yearCompatibility({
+    cartYear: "1995",
+    packYears: "1989–1994 EZ-GO electric (Operation and Service Manual — resistor-coil Section K and solid-state Section N)",
+    packName: "Electric 1989–1994",
+    packId: "ezgo-electric-1989-1994",
+    yearMin: 1989,
+    yearMax: 1994,
+  });
+  assert.equal(ok.status, "ok");
+  assert.equal(late.status, "unsupported");
+});
+
+test("Carryall 295 / XRT1550 AWD year bounds accept 2010 and reject 2013", () => {
+  const ok = yearCompatibility({
+    cartYear: "2010",
+    packYears: "2008–2012 All-Wheel Drive Maintenance and Service Manual — Carryall 295 / XRT1550 Electrical",
+    packName: "Carryall 295 / XRT1550 AWD",
+    packId: "club-car-carryall-295",
+    yearMin: 2008,
+    yearMax: 2012,
+  });
+  const late = yearCompatibility({
+    cartYear: "2013",
+    packYears: "2008–2012 All-Wheel Drive Maintenance and Service Manual — Carryall 295 / XRT1550 Electrical",
+    packName: "Carryall 295 / XRT1550 AWD",
+    packId: "club-car-carryall-295",
+    yearMin: 2008,
+    yearMax: 2012,
+  });
+  assert.equal(ok.status, "ok");
+  assert.equal(late.status, "unsupported");
+});
+
+test("Tracker EViS 72 V year bounds accept 2020 and reject 2021", () => {
+  const ok = yearCompatibility({
+    cartYear: "2020",
+    packYears: "2020 Tracker EViS 72 V (Repair and Service Manual 10002660-C, Electrical)",
+    packName: "EViS 72 V",
+    packId: "tracker-evis-2020",
+    yearMin: 2020,
+    yearMax: 2020,
+  });
+  const late = yearCompatibility({
+    cartYear: "2021",
+    packYears: "2020 Tracker EViS 72 V (Repair and Service Manual 10002660-C, Electrical)",
+    packName: "EViS 72 V",
+    packId: "tracker-evis-2020",
+    yearMin: 2020,
+    yearMax: 2020,
+  });
+  assert.equal(ok.status, "ok");
+  assert.equal(late.status, "unsupported");
+});
+
 test("yearIssueLine rewrites an inverted 1991–1990 banner onto the field 1991–1996 string", () => {
   const inverted = {
     status: "unsupported" as const,

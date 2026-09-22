@@ -13,6 +13,7 @@ export const clubCarDsElectric = buildClubCarPd48({
     "The controller is the solid-state unit that pulses power to the motor. Multi-step pot (before serial A9529-445799): 300 / 690 / 990 / 1740 / 2740 / 4940 Ω. Full speed 4600–7000 Ω. Sweep pot: about 0–300 Ω rest → about 5500 Ω full, never over 7000 Ω.",
     "Half-speed reverse resistor: 3900 Ω ±10 % (multi-step) or 5100 Ω ±10 % (sweep). Warning light on below 48 V with no load, or under 25 % charge.",
     "Drain the controller before you unplug it: key ON, F&R Reverse, hold the pedal until the reverse buzzer stops.",
+    "2000 PowerDrive System 48 supplement plates are also on this pack (Figure 11-2 through 11-6): DS / Villager 4, Turf 1 / Carryall 1, Turf 2 / Carryall 2, Carryall 6 / TransPorter, and Villager 6 / 8. The 1995–96 pot plates stay first.",
   ],
   family: "pd48",
   controllerName: "PowerDrive System 48 controller",

@@ -13,6 +13,7 @@ export const clubCarDsPdPlus = buildClubCarPd48({
     "The solenoid is the main power switch. It sends big power to the motor. Regen puts power back in the pack when the cart computer (Z11 green) says the pack can take it. If not, the hill-brake solenoid opens and the energy-dump module burns the current.",
     "HPD if pot input is below 3 V when the key is turned ON. Solenoid coil is still 190–250 Ω with a diode and a 250 Ω pre-charge resistor. 3/8 A cart computer feed fuse.",
     "Z-plug: Z1 48 V, Z4 main solenoid, Z5 hill-brake solenoid, Z6 FWD white, Z7 REV blue, Z8 pot limit, Z9 yellow wiper, Z10 purple, Z11 regen, Z12 charger lockout, Z13/Z14 speed sensor.",
+    "2000 PowerDrive Plus supplement plates are also on this pack (Figure 11-1 through 11-9): full wiring schematic, 23-pin connector, Tow/Run, OBC, power, and charge. Use those when the cart is a 2000 Plus — the 1995–96 tree is the Z-plug book.",
   ],
   family: "pdplus",
   controllerName: "PowerDrive Plus controller (Z-plug)",

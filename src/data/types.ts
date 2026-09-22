@@ -1,4 +1,4 @@
-export type ManufacturerId = "club-car" | "ezgo" | "yamaha" | "star";
+export type ManufacturerId = "club-car" | "ezgo" | "yamaha" | "star" | "tomberlin" | "evolution" | "badboy" | "gem" | "tracker";
 export type WireKind = "power" | "control" | "ground";
 export type Side = "n" | "e" | "s" | "w";
 export type MeasurementKind = "voltage" | "resistance" | "continuity" | "observation";
