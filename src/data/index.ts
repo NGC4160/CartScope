@@ -10,6 +10,7 @@ import { clubCarPrecedent } from "@/data/packs/club-car-precedent";
 import { clubCarPrecedentEric } from "@/data/packs/club-car-precedent-eric";
 import { clubCarPrecedentExcel } from "@/data/packs/club-car-precedent-excel";
 import { clubCarPrecedentGas } from "@/data/packs/club-car-precedent-gas";
+import { clubCarCarryall295 } from "@/data/packs/club-car-carryall-295";
 import { clubCarTempoEric } from "@/data/packs/club-car-tempo-eric";
 import { clubCarTempoGas } from "@/data/packs/club-car-tempo-gas";
 import { clubCarVillagerGas } from "@/data/packs/club-car-villager-gas";
@@ -22,6 +23,7 @@ import { ezgoExpressS6 } from "@/data/packs/ezgo-express-s6";
 import { ezgoMarathonGas } from "@/data/packs/ezgo-marathon-gas";
 import { ezgoPds36 } from "@/data/packs/ezgo-pds-36";
 import { ezgoRxv } from "@/data/packs/ezgo-rxv";
+import { ezgoRxvGas } from "@/data/packs/ezgo-rxv-gas";
 import { ezgoTxt } from "@/data/packs/ezgo-txt";
 import { ezgoTxt36NonPds } from "@/data/packs/ezgo-txt-36-non-pds";
 import { ezgoTxtDcs } from "@/data/packs/ezgo-txt-dcs";
@@ -57,6 +59,7 @@ export const MODEL_PACKS: ModelPack[] = [
   clubCarDsGas,
   clubCarVillagerGas,
   clubCarPrecedentGas,
+  clubCarCarryall295,
   clubCarTempoGas,
   ezgoTxtDcs,
   ezgoElectric19891994,
@@ -64,6 +67,7 @@ export const MODEL_PACKS: ModelPack[] = [
   ezgoPds36,
   ezgoTxt,
   ezgoRxv,
+  ezgoRxvGas,
   ezgo2five,
   ezgoExpressS4,
   ezgoExpressL6,
@@ -92,12 +96,12 @@ export const MANUFACTURERS: { id: ManufacturerId; label: string; blurb: string }
   {
     id: "club-car",
     label: "Club Car",
-    blurb: "Older DS carts, Precedent, Tempo, and gas engines.",
+    blurb: "Older DS carts, Precedent, Tempo, Carryall 295 / XRT1550, and gas engines.",
   },
   {
     id: "ezgo",
     label: "EZ-GO",
-    blurb: "TXT, RXV, 2Five, Express S4 / L6 / S6, Marathon gas, and 1989–1994 electric carts.",
+    blurb: "TXT, RXV AC / gasoline, 2Five, Express S4 / L6 / S6, Marathon gas, and 1989–1994 electric carts.",
   },
   {
     id: "yamaha",

@@ -436,6 +436,27 @@ test("EZ-GO electric 1989–1994 year bounds accept 1992 and reject 1995", () =>
   assert.equal(late.status, "unsupported");
 });
 
+test("Carryall 295 / XRT1550 AWD year bounds accept 2010 and reject 2013", () => {
+  const ok = yearCompatibility({
+    cartYear: "2010",
+    packYears: "2008–2012 All-Wheel Drive Maintenance and Service Manual — Carryall 295 / XRT1550 Electrical",
+    packName: "Carryall 295 / XRT1550 AWD",
+    packId: "club-car-carryall-295",
+    yearMin: 2008,
+    yearMax: 2012,
+  });
+  const late = yearCompatibility({
+    cartYear: "2013",
+    packYears: "2008–2012 All-Wheel Drive Maintenance and Service Manual — Carryall 295 / XRT1550 Electrical",
+    packName: "Carryall 295 / XRT1550 AWD",
+    packId: "club-car-carryall-295",
+    yearMin: 2008,
+    yearMax: 2012,
+  });
+  assert.equal(ok.status, "ok");
+  assert.equal(late.status, "unsupported");
+});
+
 test("Tracker EViS 72 V year bounds accept 2020 and reject 2021", () => {
   const ok = yearCompatibility({
     cartYear: "2020",

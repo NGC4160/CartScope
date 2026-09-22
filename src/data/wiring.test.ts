@@ -174,15 +174,28 @@ const ERIC_BATCH6_IDS = [
   "prec17-eric-fig12-3",
   "prec17-eric-fig12-4",
 ];
+const ERIC_BATCH7_IDS = [
+  "prec15-eric-fig21-1",
+  "prec15-eric-fig21-2",
+  "prec15-eric-fig21-3",
+  "prec15-eric-fig21-4",
+  "prec15-eric-fig24-6",
+  "prec15-eric-fig24-7",
+];
 
 test("Precedent ERIC pack leads with 2014 ERIC plates, then 2017 ERIC Excel sheets, not the 2019 main harness", () => {
   const sheets = sheetsForPack("club-car-precedent-eric");
   const ids = sheets.map((s) => s.id);
-  assert.deepEqual(ids, [...ERIC_2014_SHEET_IDS, ...ERIC_2017_SHEET_IDS, ...ERIC_BATCH6_IDS]);
+  assert.deepEqual(ids, [
+    ...ERIC_2014_SHEET_IDS,
+    ...ERIC_2017_SHEET_IDS,
+    ...ERIC_BATCH6_IDS,
+    ...ERIC_BATCH7_IDS,
+  ]);
   assert.ok(!ids.includes("prec19-e-main"));
   assert.ok(!sheets.some((s) => s.title === "2019 Precedent electric — main wire bundle"));
 
-  for (const id of [...ERIC_2014_SHEET_IDS, ...ERIC_2017_SHEET_IDS, ...ERIC_BATCH6_IDS]) {
+  for (const id of [...ERIC_2014_SHEET_IDS, ...ERIC_2017_SHEET_IDS, ...ERIC_BATCH6_IDS, ...ERIC_BATCH7_IDS]) {
     const sheet = getSheet(id);
     assert.ok(sheet, id);
     assertPublicSrc(sheet.src);
@@ -1359,7 +1372,8 @@ test("Jesse-binder Batch 6 gap-fill plates land only on the matching existing pa
   assertPublicSrc(excelMcor.src);
 
   const eric = sheetsForPack("club-car-precedent-eric").map((s) => s.id);
-  assert.deepEqual(eric.slice(-ERIC_BATCH6_IDS.length), ERIC_BATCH6_IDS);
+  const ericB6 = eric.indexOf(ERIC_BATCH6_IDS[0]!);
+  assert.deepEqual(eric.slice(ericB6, ericB6 + ERIC_BATCH6_IDS.length), ERIC_BATCH6_IDS);
   const ericMain = getSheet("prec17-eric-fig12-1");
   assert.ok(ericMain);
   assert.equal(ericMain.title, "Figure 12-1 Wiring Diagram – Excel System with ERIC Charging");
@@ -1371,7 +1385,8 @@ test("Jesse-binder Batch 6 gap-fill plates land only on the matching existing pa
   assertPublicSrc(ericBatt.src);
 
   const gas = sheetsForPack("club-car-precedent-gas").map((s) => s.id);
-  assert.deepEqual(gas.slice(-PREC_GAS_BATCH6_IDS.length), PREC_GAS_BATCH6_IDS);
+  const gasB6 = gas.indexOf(PREC_GAS_BATCH6_IDS[0]!);
+  assert.deepEqual(gas.slice(gasB6, gasB6 + PREC_GAS_BATCH6_IDS.length), PREC_GAS_BATCH6_IDS);
   const efi = getSheet("prec17-gas-fig18-1");
   assert.ok(efi);
   assert.equal(efi.title, "Figure 18-1 Wiring Diagram for Precedent EFI Gasoline Vehicle");
@@ -1425,6 +1440,107 @@ test("Jesse-binder Batch 6 gap-fill plates land only on the matching existing pa
     const ids = sheetsForPack(packId).map((s) => s.id);
     for (const id of allBatch6) {
       const owner = Object.entries(batch6Only).find(([, list]) => list.includes(id))?.[0];
+      if (packId === owner) continue;
+      assert.ok(!ids.includes(id), `${packId} should not have ${id}`);
+    }
+  }
+});
+
+const PREC_GAS_BATCH7_IDS = [
+  "prec15-gas-fig13-1",
+  "prec15-gas-fig13-2",
+  "prec15-gas-fig13-3",
+  "prec15-gas-fig13-4",
+  "prec15-gas-fig13-5",
+  "prec15-gas-fig27-1",
+  "prec15-gas-fig27-2",
+  "prec15-gas-fig27-3",
+  "prec15-gas-fig27-4",
+];
+const CA295_IDS = [
+  "ca295-fig11-1",
+  "ca295-fig11-2",
+  "ca295-fig12-1",
+  "ca295-fig12-2",
+  "ca295-fig12-3",
+  "ca295-fig12-4",
+  "ca295-fig19-18",
+  "ca295-fig19-19",
+];
+const RXVGAS_IDS = ["rxvgas-fig10"];
+
+test("Jesse-binder Batch 7 gap-fill plates land only on the matching packs", () => {
+  const eric = sheetsForPack("club-car-precedent-eric").map((s) => s.id);
+  assert.deepEqual(eric.slice(-ERIC_BATCH7_IDS.length), ERIC_BATCH7_IDS);
+  const ericMain = getSheet("prec15-eric-fig21-1");
+  assert.ok(ericMain);
+  assert.equal(ericMain.title, "Figure 21-1 Wiring Diagram – Excel System with ERIC Charging");
+  assertPublicSrc(ericMain.src);
+  const charge = getSheet("prec15-eric-fig24-6");
+  assert.ok(charge);
+  assert.equal(charge.title, "Figure 24-6 Charge Circuit – External High-Frequency Charger");
+  assert.equal(charge.kind, "charge");
+  assertPublicSrc(charge.src);
+  assert.equal(getSheet("prec15-eric-fig21-5"), undefined);
+  assert.equal(getSheet("prec15-eric-fig21-7"), undefined);
+
+  const gas = sheetsForPack("club-car-precedent-gas").map((s) => s.id);
+  assert.deepEqual(gas.slice(-PREC_GAS_BATCH7_IDS.length), PREC_GAS_BATCH7_IDS);
+  const tps = getSheet("prec15-gas-fig13-1");
+  assert.ok(tps);
+  assert.equal(tps.title, "Figure 13-1 Wiring Diagram – Precedent Gasoline Vehicle with TPS");
+  assertPublicSrc(tps.src);
+  const efi = getSheet("prec15-gas-fig27-1");
+  assert.ok(efi);
+  assert.equal(efi.title, "Figure 27-1 Wiring Diagram for Precedent EFI Gasoline Vehicle");
+  assertPublicSrc(efi.src);
+
+  assertPackOnly("club-car-carryall-295", CA295_IDS);
+  const caFront = getSheet("ca295-fig11-1");
+  assert.ok(caFront);
+  assert.equal(caFront.title, "Figure 11-1 Wiring Diagram – Gasoline Utility Vehicles (Front)");
+  assert.match(caFront.manualRef, /2008-2012 All-Wheel Drive/);
+  assertPublicSrc(caFront.src);
+  const diesel = getSheet("ca295-fig12-1");
+  assert.ok(diesel);
+  assert.equal(diesel.title, "Figure 12-1 Wiring Diagram for Diesel Utility Vehicles (Front)");
+  assertPublicSrc(diesel.src);
+  const hyd = getSheet("ca295-fig19-18");
+  assert.ok(hyd);
+  assert.equal(hyd.title, "Figure 19-18 Wiring Diagram for Hydraulic Attachment System Vehicles (Front)");
+  assertPublicSrc(hyd.src);
+
+  assertPackOnly("ezgo-rxv-gas", RXVGAS_IDS);
+  const acc = getSheet("rxvgas-fig10");
+  assert.ok(acc);
+  assert.equal(acc.title, "Fig. 10 Accessory Wiring Diagram");
+  assert.equal(acc.kind, "accessory");
+  assertPublicSrc(acc.src);
+  assert.equal(getSheet("rxvgas-fig1"), undefined);
+
+  const batch7Only: Record<string, string[]> = {
+    "club-car-precedent-eric": ERIC_BATCH7_IDS,
+    "club-car-precedent-gas": PREC_GAS_BATCH7_IDS,
+    "club-car-carryall-295": CA295_IDS,
+    "ezgo-rxv-gas": RXVGAS_IDS,
+  };
+  const allBatch7 = Object.values(batch7Only).flat();
+  const titles = allBatch7.map((id) => {
+    const sheet = getSheet(id);
+    assert.ok(sheet, id);
+    return sheet.title;
+  });
+  assert.equal(new Set(titles).size, titles.length);
+  for (const packId of packsWithWiring()) {
+    for (const sheet of sheetsForPack(packId)) {
+      if (allBatch7.includes(sheet.id)) continue;
+      assert.ok(!titles.includes(sheet.title), `title collision: ${sheet.title}`);
+    }
+  }
+  for (const packId of packsWithWiring()) {
+    const ids = sheetsForPack(packId).map((s) => s.id);
+    for (const id of allBatch7) {
+      const owner = Object.entries(batch7Only).find(([, list]) => list.includes(id))?.[0];
       if (packId === owner) continue;
       assert.ok(!ids.includes(id), `${packId} should not have ${id}`);
     }

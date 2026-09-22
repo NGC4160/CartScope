@@ -2625,6 +2625,223 @@ export const WIRING_SHEETS: WiringSheet[] = [
     kind: "full",
     landscape: false,
   },
+  // Jesse-binder Batch 7 — Precedent 2015 / Carryall 295 AWD / RXV gasoline gap-fill
+  {
+    id: "prec15-gas-fig13-1",
+    title: "Figure 13-1 Wiring Diagram – Precedent Gasoline Vehicle with TPS",
+    manualRef:
+      "2015 Precedent Golf Car Maintenance and Service Manual, Figure 13-1 Wiring Diagram – Precedent Gasoline Vehicle with TPS, page 13-7 — Troubleshooting and Electrical System – Kaw. FE350",
+    src: "/wiring/prec15-gas-fig13-1.jpg",
+    kind: "full",
+    landscape: false,
+  },
+  {
+    id: "prec15-gas-fig13-2",
+    title: "Figure 13-2 Wiring Diagram – Precedent Gasoline Vehicle with TPS",
+    manualRef:
+      "2015 Precedent Golf Car Maintenance and Service Manual, Figure 13-2 Wiring Diagram – Precedent Gasoline Vehicle with TPS, page 13-8 — Troubleshooting and Electrical System – Kaw. FE350",
+    src: "/wiring/prec15-gas-fig13-2.jpg",
+    kind: "full",
+    landscape: false,
+  },
+  {
+    id: "prec15-gas-fig13-3",
+    title: "Figure 13-3 Precedent Gasoline Vehicle Accessory Wiring Diagram (Optional)",
+    manualRef:
+      "2015 Precedent Golf Car Maintenance and Service Manual, Figure 13-3 Precedent Gasoline Vehicle Accessory Wiring Diagram (Optional), page 13-9 — Troubleshooting and Electrical System – Kaw. FE350",
+    src: "/wiring/prec15-gas-fig13-3.jpg",
+    kind: "accessory",
+    landscape: false,
+  },
+  {
+    id: "prec15-gas-fig13-4",
+    title: "Figure 13-4 Precedent Gasoline Vehicle Accessory Wiring Diagram (Optional)",
+    manualRef:
+      "2015 Precedent Golf Car Maintenance and Service Manual, Figure 13-4 Precedent Gasoline Vehicle Accessory Wiring Diagram (Optional), page 13-10 — Troubleshooting and Electrical System – Kaw. FE350",
+    src: "/wiring/prec15-gas-fig13-4.jpg",
+    kind: "accessory",
+    landscape: false,
+  },
+  {
+    id: "prec15-gas-fig13-5",
+    title: "Figure 13-5 Precedent Gasoline Vehicle Instrument Panel Wiring Diagram",
+    manualRef:
+      "2015 Precedent Golf Car Maintenance and Service Manual, Figure 13-5 Precedent Gasoline Vehicle Instrument Panel Wiring Diagram, page 13-11 — Troubleshooting and Electrical System – Kaw. FE350",
+    src: "/wiring/prec15-gas-fig13-5.jpg",
+    kind: "harness",
+    landscape: false,
+  },
+  {
+    id: "prec15-eric-fig21-1",
+    title: "Figure 21-1 Wiring Diagram – Excel System with ERIC Charging",
+    manualRef:
+      "2015 Precedent Golf Car Maintenance and Service Manual, Figure 21-1 Wiring Diagram – Excel System with ERIC Charging, page 21-4 — Excel System Troubleshooting: with ERIC Charging",
+    src: "/wiring/prec15-eric-fig21-1.jpg",
+    kind: "full",
+    landscape: false,
+  },
+  {
+    id: "prec15-eric-fig21-2",
+    title: "Figure 21-2 Wiring Diagram – Excel System with ERIC Charging (Continued)",
+    manualRef:
+      "2015 Precedent Golf Car Maintenance and Service Manual, Figure 21-2 Wiring Diagram – Excel System with ERIC Charging (Continued), page 21-5 — Excel System Troubleshooting: with ERIC Charging",
+    src: "/wiring/prec15-eric-fig21-2.jpg",
+    kind: "full",
+    landscape: false,
+  },
+  {
+    id: "prec15-eric-fig21-3",
+    title: "Figure 21-3 Instrument Panel Wiring Diagram – Precedent with ERIC Charging",
+    manualRef:
+      "2015 Precedent Golf Car Maintenance and Service Manual, Figure 21-3 Instrument Panel Wiring Diagram – Precedent with ERIC Charging, page 21-6 — Excel System Troubleshooting: with ERIC Charging",
+    src: "/wiring/prec15-eric-fig21-3.jpg",
+    kind: "harness",
+    landscape: false,
+  },
+  {
+    id: "prec15-eric-fig21-4",
+    title: "Figure 21-4 Battery Wiring Diagram – Precedent with ERIC Charging",
+    manualRef:
+      "2015 Precedent Golf Car Maintenance and Service Manual, Figure 21-4 Battery Wiring Diagram – Precedent with ERIC Charging, page 21-7 — Excel System Troubleshooting: with ERIC Charging",
+    src: "/wiring/prec15-eric-fig21-4.jpg",
+    kind: "charge",
+    landscape: false,
+  },
+  {
+    id: "prec15-eric-fig24-6",
+    title: "Figure 24-6 Charge Circuit – External High-Frequency Charger",
+    manualRef:
+      "2015 Precedent Golf Car Maintenance and Service Manual, Figure 24-6 Charge Circuit – External High-Frequency Charger, page 24-8 — Battery Charger: for ERIC Charging System",
+    src: "/wiring/prec15-eric-fig24-6.jpg",
+    kind: "charge",
+    landscape: false,
+  },
+  {
+    id: "prec15-eric-fig24-7",
+    title: "Figure 24-7 Charge Circuit – Onboard High-Frequency Charger",
+    manualRef:
+      "2015 Precedent Golf Car Maintenance and Service Manual, Figure 24-7 Charge Circuit – Onboard High-Frequency Charger, page 24-9 — Battery Charger: for ERIC Charging System",
+    src: "/wiring/prec15-eric-fig24-7.jpg",
+    kind: "charge",
+    landscape: false,
+  },
+  {
+    id: "prec15-gas-fig27-1",
+    title: "Figure 27-1 Wiring Diagram for Precedent EFI Gasoline Vehicle",
+    manualRef:
+      "2015 Precedent Golf Car Maintenance and Service Manual, Figure 27-1 Wiring Diagram for Precedent EFI Gasoline Vehicle, page 27-8 — Troubleshooting and Electrical System – Subaru EX40",
+    src: "/wiring/prec15-gas-fig27-1.jpg",
+    kind: "full",
+    landscape: false,
+  },
+  {
+    id: "prec15-gas-fig27-2",
+    title: "Figure 27-2 Wiring Diagram for Precedent EFI Gasoline Vehicle – Continued",
+    manualRef:
+      "2015 Precedent Golf Car Maintenance and Service Manual, Figure 27-2 Wiring Diagram for Precedent EFI Gasoline Vehicle – Continued, page 27-9 — Troubleshooting and Electrical System – Subaru EX40",
+    src: "/wiring/prec15-gas-fig27-2.jpg",
+    kind: "full",
+    landscape: false,
+  },
+  {
+    id: "prec15-gas-fig27-3",
+    title: "Figure 27-3 Wiring Diagram – Instrument Panel",
+    manualRef:
+      "2015 Precedent Golf Car Maintenance and Service Manual, Figure 27-3 Wiring Diagram – Instrument Panel, page 27-10 — Troubleshooting and Electrical System – Subaru EX40",
+    src: "/wiring/prec15-gas-fig27-3.jpg",
+    kind: "harness",
+    landscape: false,
+  },
+  {
+    id: "prec15-gas-fig27-4",
+    title: "Figure 27-4 Wiring Diagram – EFI and Engine",
+    manualRef:
+      "2015 Precedent Golf Car Maintenance and Service Manual, Figure 27-4 Wiring Diagram – EFI and Engine, page 27-11 — Troubleshooting and Electrical System – Subaru EX40",
+    src: "/wiring/prec15-gas-fig27-4.jpg",
+    kind: "control",
+    landscape: false,
+  },
+  {
+    id: "ca295-fig11-1",
+    title: "Figure 11-1 Wiring Diagram – Gasoline Utility Vehicles (Front)",
+    manualRef:
+      "2008-2012 All-Wheel Drive Maintenance and Service Manual, Figure 11-1 Wiring Diagram – Gasoline Utility Vehicles (Front), page 11-8 — Troubleshooting and Electrical System: Gasoline Vehicles",
+    src: "/wiring/ca295-fig11-1.jpg",
+    kind: "full",
+    landscape: false,
+  },
+  {
+    id: "ca295-fig11-2",
+    title: "Figure 11-2 Wiring Diagram – Gasoline Utility Vehicles (Rear)",
+    manualRef:
+      "2008-2012 All-Wheel Drive Maintenance and Service Manual, Figure 11-2 Wiring Diagram – Gasoline Utility Vehicles (Rear), page 11-9 — Troubleshooting and Electrical System: Gasoline Vehicles",
+    src: "/wiring/ca295-fig11-2.jpg",
+    kind: "full",
+    landscape: false,
+  },
+  {
+    id: "ca295-fig12-1",
+    title: "Figure 12-1 Wiring Diagram for Diesel Utility Vehicles (Front)",
+    manualRef:
+      "2008-2012 All-Wheel Drive Maintenance and Service Manual, Figure 12-1 Wiring Diagram for Diesel Utility Vehicles (Front), page 12-8 — Troubleshooting and Electrical System: Diesel Vehicles",
+    src: "/wiring/ca295-fig12-1.jpg",
+    kind: "full",
+    landscape: false,
+  },
+  {
+    id: "ca295-fig12-2",
+    title: "Figure 12-2 Wiring Diagram for Diesel Utility Vehicles (Rear)",
+    manualRef:
+      "2008-2012 All-Wheel Drive Maintenance and Service Manual, Figure 12-2 Wiring Diagram for Diesel Utility Vehicles (Rear), page 12-9 — Troubleshooting and Electrical System: Diesel Vehicles",
+    src: "/wiring/ca295-fig12-2.jpg",
+    kind: "full",
+    landscape: false,
+  },
+  {
+    id: "ca295-fig12-3",
+    title: "Figure 12-3 Main Light Wiring Diagram – Carryall 295 Homologated Vehicle",
+    manualRef:
+      "2008-2012 All-Wheel Drive Maintenance and Service Manual, Figure 12-3 Main Light Wiring Diagram – Carryall 295 Homologated Vehicle, page 12-10 — Troubleshooting and Electrical System: Diesel Vehicles",
+    src: "/wiring/ca295-fig12-3.jpg",
+    kind: "accessory",
+    landscape: false,
+  },
+  {
+    id: "ca295-fig12-4",
+    title: "Figure 12-4 High Beam Wiring Diagram – Carryall 295 Homologated Vehicle",
+    manualRef:
+      "2008-2012 All-Wheel Drive Maintenance and Service Manual, Figure 12-4 High Beam Wiring Diagram – Carryall 295 Homologated Vehicle, page 12-11 — Troubleshooting and Electrical System: Diesel Vehicles",
+    src: "/wiring/ca295-fig12-4.jpg",
+    kind: "accessory",
+    landscape: false,
+  },
+  {
+    id: "ca295-fig19-18",
+    title: "Figure 19-18 Wiring Diagram for Hydraulic Attachment System Vehicles (Front)",
+    manualRef:
+      "2008-2012 All-Wheel Drive Maintenance and Service Manual, Figure 19-18 Wiring Diagram for Hydraulic Attachment System Vehicles (Front), page 19-8 — Hydraulic Attachment System",
+    src: "/wiring/ca295-fig19-18.jpg",
+    kind: "full",
+    landscape: false,
+  },
+  {
+    id: "ca295-fig19-19",
+    title: "Figure 19-19 Wiring Diagram for Hydraulic Attachment System Vehicles (Rear)",
+    manualRef:
+      "2008-2012 All-Wheel Drive Maintenance and Service Manual, Figure 19-19 Wiring Diagram for Hydraulic Attachment System Vehicles (Rear), page 19-9 — Hydraulic Attachment System",
+    src: "/wiring/ca295-fig19-19.jpg",
+    kind: "full",
+    landscape: false,
+  },
+  {
+    id: "rxvgas-fig10",
+    title: "Fig. 10 Accessory Wiring Diagram",
+    manualRef:
+      "EZ-GO RXV gasoline Repair and Service Manual, Electrical Section L, Fig. 10 Accessory Wiring Diagram, page L-11",
+    src: "/wiring/rxvgas-fig10-accessory.jpg",
+    kind: "accessory",
+    landscape: false,
+  },
 ];
 
 const BY_PACK: Record<string, string[]> = {
@@ -2691,6 +2908,12 @@ const BY_PACK: Record<string, string[]> = {
     "prec17-eric-fig12-2",
     "prec17-eric-fig12-3",
     "prec17-eric-fig12-4",
+    "prec15-eric-fig21-1",
+    "prec15-eric-fig21-2",
+    "prec15-eric-fig21-3",
+    "prec15-eric-fig21-4",
+    "prec15-eric-fig24-6",
+    "prec15-eric-fig24-7",
   ],
   "club-car-precedent-excel": [
     "prec14-excel-13-4",
@@ -2726,6 +2949,15 @@ const BY_PACK: Record<string, string[]> = {
     "prec17-gas-fig18-2",
     "prec17-gas-fig18-3",
     "prec17-gas-fig18-4",
+    "prec15-gas-fig13-1",
+    "prec15-gas-fig13-2",
+    "prec15-gas-fig13-3",
+    "prec15-gas-fig13-4",
+    "prec15-gas-fig13-5",
+    "prec15-gas-fig27-1",
+    "prec15-gas-fig27-2",
+    "prec15-gas-fig27-3",
+    "prec15-gas-fig27-4",
   ],
   "club-car-precedent-iq": [
     "iq-main",
@@ -2756,6 +2988,16 @@ const BY_PACK: Record<string, string[]> = {
     "prec19-e-main",
   ],
   "club-car-tempo-gas": ["tempo-kohler-engine", "tempo-kohler-main", "tempo-kohler-dash"],
+  "club-car-carryall-295": [
+    "ca295-fig11-1",
+    "ca295-fig11-2",
+    "ca295-fig12-1",
+    "ca295-fig12-2",
+    "ca295-fig12-3",
+    "ca295-fig12-4",
+    "ca295-fig19-18",
+    "ca295-fig19-19",
+  ],
   "club-car-villager-gas": ["ex40-main", "ex40-alt", "fe350-main", "fe350-accessories", "prec19-g-main"],
   "club-car-villager-iqplus": ["excel-main", "excel-accessories", "excel-sonic"],
   "ezgo-express-l6": [
@@ -2832,6 +3074,7 @@ const BY_PACK: Record<string, string[]> = {
     "txt36-nonpds-tree-8",
   ],
   "ezgo-rxv-ac": ["rxv-k1", "rxv-k2", "rxv-k3", "rxv-k4", "rxv-fig29", "rxv-fig30", "rxv-fig31", "rxv-fig32"],
+  "ezgo-rxv-gas": ["rxvgas-fig10"],
   "ezgo-txt-dcs": [
     "dcs-connector",
     "dcs-wiring",
