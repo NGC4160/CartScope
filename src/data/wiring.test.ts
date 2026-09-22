@@ -168,15 +168,21 @@ const ERIC_2014_SHEET_IDS = [
   "prec14-eric-tg2-p2",
 ];
 const ERIC_2017_SHEET_IDS = ["eric-main", "eric-instrument", "eric-batteries", "eric-lights"];
+const ERIC_BATCH6_IDS = [
+  "prec17-eric-fig12-1",
+  "prec17-eric-fig12-2",
+  "prec17-eric-fig12-3",
+  "prec17-eric-fig12-4",
+];
 
 test("Precedent ERIC pack leads with 2014 ERIC plates, then 2017 ERIC Excel sheets, not the 2019 main harness", () => {
   const sheets = sheetsForPack("club-car-precedent-eric");
   const ids = sheets.map((s) => s.id);
-  assert.deepEqual(ids, [...ERIC_2014_SHEET_IDS, ...ERIC_2017_SHEET_IDS]);
+  assert.deepEqual(ids, [...ERIC_2014_SHEET_IDS, ...ERIC_2017_SHEET_IDS, ...ERIC_BATCH6_IDS]);
   assert.ok(!ids.includes("prec19-e-main"));
   assert.ok(!sheets.some((s) => s.title === "2019 Precedent electric — main wire bundle"));
 
-  for (const id of [...ERIC_2014_SHEET_IDS, ...ERIC_2017_SHEET_IDS]) {
+  for (const id of [...ERIC_2014_SHEET_IDS, ...ERIC_2017_SHEET_IDS, ...ERIC_BATCH6_IDS]) {
     const sheet = getSheet(id);
     assert.ok(sheet, id);
     assertPublicSrc(sheet.src);
@@ -189,8 +195,30 @@ test("Precedent ERIC pack leads with 2014 ERIC plates, then 2017 ERIC Excel shee
 });
 
 const IQ_TG_SHEET_IDS = ["iq-tg1-p1", "iq-tg1-p2", "iq-tg1-p3", "iq-tg2-p1", "iq-tg2-p2"];
-const DS_IQ_SHEET_IDS = ["iq-main", ...IQ_TG_SHEET_IDS];
-const PRECEDENT_IQ_SHEET_IDS = ["iq-main", "iq-accessories", "iq-sonic", ...IQ_TG_SHEET_IDS];
+const DS_IQ_BATCH6_IDS = [
+  "ds2003-fig11-1",
+  "ds2003-fig11-2",
+  "ds2003-fig11-3",
+  "ds2003-fig11-4",
+  "ds2003-fig11-5",
+  "ds2003-fig11-6",
+];
+const PRECEDENT_IQ_BATCH6_IDS = [
+  "prec08-iq-fig11-1",
+  "prec08-iq-fig11-2",
+  "prec09-iq-tps-fig11-1",
+  "prec09-iq-tps-fig11-2",
+  "prec09-iq-mcor-fig12-1",
+  "prec09-iq-mcor-fig12-2",
+];
+const DS_IQ_SHEET_IDS = ["iq-main", ...IQ_TG_SHEET_IDS, ...DS_IQ_BATCH6_IDS];
+const PRECEDENT_IQ_SHEET_IDS = [
+  "iq-main",
+  "iq-accessories",
+  "iq-sonic",
+  ...IQ_TG_SHEET_IDS,
+  ...PRECEDENT_IQ_BATCH6_IDS,
+];
 const IQ_TG_MANUAL =
   "2006–2007 Precedent IQ System Electric Golf Car Maintenance and Service Manual";
 const IQ_WIRE_MAP_SHEETS: Array<{
@@ -315,12 +343,12 @@ test("DS IQ and Precedent IQ append Troubleshooting Guide 1 then Guide 2 with pr
 
   const dsIds = sheetsForPack("club-car-ds-iq").map((s) => s.id);
   assert.deepEqual(dsIds, DS_IQ_SHEET_IDS);
-  assert.deepEqual(dsIds.slice(1), IQ_TG_SHEET_IDS);
+  assert.deepEqual(dsIds.slice(1, 1 + IQ_TG_SHEET_IDS.length), IQ_TG_SHEET_IDS);
 
   const precIds = sheetsForPack("club-car-precedent-iq").map((s) => s.id);
   assert.deepEqual(precIds, PRECEDENT_IQ_SHEET_IDS);
   assert.deepEqual(precIds.slice(0, 3), ["iq-main", "iq-accessories", "iq-sonic"]);
-  assert.deepEqual(precIds.slice(3), IQ_TG_SHEET_IDS);
+  assert.deepEqual(precIds.slice(3, 3 + IQ_TG_SHEET_IDS.length), IQ_TG_SHEET_IDS);
 
   const foreignPacks = [
     "club-car-precedent-excel",
@@ -1219,7 +1247,7 @@ test("EZ-GO Batch 5 gap-fill plates land only on the matching existing packs", (
   assertPublicSrc(fig9.src);
 
   const gas = sheetsForPack("ezgo-txt-gas").map((s) => s.id);
-  assert.deepEqual(gas.slice(-3), EZGO_FLEET2014_IDS);
+  assert.deepEqual(gas.slice(4, 7), EZGO_FLEET2014_IDS);
   const fleet1 = getSheet("fleet2014-fig1");
   assert.ok(fleet1);
   assert.equal(fleet1.title, "Fig. 1 Electrical System Wiring Diagram");
@@ -1265,6 +1293,139 @@ test("EZ-GO Batch 5 gap-fill plates land only on the matching existing packs", (
       if (packId === "ezgo-txt-gas" && EZGO_FLEET2014_IDS.includes(id)) continue;
       if (packId === "ezgo-express-s4" && EZGO_S4_BATCH5_IDS.includes(id)) continue;
       if (packId === "ezgo-txt-dcs" && (id === "dcs-g21" || id === "dcs-l3" || id === "dcs-l4")) continue;
+      assert.ok(!ids.includes(id), `${packId} should not have ${id}`);
+    }
+  }
+});
+
+const PREC14_EXCEL_BATCH6_IDS = [
+  "prec08-excel-fig12-1",
+  "prec08-excel-fig12-2",
+  "prec09-excel-tps-fig13-4",
+  "prec09-excel-tps-fig13-5",
+  "prec09-excel-mcor-fig14-4",
+  "prec09-excel-mcor-fig14-5",
+];
+const PREC_GAS_BATCH6_IDS = [
+  "prec17-gas-fig18-1",
+  "prec17-gas-fig18-2",
+  "prec17-gas-fig18-3",
+  "prec17-gas-fig18-4",
+];
+
+test("Jesse-binder Batch 6 gap-fill plates land only on the matching existing packs", () => {
+  const ds = sheetsForPack("club-car-ds-iq").map((s) => s.id);
+  assert.deepEqual(ds.slice(-DS_IQ_BATCH6_IDS.length), DS_IQ_BATCH6_IDS);
+  const dsMain = getSheet("ds2003-fig11-6");
+  assert.ok(dsMain);
+  assert.equal(dsMain.title, "Figure 11-6 Wiring Diagram");
+  assert.equal(dsMain.kind, "full");
+  assert.equal(dsMain.landscape, false);
+  assertPublicSrc(dsMain.src);
+  const obc = getSheet("ds2003-fig11-1");
+  assert.ok(obc);
+  assert.equal(obc.title, "Figure 11-1 Onboard Computer Circuit");
+  assert.equal(obc.kind, "control");
+  assertPublicSrc(obc.src);
+
+  const precIq = sheetsForPack("club-car-precedent-iq").map((s) => s.id);
+  assert.deepEqual(precIq.slice(-PRECEDENT_IQ_BATCH6_IDS.length), PRECEDENT_IQ_BATCH6_IDS);
+  const iq08 = getSheet("prec08-iq-fig11-1");
+  assert.ok(iq08);
+  assert.equal(iq08.title, "Figure 11-1 Wiring Diagram – IQ System");
+  assertPublicSrc(iq08.src);
+  const iqTps = getSheet("prec09-iq-tps-fig11-1");
+  assert.ok(iqTps);
+  assert.equal(iqTps.title, "Figure 11-1 Wiring Diagram – IQ System with TPS");
+  assertPublicSrc(iqTps.src);
+  const iqMcor = getSheet("prec09-iq-mcor-fig12-1");
+  assert.ok(iqMcor);
+  assert.equal(iqMcor.title, "Figure 12-1 Wiring Diagram – IQ System with MCOR");
+  assertPublicSrc(iqMcor.src);
+
+  const excel = sheetsForPack("club-car-precedent-excel").map((s) => s.id);
+  assert.deepEqual(excel.slice(-PREC14_EXCEL_BATCH6_IDS.length), PREC14_EXCEL_BATCH6_IDS);
+  const excel08 = getSheet("prec08-excel-fig12-1");
+  assert.ok(excel08);
+  assert.equal(excel08.title, "Figure 12-1 Wiring Diagram – Excel System");
+  assertPublicSrc(excel08.src);
+  const excelTps = getSheet("prec09-excel-tps-fig13-4");
+  assert.ok(excelTps);
+  assert.equal(excelTps.title, "Figure 13-4 Wiring Diagram – Excel System with TPS");
+  assertPublicSrc(excelTps.src);
+  const excelMcor = getSheet("prec09-excel-mcor-fig14-4");
+  assert.ok(excelMcor);
+  assert.equal(excelMcor.title, "Figure 14-4 Wiring Diagram – Excel System with MCOR");
+  assertPublicSrc(excelMcor.src);
+
+  const eric = sheetsForPack("club-car-precedent-eric").map((s) => s.id);
+  assert.deepEqual(eric.slice(-ERIC_BATCH6_IDS.length), ERIC_BATCH6_IDS);
+  const ericMain = getSheet("prec17-eric-fig12-1");
+  assert.ok(ericMain);
+  assert.equal(ericMain.title, "Figure 12-1 Wiring Diagram – Excel System with ERIC Charging");
+  assertPublicSrc(ericMain.src);
+  const ericBatt = getSheet("prec17-eric-fig12-4");
+  assert.ok(ericBatt);
+  assert.equal(ericBatt.title, "Figure 12-4 Battery Wiring Diagram – Precedent with ERIC Charging");
+  assert.equal(ericBatt.kind, "charge");
+  assertPublicSrc(ericBatt.src);
+
+  const gas = sheetsForPack("club-car-precedent-gas").map((s) => s.id);
+  assert.deepEqual(gas.slice(-PREC_GAS_BATCH6_IDS.length), PREC_GAS_BATCH6_IDS);
+  const efi = getSheet("prec17-gas-fig18-1");
+  assert.ok(efi);
+  assert.equal(efi.title, "Figure 18-1 Wiring Diagram for Precedent EFI Gasoline Vehicle");
+  assertPublicSrc(efi.src);
+  const efiEng = getSheet("prec17-gas-fig18-4");
+  assert.ok(efiEng);
+  assert.equal(efiEng.title, "Figure 18-4 Wiring Diagram – EFI and Engine");
+  assertPublicSrc(efiEng.src);
+
+  const txtGas = sheetsForPack("ezgo-txt-gas").map((s) => s.id);
+  assert.equal(txtGas.at(-1), "ezgas-2007-fig9");
+  const acc = getSheet("ezgas-2007-fig9");
+  assert.ok(acc);
+  assert.equal(acc.title, "Fig. 9 Accessory Wiring Diagram");
+  assert.equal(acc.kind, "accessory");
+  assert.match(acc.manualRef, /605586/);
+  assertPublicSrc(acc.src);
+  assert.equal(getSheet("ezgas-2007-fig1"), undefined);
+
+  const marathon = sheetsForPack("ezgo-marathon-gas").map((s) => s.id);
+  assert.equal(marathon.at(-1), "marathon-fig-l1");
+  const l1 = getSheet("marathon-fig-l1");
+  assert.ok(l1);
+  assert.equal(l1.title, "FIG. L-1 ELECTRICAL SYSTEM WIRING DIAGRAM");
+  assertPublicSrc(l1.src);
+
+  const batch6Only: Record<string, string[]> = {
+    "club-car-ds-iq": DS_IQ_BATCH6_IDS,
+    "club-car-precedent-iq": PRECEDENT_IQ_BATCH6_IDS,
+    "club-car-precedent-excel": PREC14_EXCEL_BATCH6_IDS,
+    "club-car-precedent-eric": ERIC_BATCH6_IDS,
+    "club-car-precedent-gas": PREC_GAS_BATCH6_IDS,
+    "ezgo-txt-gas": ["ezgas-2007-fig9"],
+    "ezgo-marathon-gas": ["marathon-fig-l1"],
+  };
+  const allBatch6 = Object.values(batch6Only).flat();
+  const titles = allBatch6.map((id) => {
+    const sheet = getSheet(id);
+    assert.ok(sheet, id);
+    return sheet.title;
+  });
+  assert.equal(new Set(titles).size, titles.length);
+  for (const packId of packsWithWiring()) {
+    for (const sheet of sheetsForPack(packId)) {
+      if (allBatch6.includes(sheet.id)) continue;
+      assert.ok(!titles.includes(sheet.title), `title collision: ${sheet.title}`);
+    }
+  }
+
+  for (const packId of packsWithWiring()) {
+    const ids = sheetsForPack(packId).map((s) => s.id);
+    for (const id of allBatch6) {
+      const owner = Object.entries(batch6Only).find(([, list]) => list.includes(id))?.[0];
+      if (packId === owner) continue;
       assert.ok(!ids.includes(id), `${packId} should not have ${id}`);
     }
   }

@@ -2372,6 +2372,259 @@ export const WIRING_SHEETS: WiringSheet[] = [
     kind: "full",
     landscape: false,
   },
+  // Jesse-binder Batch 6 — Club Car DS 2003 / Precedent 2008–2011 / 2017 + EZ-GO gas gap-fill
+  {
+    id: "ds2003-fig11-1",
+    title: "Figure 11-1 Onboard Computer Circuit",
+    manualRef:
+      "2003 IQ System Electric Vehicle Maintenance and Service Supplement, Figure 11-1 Onboard Computer Circuit, page 11-3 — Electrical System and Testing",
+    src: "/wiring/ds2003-fig11-1-obc.jpg",
+    kind: "control",
+    landscape: false,
+  },
+  {
+    id: "ds2003-fig11-2",
+    title: "Figure 11-2 Solid State Speed Control Circuit",
+    manualRef:
+      "2003 IQ System Electric Vehicle Maintenance and Service Supplement, Figure 11-2 Solid State Speed Control Circuit, page 11-5 — Electrical System and Testing",
+    src: "/wiring/ds2003-fig11-2-speed.jpg",
+    kind: "control",
+    landscape: false,
+  },
+  {
+    id: "ds2003-fig11-3",
+    title: "Figure 11-3 Tow/Run Switch Circuit",
+    manualRef:
+      "2003 IQ System Electric Vehicle Maintenance and Service Supplement, Figure 11-3 Tow/Run Switch Circuit, page 11-7 — Electrical System and Testing",
+    src: "/wiring/ds2003-fig11-3-towrun.jpg",
+    kind: "control",
+    landscape: false,
+  },
+  {
+    id: "ds2003-fig11-4",
+    title: "Figure 11-4 Power Circuit",
+    manualRef:
+      "2003 IQ System Electric Vehicle Maintenance and Service Supplement, Figure 11-4 Power Circuit, page 11-8 — Electrical System and Testing",
+    src: "/wiring/ds2003-fig11-4-power.jpg",
+    kind: "power",
+    landscape: false,
+  },
+  {
+    id: "ds2003-fig11-5",
+    title: "Figure 11-5 Charge Circuit",
+    manualRef:
+      "2003 IQ System Electric Vehicle Maintenance and Service Supplement, Figure 11-5 Charge Circuit, page 11-9 — Electrical System and Testing",
+    src: "/wiring/ds2003-fig11-5-charge.jpg",
+    kind: "charge",
+    landscape: false,
+  },
+  {
+    id: "ds2003-fig11-6",
+    title: "Figure 11-6 Wiring Diagram",
+    manualRef:
+      "2003 IQ System Electric Vehicle Maintenance and Service Supplement, Figure 11-6 Wiring Diagram, page 11-10 — Electrical System and Testing",
+    src: "/wiring/ds2003-fig11-6-wiring.jpg",
+    kind: "full",
+    landscape: false,
+  },
+  {
+    id: "prec08-iq-fig11-1",
+    title: "Figure 11-1 Wiring Diagram – IQ System",
+    manualRef:
+      "2008 Electric Precedent Maintenance and Service Manual, Figure 11-1 Wiring Diagram – IQ System, page 11-2 — IQ System Troubleshooting",
+    src: "/wiring/prec08-iq-fig11-1.jpg",
+    kind: "full",
+    landscape: false,
+  },
+  {
+    id: "prec08-iq-fig11-2",
+    title: "Figure 11-2 Wiring Diagram – IQ System (Continued)",
+    manualRef:
+      "2008 Electric Precedent Maintenance and Service Manual, Figure 11-2 Wiring Diagram – IQ System (Continued), page 11-3 — IQ System Troubleshooting",
+    src: "/wiring/prec08-iq-fig11-2.jpg",
+    kind: "full",
+    landscape: false,
+  },
+  {
+    id: "prec08-excel-fig12-1",
+    title: "Figure 12-1 Wiring Diagram – Excel System",
+    manualRef:
+      "2008 Electric Precedent Maintenance and Service Manual, Figure 12-1 Wiring Diagram – Excel System, page 12-2 — Excel System Troubleshooting",
+    src: "/wiring/prec08-excel-fig12-1.jpg",
+    kind: "full",
+    landscape: false,
+  },
+  {
+    id: "prec08-excel-fig12-2",
+    title: "Figure 12-2 Wiring Diagram – Excel System (Continued)",
+    manualRef:
+      "2008 Electric Precedent Maintenance and Service Manual, Figure 12-2 Wiring Diagram – Excel System (Continued), page 12-3 — Excel System Troubleshooting",
+    src: "/wiring/prec08-excel-fig12-2.jpg",
+    kind: "full",
+    landscape: false,
+  },
+  {
+    id: "prec09-iq-tps-fig11-1",
+    title: "Figure 11-1 Wiring Diagram – IQ System with TPS",
+    manualRef:
+      "2009-2011 Electric Precedent Maintenance and Service Manual, Figure 11-1 Wiring Diagram – IQ System with TPS, page 11-2 — IQ System Troubleshooting – TPS",
+    src: "/wiring/prec09-iq-tps-fig11-1.jpg",
+    kind: "full",
+    landscape: false,
+  },
+  {
+    id: "prec09-iq-tps-fig11-2",
+    title: "Figure 11-2 Wiring Diagram – IQ System with TPS (Continued)",
+    manualRef:
+      "2009-2011 Electric Precedent Maintenance and Service Manual, Figure 11-2 Wiring Diagram – IQ System with TPS (Continued), page 11-3 — IQ System Troubleshooting – TPS",
+    src: "/wiring/prec09-iq-tps-fig11-2.jpg",
+    kind: "full",
+    landscape: false,
+  },
+  {
+    id: "prec09-iq-mcor-fig12-1",
+    title: "Figure 12-1 Wiring Diagram – IQ System with MCOR",
+    manualRef:
+      "2009-2011 Electric Precedent Maintenance and Service Manual, Figure 12-1 Wiring Diagram – IQ System with MCOR, page 12-2 — IQ System Troubleshooting – MCOR",
+    src: "/wiring/prec09-iq-mcor-fig12-1.jpg",
+    kind: "full",
+    landscape: false,
+  },
+  {
+    id: "prec09-iq-mcor-fig12-2",
+    title: "Figure 12-2 Wiring Diagram – IQ System with MCOR (Continued)",
+    manualRef:
+      "2009-2011 Electric Precedent Maintenance and Service Manual, Figure 12-2 Wiring Diagram – IQ System with MCOR (Continued), page 12-3 — IQ System Troubleshooting – MCOR",
+    src: "/wiring/prec09-iq-mcor-fig12-2.jpg",
+    kind: "full",
+    landscape: false,
+  },
+  {
+    id: "prec09-excel-tps-fig13-4",
+    title: "Figure 13-4 Wiring Diagram – Excel System with TPS",
+    manualRef:
+      "2009-2011 Electric Precedent Maintenance and Service Manual, Figure 13-4 Wiring Diagram – Excel System with TPS, page 13-6 — Excel System Troubleshooting – TPS",
+    src: "/wiring/prec09-excel-tps-fig13-4.jpg",
+    kind: "full",
+    landscape: false,
+  },
+  {
+    id: "prec09-excel-tps-fig13-5",
+    title: "Figure 13-5 Wiring Diagram – Excel System with TPS (Continued)",
+    manualRef:
+      "2009-2011 Electric Precedent Maintenance and Service Manual, Figure 13-5 Wiring Diagram – Excel System with TPS (Continued), page 13-7 — Excel System Troubleshooting – TPS",
+    src: "/wiring/prec09-excel-tps-fig13-5.jpg",
+    kind: "full",
+    landscape: false,
+  },
+  {
+    id: "prec09-excel-mcor-fig14-4",
+    title: "Figure 14-4 Wiring Diagram – Excel System with MCOR",
+    manualRef:
+      "2009-2011 Electric Precedent Maintenance and Service Manual, Figure 14-4 Wiring Diagram – Excel System with MCOR, page 14-6 — Excel System Troubleshooting – MCOR",
+    src: "/wiring/prec09-excel-mcor-fig14-4.jpg",
+    kind: "full",
+    landscape: false,
+  },
+  {
+    id: "prec09-excel-mcor-fig14-5",
+    title: "Figure 14-5 Wiring Diagram – Excel System with MCOR (Continued)",
+    manualRef:
+      "2009-2011 Electric Precedent Maintenance and Service Manual, Figure 14-5 Wiring Diagram – Excel System with MCOR (Continued), page 14-7 — Excel System Troubleshooting – MCOR",
+    src: "/wiring/prec09-excel-mcor-fig14-5.jpg",
+    kind: "full",
+    landscape: false,
+  },
+  {
+    id: "prec17-eric-fig12-1",
+    title: "Figure 12-1 Wiring Diagram – Excel System with ERIC Charging",
+    manualRef:
+      "2017 Precedent Golf Car Maintenance and Service Manual, Figure 12-1 Wiring Diagram – Excel System with ERIC Charging, page 12-4 — Excel System Troubleshooting: with ERIC Charging",
+    src: "/wiring/prec17-eric-fig12-1.jpg",
+    kind: "full",
+    landscape: false,
+  },
+  {
+    id: "prec17-eric-fig12-2",
+    title: "Figure 12-2 Wiring Diagram – Excel System with ERIC Charging (Continued)",
+    manualRef:
+      "2017 Precedent Golf Car Maintenance and Service Manual, Figure 12-2 Wiring Diagram – Excel System with ERIC Charging (Continued), page 12-5 — Excel System Troubleshooting: with ERIC Charging",
+    src: "/wiring/prec17-eric-fig12-2.jpg",
+    kind: "full",
+    landscape: false,
+  },
+  {
+    id: "prec17-eric-fig12-3",
+    title: "Figure 12-3 Instrument Panel Wiring Diagram – Precedent with ERIC Charging",
+    manualRef:
+      "2017 Precedent Golf Car Maintenance and Service Manual, Figure 12-3 Instrument Panel Wiring Diagram – Precedent with ERIC Charging, page 12-6 — Excel System Troubleshooting: with ERIC Charging",
+    src: "/wiring/prec17-eric-fig12-3.jpg",
+    kind: "harness",
+    landscape: false,
+  },
+  {
+    id: "prec17-eric-fig12-4",
+    title: "Figure 12-4 Battery Wiring Diagram – Precedent with ERIC Charging",
+    manualRef:
+      "2017 Precedent Golf Car Maintenance and Service Manual, Figure 12-4 Battery Wiring Diagram – Precedent with ERIC Charging, page 12-7 — Excel System Troubleshooting: with ERIC Charging",
+    src: "/wiring/prec17-eric-fig12-4.jpg",
+    kind: "charge",
+    landscape: false,
+  },
+  {
+    id: "prec17-gas-fig18-1",
+    title: "Figure 18-1 Wiring Diagram for Precedent EFI Gasoline Vehicle",
+    manualRef:
+      "2017 Precedent Golf Car Maintenance and Service Manual, Figure 18-1 Wiring Diagram for Precedent EFI Gasoline Vehicle, page 18-8 — Troubleshooting and Electrical System – Subaru EX40",
+    src: "/wiring/prec17-gas-fig18-1.jpg",
+    kind: "full",
+    landscape: false,
+  },
+  {
+    id: "prec17-gas-fig18-2",
+    title: "Figure 18-2 Wiring Diagram for Precedent EFI Gasoline Vehicle – Continued",
+    manualRef:
+      "2017 Precedent Golf Car Maintenance and Service Manual, Figure 18-2 Wiring Diagram for Precedent EFI Gasoline Vehicle – Continued, page 18-9 — Troubleshooting and Electrical System – Subaru EX40",
+    src: "/wiring/prec17-gas-fig18-2.jpg",
+    kind: "full",
+    landscape: false,
+  },
+  {
+    id: "prec17-gas-fig18-3",
+    title: "Figure 18-3 Wiring Diagram – Instrument Panel",
+    manualRef:
+      "2017 Precedent Golf Car Maintenance and Service Manual, Figure 18-3 Wiring Diagram – Instrument Panel, page 18-10 — Troubleshooting and Electrical System – Subaru EX40",
+    src: "/wiring/prec17-gas-fig18-3.jpg",
+    kind: "harness",
+    landscape: false,
+  },
+  {
+    id: "prec17-gas-fig18-4",
+    title: "Figure 18-4 Wiring Diagram – EFI and Engine",
+    manualRef:
+      "2017 Precedent Golf Car Maintenance and Service Manual, Figure 18-4 Wiring Diagram – EFI and Engine, page 18-11 — Troubleshooting and Electrical System – Subaru EX40",
+    src: "/wiring/prec17-gas-fig18-4.jpg",
+    kind: "control",
+    landscape: false,
+  },
+  {
+    id: "ezgas-2007-fig9",
+    title: "Fig. 9 Accessory Wiring Diagram",
+    manualRef:
+      "EZ-GO TXT gasoline Repair and Service Manual 605586 (2007), Electrical, Fig. 9 Accessory Wiring Diagram, page L-11",
+    src: "/wiring/ezgas-2007-fig9-accessory.jpg",
+    kind: "accessory",
+    landscape: false,
+  },
+  {
+    id: "marathon-fig-l1",
+    title: "FIG. L-1 ELECTRICAL SYSTEM WIRING DIAGRAM",
+    manualRef:
+      "EZ-GO Marathon 4-cycle Operation and Service Manual 27206-G01 (1991–1996), FIG. L-1 ELECTRICAL SYSTEM WIRING DIAGRAM, page L-2 — Electrical",
+    src: "/wiring/marathon-fig-l1-electrical.jpg",
+    kind: "full",
+    landscape: false,
+  },
 ];
 
 const BY_PACK: Record<string, string[]> = {
@@ -2386,7 +2639,20 @@ const BY_PACK: Record<string, string[]> = {
   ],
   "club-car-ds-fe290": ["fe350-main", "fe350-accessories", "dsgas-circuits", "dsgas-kill", "dsgas-oil"],
   "club-car-ds-gas": ["fe350-main", "fe350-accessories", "dsgas-circuits", "dsgas-kill", "dsgas-oil"],
-  "club-car-ds-iq": ["iq-main", "iq-tg1-p1", "iq-tg1-p2", "iq-tg1-p3", "iq-tg2-p1", "iq-tg2-p2"],
+  "club-car-ds-iq": [
+    "iq-main",
+    "iq-tg1-p1",
+    "iq-tg1-p2",
+    "iq-tg1-p3",
+    "iq-tg2-p1",
+    "iq-tg2-p2",
+    "ds2003-fig11-1",
+    "ds2003-fig11-2",
+    "ds2003-fig11-3",
+    "ds2003-fig11-4",
+    "ds2003-fig11-5",
+    "ds2003-fig11-6",
+  ],
   "club-car-ds-pdplus": [
     "pdplus-main",
     "pdplus-zplug",
@@ -2421,6 +2687,10 @@ const BY_PACK: Record<string, string[]> = {
     "eric-instrument",
     "eric-batteries",
     "eric-lights",
+    "prec17-eric-fig12-1",
+    "prec17-eric-fig12-2",
+    "prec17-eric-fig12-3",
+    "prec17-eric-fig12-4",
   ],
   "club-car-precedent-excel": [
     "prec14-excel-13-4",
@@ -2433,6 +2703,12 @@ const BY_PACK: Record<string, string[]> = {
     "excel-main",
     "excel-accessories",
     "excel-sonic",
+    "prec08-excel-fig12-1",
+    "prec08-excel-fig12-2",
+    "prec09-excel-tps-fig13-4",
+    "prec09-excel-tps-fig13-5",
+    "prec09-excel-mcor-fig14-4",
+    "prec09-excel-mcor-fig14-5",
   ],
   "club-car-precedent-gas": [
     "prec14-gas-19-1",
@@ -2446,6 +2722,10 @@ const BY_PACK: Record<string, string[]> = {
     "fe350-main",
     "fe350-accessories",
     "prec19-g-main",
+    "prec17-gas-fig18-1",
+    "prec17-gas-fig18-2",
+    "prec17-gas-fig18-3",
+    "prec17-gas-fig18-4",
   ],
   "club-car-precedent-iq": [
     "iq-main",
@@ -2456,6 +2736,12 @@ const BY_PACK: Record<string, string[]> = {
     "iq-tg1-p3",
     "iq-tg2-p1",
     "iq-tg2-p2",
+    "prec08-iq-fig11-1",
+    "prec08-iq-fig11-2",
+    "prec09-iq-tps-fig11-1",
+    "prec09-iq-tps-fig11-2",
+    "prec09-iq-mcor-fig12-1",
+    "prec09-iq-mcor-fig12-2",
   ],
   "club-car-tempo-eric": [
     "eric-main",
@@ -2515,6 +2801,7 @@ const BY_PACK: Record<string, string[]> = {
     "marathon-direction",
     "marathon-horn-g",
     "marathon-horn-e",
+    "marathon-fig-l1",
   ],
   "ezgo-pds-36": [
     "txt36-pds",
@@ -2561,6 +2848,7 @@ const BY_PACK: Record<string, string[]> = {
     "fleet2014-fig1",
     "fleet2014-fig10",
     "fleet2014-fig11",
+    "ezgas-2007-fig9",
   ],
   "ezgo-txt-tct": [
     "txt-electrical-1",
