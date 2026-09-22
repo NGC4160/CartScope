@@ -4,7 +4,7 @@ import type { Diagnosis, DiagnosticStep, ModelPack, SymptomDef } from "@/data/ty
 
 export interface AcDriveSpec {
   id: string;
-  manufacturer: "ezgo" | "yamaha" | "tomberlin" | "evolution" | "badboy";
+  manufacturer: "ezgo" | "yamaha" | "tomberlin" | "evolution" | "badboy" | "tracker";
   manufacturerLabel: string;
   name: string;
   fullName: string;

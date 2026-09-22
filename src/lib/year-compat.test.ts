@@ -394,6 +394,27 @@ test("GEM 2013 e-Series year bounds accept 2013 and reject 2014", () => {
   assert.equal(late.status, "unsupported");
 });
 
+test("Tracker EViS 72 V year bounds accept 2020 and reject 2021", () => {
+  const ok = yearCompatibility({
+    cartYear: "2020",
+    packYears: "2020 Tracker EViS 72 V (Repair and Service Manual 10002660-C, Electrical)",
+    packName: "EViS 72 V",
+    packId: "tracker-evis-2020",
+    yearMin: 2020,
+    yearMax: 2020,
+  });
+  const late = yearCompatibility({
+    cartYear: "2021",
+    packYears: "2020 Tracker EViS 72 V (Repair and Service Manual 10002660-C, Electrical)",
+    packName: "EViS 72 V",
+    packId: "tracker-evis-2020",
+    yearMin: 2020,
+    yearMax: 2020,
+  });
+  assert.equal(ok.status, "ok");
+  assert.equal(late.status, "unsupported");
+});
+
 test("yearIssueLine rewrites an inverted 1991–1990 banner onto the field 1991–1996 string", () => {
   const inverted = {
     status: "unsupported" as const,

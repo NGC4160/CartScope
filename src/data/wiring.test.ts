@@ -1115,3 +1115,42 @@ test("GEM 2013 e-Series pack uses printed 9924112 titles and stays isolated", ()
 
   assert.equal(getSheet("gem-2013-abbrev"), undefined);
 });
+
+const EVIS_2020_IDS = [
+  "evis-2020-fig2",
+  "evis-2020-fig3",
+  "evis-2020-fig4",
+  "evis-2020-fig9",
+  "evis-2020-fig1",
+  "evis-2020-fig19",
+];
+
+test("Tracker EViS 72 V 2020 pack uses printed 10002660-C titles and stays isolated", () => {
+  assertPackOnly("tracker-evis-2020", EVIS_2020_IDS);
+
+  const harness = getSheet("evis-2020-fig2");
+  assert.ok(harness);
+  assert.equal(harness.title, "Fig. 2 Main Harness Wiring Diagram");
+  assert.match(harness.manualRef, /10002660-C/);
+  assert.match(harness.manualRef, /44/);
+  assertPublicSrc(harness.src);
+
+  const sch = getSheet("evis-2020-fig3");
+  assert.ok(sch);
+  assert.equal(sch.title, "Fig. 3 Electrical Schematic");
+  assertPublicSrc(sch.src);
+
+  const sch2 = getSheet("evis-2020-fig4");
+  assert.ok(sch2);
+  assert.equal(sch2.title, "Fig. 4 Electrical Schematic (continued)");
+  assertPublicSrc(sch2.src);
+
+  const pins = getSheet("evis-2020-fig9");
+  assert.ok(pins);
+  assert.equal(pins.title, "Fig. 9 Front - Slave and Rear - Master");
+  assert.equal(pins.kind, "pinout");
+  assertPublicSrc(pins.src);
+
+  assert.equal(getSheet("evis-2020-fig5"), undefined);
+  assert.equal(getSheet("evis-800sx"), undefined);
+});

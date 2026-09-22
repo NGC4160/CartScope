@@ -39,6 +39,7 @@ import { badboyAmbushGas } from "@/data/packs/badboy-ambush-gas";
 import { badboyAmbushElectric } from "@/data/packs/badboy-ambush-electric";
 import { badboyRecoilIs } from "@/data/packs/badboy-recoil-is";
 import { gemEseries2013 } from "@/data/packs/gem-eseries-2013";
+import { trackerEvis2020 } from "@/data/packs/tracker-evis-2020";
 
 export const MODEL_PACKS: ModelPack[] = [
   clubCarDsVGlide,
@@ -80,6 +81,7 @@ export const MODEL_PACKS: ModelPack[] = [
   badboyAmbushElectric,
   badboyRecoilIs,
   gemEseries2013,
+  trackerEvis2020,
 ].map((p) => applyShopTermsToPack(p));
 
 export const MANUFACTURERS: { id: ManufacturerId; label: string; blurb: string }[] = [
@@ -122,6 +124,11 @@ export const MANUFACTURERS: { id: ManufacturerId; label: string; blurb: string }
     id: "gem",
     label: "GEM",
     blurb: "2013 e-Series e2 / e4 / e6 / eS / eL / eL XD.",
+  },
+  {
+    id: "tracker",
+    label: "Tracker",
+    blurb: "2020 EViS 72 V (dual Curtis 1236).",
   },
 ];
 
