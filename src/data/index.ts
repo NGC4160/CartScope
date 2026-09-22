@@ -15,6 +15,8 @@ import { clubCarTempoGas } from "@/data/packs/club-car-tempo-gas";
 import { clubCarVillagerGas } from "@/data/packs/club-car-villager-gas";
 import { clubCarVillagerIqPlus } from "@/data/packs/club-car-villager-iqplus";
 import { ezgoExpressL6 } from "@/data/packs/ezgo-express-l6";
+import { ezgo2five } from "@/data/packs/ezgo-2five";
+import { ezgoElectric19891994 } from "@/data/packs/ezgo-electric-1989-1994";
 import { ezgoExpressS4 } from "@/data/packs/ezgo-express-s4";
 import { ezgoExpressS6 } from "@/data/packs/ezgo-express-s6";
 import { ezgoMarathonGas } from "@/data/packs/ezgo-marathon-gas";
@@ -57,10 +59,12 @@ export const MODEL_PACKS: ModelPack[] = [
   clubCarPrecedentGas,
   clubCarTempoGas,
   ezgoTxtDcs,
+  ezgoElectric19891994,
   ezgoTxt36NonPds,
   ezgoPds36,
   ezgoTxt,
   ezgoRxv,
+  ezgo2five,
   ezgoExpressS4,
   ezgoExpressL6,
   ezgoExpressS6,
@@ -93,7 +97,7 @@ export const MANUFACTURERS: { id: ManufacturerId; label: string; blurb: string }
   {
     id: "ezgo",
     label: "EZ-GO",
-    blurb: "TXT, RXV, Express S4 / L6 / S6, and Marathon gas carts.",
+    blurb: "TXT, RXV, 2Five, Express S4 / L6 / S6, Marathon gas, and 1989–1994 electric carts.",
   },
   {
     id: "yamaha",

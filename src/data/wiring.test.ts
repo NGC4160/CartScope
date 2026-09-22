@@ -521,7 +521,7 @@ test("YDRE DC pack keeps the three wire maps, then Ch.9 flowchart / trees / Z-2 
 });
 
 const DCS_E6_ID = "dcs-e6-ten-pin-troubleshooting";
-const EZGO_TXT_DCS_SHEET_IDS = ["dcs-connector", "dcs-wiring", DCS_E6_ID];
+const EZGO_TXT_DCS_SHEET_IDS = ["dcs-connector", "dcs-wiring", DCS_E6_ID, "dcs-g21", "dcs-l3", "dcs-l4"];
 const DCS_WIRE_MAP_SHEETS: Array<{
   id: string;
   title: string;
@@ -1153,4 +1153,119 @@ test("Tracker EViS 72 V 2020 pack uses printed 10002660-C titles and stays isola
 
   assert.equal(getSheet("evis-2020-fig5"), undefined);
   assert.equal(getSheet("evis-800sx"), undefined);
+});
+
+const EZGO_2FIVE_IDS = ["2five-fig20", "2five-fig21"];
+const EZGO_EARLY_IDS = ["early-k1", "early-n1", "early-n9"];
+const EZGO_RXV_BATCH5_IDS = ["rxv-fig29", "rxv-fig30", "rxv-fig31", "rxv-fig32"];
+const EZGO_TXT48_BATCH5_IDS = ["txt48-fig8", "txt48-fig9"];
+const EZGO_FLEET2014_IDS = ["fleet2014-fig1", "fleet2014-fig10", "fleet2014-fig11"];
+const EZGO_S4_BATCH5_IDS = ["s4-fig7", "s4-fig8", "s4-fig9", "s4-fig10", "s4-fig11", "s4-fig15"];
+
+test("EZ-GO 2Five pack uses printed Section K titles and stays isolated", () => {
+  assertPackOnly("ezgo-2five", EZGO_2FIVE_IDS);
+
+  const main = getSheet("2five-fig20");
+  assert.ok(main);
+  assert.equal(main.title, "Fig. 20 Main Wiring Harness (AFTER 1 FEBRUARY 2012)");
+  assert.match(main.manualRef, /K-10/);
+  assertPublicSrc(main.src);
+
+  const acc = getSheet("2five-fig21");
+  assert.ok(acc);
+  assert.equal(acc.title, "Fig. 21 Accessory Wiring Harness");
+  assert.equal(acc.kind, "accessory");
+  assertPublicSrc(acc.src);
+
+  assert.equal(getSheet("2five-fig22"), undefined);
+});
+
+test("EZ-GO electric 1989–1994 pack uses printed K/N titles and stays isolated", () => {
+  assertPackOnly("ezgo-electric-1989-1994", EZGO_EARLY_IDS);
+
+  const k1 = getSheet("early-k1");
+  assert.ok(k1);
+  assert.equal(k1.title, "FIG. K-1 ELECTRIC VEHICLE WIRING DIAGRAM");
+  assert.match(k1.manualRef, /K-2/);
+  assertPublicSrc(k1.src);
+
+  const n1 = getSheet("early-n1");
+  assert.ok(n1);
+  assert.equal(n1.title, "FIG. N-1 CONTROL AND POWER CIRCUITS");
+  assertPublicSrc(n1.src);
+
+  const n9 = getSheet("early-n9");
+  assert.ok(n9);
+  assert.equal(n9.title, "FIG. N-9 WIRING DIAGRAM");
+  assertPublicSrc(n9.src);
+
+  assert.equal(getSheet("early-k9"), undefined);
+});
+
+test("EZ-GO Batch 5 gap-fill plates land only on the matching existing packs", () => {
+  const rxv = sheetsForPack("ezgo-rxv-ac").map((s) => s.id);
+  assert.deepEqual(rxv.slice(0, 4), ["rxv-k1", "rxv-k2", "rxv-k3", "rxv-k4"]);
+  assert.deepEqual(rxv.slice(4), EZGO_RXV_BATCH5_IDS);
+  const fig29 = getSheet("rxv-fig29");
+  assert.ok(fig29);
+  assert.equal(fig29.title, "Fig. 29 Main Wiring Harness Diagram (after 23 January 2012)");
+  assertPublicSrc(fig29.src);
+
+  const tct = sheetsForPack("ezgo-txt-tct").map((s) => s.id);
+  assert.deepEqual(tct.slice(-2), EZGO_TXT48_BATCH5_IDS);
+  const fig9 = getSheet("txt48-fig9");
+  assert.ok(fig9);
+  assert.equal(fig9.title, "Fig. 9 Controller Wiring Diagram");
+  assertPublicSrc(fig9.src);
+
+  const gas = sheetsForPack("ezgo-txt-gas").map((s) => s.id);
+  assert.deepEqual(gas.slice(-3), EZGO_FLEET2014_IDS);
+  const fleet1 = getSheet("fleet2014-fig1");
+  assert.ok(fleet1);
+  assert.equal(fleet1.title, "Fig. 1 Electrical System Wiring Diagram");
+  assert.match(fleet1.manualRef, /27481-G01/);
+  assertPublicSrc(fleet1.src);
+
+  const s4 = sheetsForPack("ezgo-express-s4").map((s) => s.id);
+  assert.deepEqual(s4.slice(-6), EZGO_S4_BATCH5_IDS);
+  const j1 = getSheet("s4-fig8");
+  assert.ok(j1);
+  assert.equal(j1.title, "Fig. 8 J-1 Pin Connector Diagnostics");
+  assert.equal(j1.kind, "pinout");
+  assertPublicSrc(j1.src);
+
+  const dcsG21 = getSheet("dcs-g21");
+  assert.ok(dcsG21);
+  assert.equal(dcsG21.title, "Fig. G-21 Wiring Diagram");
+  assert.equal(dcsG21.landscape, true);
+  assertPublicSrc(dcsG21.src);
+  const dcsL3 = getSheet("dcs-l3");
+  assert.ok(dcsL3);
+  assert.equal(dcsL3.title, "Fig. L-3 Powerwise™ Wiring Diagram");
+  assertPublicSrc(dcsL3.src);
+
+  const batch5Only = [
+    ...EZGO_2FIVE_IDS,
+    ...EZGO_EARLY_IDS,
+    ...EZGO_RXV_BATCH5_IDS,
+    ...EZGO_TXT48_BATCH5_IDS,
+    ...EZGO_FLEET2014_IDS,
+    ...EZGO_S4_BATCH5_IDS,
+    "dcs-g21",
+    "dcs-l3",
+    "dcs-l4",
+  ];
+  for (const packId of packsWithWiring()) {
+    const ids = sheetsForPack(packId).map((s) => s.id);
+    for (const id of batch5Only) {
+      if (packId === "ezgo-2five" && EZGO_2FIVE_IDS.includes(id)) continue;
+      if (packId === "ezgo-electric-1989-1994" && EZGO_EARLY_IDS.includes(id)) continue;
+      if (packId === "ezgo-rxv-ac" && EZGO_RXV_BATCH5_IDS.includes(id)) continue;
+      if (packId === "ezgo-txt-tct" && EZGO_TXT48_BATCH5_IDS.includes(id)) continue;
+      if (packId === "ezgo-txt-gas" && EZGO_FLEET2014_IDS.includes(id)) continue;
+      if (packId === "ezgo-express-s4" && EZGO_S4_BATCH5_IDS.includes(id)) continue;
+      if (packId === "ezgo-txt-dcs" && (id === "dcs-g21" || id === "dcs-l3" || id === "dcs-l4")) continue;
+      assert.ok(!ids.includes(id), `${packId} should not have ${id}`);
+    }
+  }
 });

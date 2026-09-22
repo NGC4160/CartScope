@@ -2168,6 +2168,210 @@ export const WIRING_SHEETS: WiringSheet[] = [
     kind: "pinout",
     landscape: false,
   },
+  // EZ-GO Batch 5 — Jesse binder gap-fill (2Five / RXV / TXT 48 V / 2014 Fleet / S4 / DCS / 1989–1994)
+  {
+    id: "2five-fig20",
+    title: "Fig. 20 Main Wiring Harness (AFTER 1 FEBRUARY 2012)",
+    manualRef:
+      "EZ-GO 2Five Repair and Service Manual, Electrical Components & Wiring, Fig. 20 Main Wiring Harness (AFTER 1 FEBRUARY 2012), page K-10",
+    src: "/wiring/2five-fig20-main-harness.jpg",
+    kind: "full",
+    landscape: false,
+  },
+  {
+    id: "2five-fig21",
+    title: "Fig. 21 Accessory Wiring Harness",
+    manualRef:
+      "EZ-GO 2Five Repair and Service Manual, Electrical Components & Wiring, Fig. 21 Accessory Wiring Harness, page K-11",
+    src: "/wiring/2five-fig21-accessory-harness.jpg",
+    kind: "accessory",
+    landscape: false,
+  },
+  {
+    id: "rxv-fig29",
+    title: "Fig. 29 Main Wiring Harness Diagram (after 23 January 2012)",
+    manualRef:
+      "RXV Electric Service Manual, Electrical Components & Wiring, Fig. 29 Main Wiring Harness Diagram (after 23 January 2012), page K-11",
+    src: "/wiring/rxv-fig29-main-harness-2012.jpg",
+    kind: "full",
+    landscape: false,
+  },
+  {
+    id: "rxv-fig30",
+    title: "Fig. 30 Main Wiring Harness Diagram (6 December 2009 through 23 January 2012)",
+    manualRef:
+      "RXV Electric Service Manual, Electrical Components & Wiring, Fig. 30 Main Wiring Harness Diagram (6 December 2009 through 23 January 2012), page K-12",
+    src: "/wiring/rxv-fig30-main-harness-2009-2012.jpg",
+    kind: "full",
+    landscape: false,
+  },
+  {
+    id: "rxv-fig31",
+    title: "Fig. 31 Main Wiring Diagram (before 5 December 2009)",
+    manualRef:
+      "RXV Electric Service Manual, Electrical Components & Wiring, Fig. 31 Main Wiring Diagram (before 5 December 2009), page K-13",
+    src: "/wiring/rxv-fig31-main-harness-2009.jpg",
+    kind: "full",
+    landscape: false,
+  },
+  {
+    id: "rxv-fig32",
+    title: "Fig. 32 Accessory Wiring Harness Diagram",
+    manualRef:
+      "RXV Electric Service Manual, Electrical Components & Wiring, Fig. 32 Accessory Wiring Harness Diagram, page K-14",
+    src: "/wiring/rxv-fig32-accessory-harness.jpg",
+    kind: "accessory",
+    landscape: false,
+  },
+  {
+    id: "txt48-fig8",
+    title: "Fig. 8 Controller Connectors and Connections",
+    manualRef:
+      "48 V TXT Service Manual, Electronic Speed Control — TCT, Fig. 8 Controller Connectors and Connections, page E-8",
+    src: "/wiring/txt48-fig8-controller-connectors.jpg",
+    kind: "pinout",
+    landscape: false,
+  },
+  {
+    id: "txt48-fig9",
+    title: "Fig. 9 Controller Wiring Diagram",
+    manualRef:
+      "48 V TXT Service Manual, Electronic Speed Control — TCT, Fig. 9 Controller Wiring Diagram, page E-9",
+    src: "/wiring/txt48-fig9-controller-wiring.jpg",
+    kind: "full",
+    landscape: false,
+  },
+  {
+    id: "fleet2014-fig1",
+    title: "Fig. 1 Electrical System Wiring Diagram",
+    manualRef:
+      "EZ-GO TXT Fleet gasoline Repair and Service Manual 27481-G01, Electrical, Fig. 1 Electrical System Wiring Diagram, page L-2",
+    src: "/wiring/fleet2014-fig1-electrical.jpg",
+    kind: "full",
+    landscape: false,
+  },
+  {
+    id: "fleet2014-fig10",
+    title: "Fig. 10 Accessory Wiring Diagram (EARLY PRODUCTION)",
+    manualRef:
+      "EZ-GO TXT Fleet gasoline Repair and Service Manual 27481-G01, Electrical, Fig. 10 Accessory Wiring Diagram (EARLY PRODUCTION), page L-10",
+    src: "/wiring/fleet2014-fig10-accessory-early.jpg",
+    kind: "accessory",
+    landscape: false,
+  },
+  {
+    id: "fleet2014-fig11",
+    title: "Fig. 11 Accessory Wiring Diagram (LATE PRODUCTION)",
+    manualRef:
+      "EZ-GO TXT Fleet gasoline Repair and Service Manual 27481-G01, Electrical, Fig. 11 Accessory Wiring Diagram (LATE PRODUCTION), page L-11",
+    src: "/wiring/fleet2014-fig11-accessory-late.jpg",
+    kind: "accessory",
+    landscape: false,
+  },
+  {
+    id: "s4-fig7",
+    title: "Fig. 7 48 Volt Fault Codes",
+    manualRef: "Express S4 High Output Service Manual 635085, Electronic Speed Control, Fig. 7 48 Volt Fault Codes, page 90",
+    src: "/wiring/s4-fig7-48v-fault-codes.jpg",
+    kind: "control",
+    landscape: false,
+  },
+  {
+    id: "s4-fig8",
+    title: "Fig. 8 J-1 Pin Connector Diagnostics",
+    manualRef:
+      "Express S4 High Output Service Manual 635085, Electronic Speed Control, Fig. 8 J-1 Pin Connector Diagnostics, page 91",
+    src: "/wiring/s4-fig8-j1-pins.jpg",
+    kind: "pinout",
+    landscape: false,
+  },
+  {
+    id: "s4-fig9",
+    title: "Fig. 9 J-1 Pin Connector Diagnostics (Continued)",
+    manualRef:
+      "Express S4 High Output Service Manual 635085, Electronic Speed Control, Fig. 9 J-1 Pin Connector Diagnostics (Continued), page 92",
+    src: "/wiring/s4-fig9-j1-pins-cont.jpg",
+    kind: "pinout",
+    landscape: false,
+  },
+  {
+    id: "s4-fig10",
+    title: "Fig. 10 J-2 Pin Connector Diagnostics",
+    manualRef:
+      "Express S4 High Output Service Manual 635085, Electronic Speed Control, Fig. 10 J-2 Pin Connector Diagnostics, page 93",
+    src: "/wiring/s4-fig10-j2-pins.jpg",
+    kind: "pinout",
+    landscape: false,
+  },
+  {
+    id: "s4-fig11",
+    title: "Fig. 11 Secondary Wiring Diagnostics",
+    manualRef:
+      "Express S4 High Output Service Manual 635085, Electronic Speed Control, Fig. 11 Secondary Wiring Diagnostics, page 94",
+    src: "/wiring/s4-fig11-secondary-wiring.jpg",
+    kind: "control",
+    landscape: false,
+  },
+  {
+    id: "s4-fig15",
+    title: "Fig. 15 Controller Wiring",
+    manualRef: "Express S4 High Output Service Manual 635085, Electronic Speed Control, Fig. 15 Controller Wiring, page 99",
+    src: "/wiring/s4-fig15-controller-wiring.jpg",
+    kind: "full",
+    landscape: false,
+  },
+  {
+    id: "dcs-g21",
+    title: "Fig. G-21 Wiring Diagram",
+    manualRef:
+      "TXT 96–01 DCS Service Manual (28407-G01), Fig. G-21 Wiring Diagram, page G-16 — Electronic Speed Control (4-pin / 1206)",
+    src: "/wiring/dcs-fig-g21-wiring.jpg",
+    kind: "full",
+    landscape: true,
+  },
+  {
+    id: "dcs-l3",
+    title: "Fig. L-3 Powerwise™ Wiring Diagram",
+    manualRef: "TXT 96–01 DCS Service Manual (28407-G01), Fig. L-3 Powerwise™ Wiring Diagram, page L-4 — Battery Charger",
+    src: "/wiring/dcs-fig-l3-powerwise.jpg",
+    kind: "charge",
+    landscape: false,
+  },
+  {
+    id: "dcs-l4",
+    title: "Fig. L-4 Powerwise™ + Wiring Diagram",
+    manualRef: "TXT 96–01 DCS Service Manual (28407-G01), Fig. L-4 Powerwise™ + Wiring Diagram, page L-5 — Battery Charger",
+    src: "/wiring/dcs-fig-l4-powerwise-plus.jpg",
+    kind: "charge",
+    landscape: false,
+  },
+  {
+    id: "early-k1",
+    title: "FIG. K-1 ELECTRIC VEHICLE WIRING DIAGRAM",
+    manualRef:
+      "EZ-GO Electric Operation and Service Manual (1989–1994), FIG. K-1 ELECTRIC VEHICLE WIRING DIAGRAM, page K-2 — Electrical, Resistor Coil Version",
+    src: "/wiring/early-fig-k1-resistor.jpg",
+    kind: "full",
+    landscape: false,
+  },
+  {
+    id: "early-n1",
+    title: "FIG. N-1 CONTROL AND POWER CIRCUITS",
+    manualRef:
+      "EZ-GO Electric Operation and Service Manual (1989–1994), FIG. N-1 CONTROL AND POWER CIRCUITS, page N-2 — Electrical, Solid State Speed Control Version",
+    src: "/wiring/early-fig-n1-solid-state.jpg",
+    kind: "full",
+    landscape: false,
+  },
+  {
+    id: "early-n9",
+    title: "FIG. N-9 WIRING DIAGRAM",
+    manualRef:
+      "EZ-GO Electric Operation and Service Manual (1989–1994), FIG. N-9 WIRING DIAGRAM, page N-16 — Electrical, Solid State Speed Control Version",
+    src: "/wiring/early-fig-n9-wiring.jpg",
+    kind: "full",
+    landscape: false,
+  },
 ];
 
 const BY_PACK: Record<string, string[]> = {
@@ -2279,7 +2483,21 @@ const BY_PACK: Record<string, string[]> = {
     "l6s6-l-fig5",
     "l6s6-l-fig6-7",
   ],
-  "ezgo-express-s4": ["txt-tct-esc", "s4-electrical-1", "s4-electrical-2", "s4-electrical-3", "s4-electrical-4"],
+  "ezgo-2five": ["2five-fig20", "2five-fig21"],
+  "ezgo-electric-1989-1994": ["early-k1", "early-n1", "early-n9"],
+  "ezgo-express-s4": [
+    "txt-tct-esc",
+    "s4-electrical-1",
+    "s4-electrical-2",
+    "s4-electrical-3",
+    "s4-electrical-4",
+    "s4-fig7",
+    "s4-fig8",
+    "s4-fig9",
+    "s4-fig10",
+    "s4-fig11",
+    "s4-fig15",
+  ],
   "ezgo-express-s6": [
     "l6s6-fig10",
     "l6s6-fig8-fig9",
@@ -2326,10 +2544,33 @@ const BY_PACK: Record<string, string[]> = {
     "txt36-nonpds-tree-7",
     "txt36-nonpds-tree-8",
   ],
-  "ezgo-rxv-ac": ["rxv-k1", "rxv-k2", "rxv-k3", "rxv-k4"],
-  "ezgo-txt-dcs": ["dcs-connector", "dcs-wiring", "dcs-e6-ten-pin-troubleshooting"],
-  "ezgo-txt-gas": ["ezgas-l2", "ezgas-l9", "ezgas-l10", "ezgas-l11"],
-  "ezgo-txt-tct": ["txt-electrical-1", "txt-electrical-2", "txt-electrical-3", "txt-electrical-4", "txt-tct-esc"],
+  "ezgo-rxv-ac": ["rxv-k1", "rxv-k2", "rxv-k3", "rxv-k4", "rxv-fig29", "rxv-fig30", "rxv-fig31", "rxv-fig32"],
+  "ezgo-txt-dcs": [
+    "dcs-connector",
+    "dcs-wiring",
+    "dcs-e6-ten-pin-troubleshooting",
+    "dcs-g21",
+    "dcs-l3",
+    "dcs-l4",
+  ],
+  "ezgo-txt-gas": [
+    "ezgas-l2",
+    "ezgas-l9",
+    "ezgas-l10",
+    "ezgas-l11",
+    "fleet2014-fig1",
+    "fleet2014-fig10",
+    "fleet2014-fig11",
+  ],
+  "ezgo-txt-tct": [
+    "txt-electrical-1",
+    "txt-electrical-2",
+    "txt-electrical-3",
+    "txt-electrical-4",
+    "txt-tct-esc",
+    "txt48-fig8",
+    "txt48-fig9",
+  ],
   "yamaha-ydra": ["ydra-carb", "ydra-efi", "ydra-efi-2"],
   "yamaha-ytf1": ["ytf1-wiring"],
   "tomberlin-emerge-ge403": ["emerge-ge403-2008", "emerge-0709-lighting"],

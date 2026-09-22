@@ -42,6 +42,7 @@ function stubPack(partial: Pick<ModelPack, "id" | "voltage"> & Partial<ModelPack
 const factory48 = stubPack({ id: "club-car-precedent-iq", voltage: 48, fullName: "Club Car Precedent IQ" });
 const factory36 = stubPack({ id: "ezgo-pds-36", voltage: 36, fullName: "EZ-GO PDS 36 V" });
 const factoryRxv = stubPack({ id: "ezgo-rxv-ac", voltage: 48, fullName: "EZ-GO RXV AC" });
+const factory2five = stubPack({ id: "ezgo-2five", voltage: 48, fullName: "EZ-GO 2Five AC LSV (72 V)" });
 
 test("factory book layout stays the default packLayout heuristic", () => {
   assert.deepEqual(packLayout(factory48), {
@@ -58,6 +59,11 @@ test("factory book layout stays the default packLayout heuristic", () => {
     count: 4,
     nominalV: 12,
     label: "Four 12 V batteries (48 V pack)",
+  });
+  assert.deepEqual(packLayout(factory2five), {
+    count: 6,
+    nominalV: 12,
+    label: "Six 12 V batteries (72 V pack)",
   });
   assert.deepEqual(resolveLeadAcidLayout(factory48, "factory-book"), packLayout(factory48));
   assert.deepEqual(resolveLeadAcidLayout(factory48, undefined), packLayout(factory48));

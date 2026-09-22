@@ -6,7 +6,7 @@ Step-by-step checks from the factory books: battery pack first, then codes (prog
 
 ## What it covers
 
-40 model packs: EZ-GO (TXT 48 V, TXT DCS, TXT gas, PDS 36, RXV, Marathon gas, Express S4 / L6 / S6), Club Car (DS electric / IQ / PD Plus / V-Glide / gas / FE290, Precedent IQ / Excel / ERIC / gas, Tempo ERIC / gas, Villager IQ Plus / gas), Yamaha (G29, YDRA, YDRE AC, YTF1), Star EV Sirius, Tomberlin EMerge (GE403 / Curtis 1268 / Sevcon Gen4), Evolution (AC Drive 1232SE / D5), Bad Boy (Curtis 1232E/SE, Ambush gas / electric, Recoil iS 72 V), GEM 2013 e-Series, Tracker EViS 72 V.
+42 model packs: EZ-GO (TXT 48 V, TXT DCS, TXT gas, PDS 36, RXV, 2Five, Marathon gas, Express S4 / L6 / S6, 1989–1994 electric), Club Car (DS electric / IQ / PD Plus / V-Glide / gas / FE290, Precedent IQ / Excel / ERIC / gas, Tempo ERIC / gas, Villager IQ Plus / gas), Yamaha (G29, YDRA, YDRE AC, YTF1), Star EV Sirius, Tomberlin EMerge (GE403 / Curtis 1268 / Sevcon Gen4), Evolution (AC Drive 1232SE / D5), Bad Boy (Curtis 1232E/SE, Ambush gas / electric, Recoil iS 72 V), GEM 2013 e-Series, Tracker EViS 72 V.
 
 - Wiring library and print sheets
 - AI helper (server-side; uses `XAI_API_KEY` if set)

@@ -394,6 +394,48 @@ test("GEM 2013 e-Series year bounds accept 2013 and reject 2014", () => {
   assert.equal(late.status, "unsupported");
 });
 
+test("EZ-GO 2Five year bounds accept 2012 and reject 2017", () => {
+  const ok = yearCompatibility({
+    cartYear: "2012",
+    packYears: "2010–2016 EZ-GO 2Five (Repair and Service Manual, Section K — after 1 February 2012 harness)",
+    packName: "2Five",
+    packId: "ezgo-2five",
+    yearMin: 2010,
+    yearMax: 2016,
+  });
+  const late = yearCompatibility({
+    cartYear: "2017",
+    packYears: "2010–2016 EZ-GO 2Five (Repair and Service Manual, Section K — after 1 February 2012 harness)",
+    packName: "2Five",
+    packId: "ezgo-2five",
+    yearMin: 2010,
+    yearMax: 2016,
+  });
+  assert.equal(ok.status, "ok");
+  assert.equal(late.status, "unsupported");
+});
+
+test("EZ-GO electric 1989–1994 year bounds accept 1992 and reject 1995", () => {
+  const ok = yearCompatibility({
+    cartYear: "1992",
+    packYears: "1989–1994 EZ-GO electric (Operation and Service Manual — resistor-coil Section K and solid-state Section N)",
+    packName: "Electric 1989–1994",
+    packId: "ezgo-electric-1989-1994",
+    yearMin: 1989,
+    yearMax: 1994,
+  });
+  const late = yearCompatibility({
+    cartYear: "1995",
+    packYears: "1989–1994 EZ-GO electric (Operation and Service Manual — resistor-coil Section K and solid-state Section N)",
+    packName: "Electric 1989–1994",
+    packId: "ezgo-electric-1989-1994",
+    yearMin: 1989,
+    yearMax: 1994,
+  });
+  assert.equal(ok.status, "ok");
+  assert.equal(late.status, "unsupported");
+});
+
 test("Tracker EViS 72 V year bounds accept 2020 and reject 2021", () => {
   const ok = yearCompatibility({
     cartYear: "2020",

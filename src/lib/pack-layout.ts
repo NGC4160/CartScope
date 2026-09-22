@@ -16,6 +16,9 @@ export function packLayout(pack: ModelPack): PackLayout {
   if (/four 12|4×12|4 x 12|4x12/i.test(blob) || pack.id === "ezgo-rxv-ac") {
     return { count: 4, nominalV: 12, label: "Four 12 V batteries (48 V pack)" };
   }
+  if (pack.id === "ezgo-2five") {
+    return { count: 6, nominalV: 12, label: "Six 12 V batteries (72 V pack)" };
+  }
   if (/six 6|6×6|6 x 6|6x6/i.test(blob) || pack.voltage === 36) {
     return { count: 6, nominalV: 6, label: "Six 6 V batteries (36 V pack)" };
   }
