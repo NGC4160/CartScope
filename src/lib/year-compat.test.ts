@@ -373,6 +373,27 @@ test("Tomberlin EMerge year bounds stay on the matching controller pack", () => 
   assert.equal(sevconEarly.status, "unsupported");
 });
 
+test("GEM 2013 e-Series year bounds accept 2013 and reject 2014", () => {
+  const ok = yearCompatibility({
+    cartYear: "2013",
+    packYears: "2013 GEM e-Series e2 / e4 / e6 / eS / eL / eL XD (Service Manual 9924112, Chapter 5 Electrical)",
+    packName: "2013 e-Series",
+    packId: "gem-eseries-2013",
+    yearMin: 2013,
+    yearMax: 2013,
+  });
+  const late = yearCompatibility({
+    cartYear: "2014",
+    packYears: "2013 GEM e-Series e2 / e4 / e6 / eS / eL / eL XD (Service Manual 9924112, Chapter 5 Electrical)",
+    packName: "2013 e-Series",
+    packId: "gem-eseries-2013",
+    yearMin: 2013,
+    yearMax: 2013,
+  });
+  assert.equal(ok.status, "ok");
+  assert.equal(late.status, "unsupported");
+});
+
 test("yearIssueLine rewrites an inverted 1991–1990 banner onto the field 1991–1996 string", () => {
   const inverted = {
     status: "unsupported" as const,

@@ -42,6 +42,7 @@ function makeToken(job: JobRecord, pack: ModelPack): string {
   if (/tomberlin/i.test(label) || pack.manufacturer === "tomberlin") return "Tomberlin";
   if (/evolution/i.test(label) || pack.manufacturer === "evolution") return "Evolution";
   if (/bad\s*boy/i.test(label) || pack.manufacturer === "badboy") return "BadBoy";
+  if (/gem/i.test(label) || pack.manufacturer === "gem") return "GEM";
   return fileToken(label, "Cart");
 }
 

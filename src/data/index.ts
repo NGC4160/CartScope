@@ -38,6 +38,7 @@ import { badboyCurtis1232e } from "@/data/packs/badboy-curtis-1232e";
 import { badboyAmbushGas } from "@/data/packs/badboy-ambush-gas";
 import { badboyAmbushElectric } from "@/data/packs/badboy-ambush-electric";
 import { badboyRecoilIs } from "@/data/packs/badboy-recoil-is";
+import { gemEseries2013 } from "@/data/packs/gem-eseries-2013";
 
 export const MODEL_PACKS: ModelPack[] = [
   clubCarDsVGlide,
@@ -78,6 +79,7 @@ export const MODEL_PACKS: ModelPack[] = [
   badboyAmbushGas,
   badboyAmbushElectric,
   badboyRecoilIs,
+  gemEseries2013,
 ].map((p) => applyShopTermsToPack(p));
 
 export const MANUFACTURERS: { id: ManufacturerId; label: string; blurb: string }[] = [
@@ -115,6 +117,11 @@ export const MANUFACTURERS: { id: ManufacturerId; label: string; blurb: string }
     id: "badboy",
     label: "Bad Boy",
     blurb: "Curtis 1232E/SE, Ambush gas / electric, and Recoil iS 72 V.",
+  },
+  {
+    id: "gem",
+    label: "GEM",
+    blurb: "2013 e-Series e2 / e4 / e6 / eS / eL / eL XD.",
   },
 ];
 

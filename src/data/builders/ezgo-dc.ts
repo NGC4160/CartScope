@@ -14,7 +14,7 @@ export interface EzgoDcSpec {
   architecture: string;
   diagramTitle: string;
   diagramNotes: string[];
-  voltage: 36 | 48;
+  voltage: 36 | 48 | 72;
   controllerName: string;
   controllerDesc: string;
   throttleName: string;
@@ -34,8 +34,49 @@ export interface EzgoDcSpec {
   towDesc?: string;
 }
 
+function voltageExamples(voltage: 36 | 48 | 72) {
+  if (voltage === 72) {
+    return {
+      chargeUp: "Going up, often 84 V+ while charging",
+      chargeMin: 75,
+      chargeMax: 95,
+      packHi: "73.2",
+      ksi: "72.8",
+      coil: "72.0",
+      l2: "72.4",
+      load: "68.5",
+      chg: "84.2",
+    };
+  }
+  if (voltage === 48) {
+    return {
+      chargeUp: "Going up, often 56 V+ while charging",
+      chargeMin: 50,
+      chargeMax: 70,
+      packHi: "50.1",
+      ksi: "48.8",
+      coil: "48.0",
+      l2: "48.4",
+      load: "46.5",
+      chg: "56.8",
+    };
+  }
+  return {
+    chargeUp: "Going up, often 42 V+ while charging",
+    chargeMin: 38,
+    chargeMax: 52,
+    packHi: "38.2",
+    ksi: "36.6",
+    coil: "36.4",
+    l2: "36.8",
+    load: "34.5",
+    chg: "43.5",
+  };
+}
+
 export function buildEzgoDc(spec: EzgoDcSpec): ModelPack {
   const M = spec.manualPrefix;
+  const vx = voltageExamples(spec.voltage);
   const { components, wires, testPoints } = dcPowerLayout({
     battery: {
       name: "Battery pack",
@@ -117,7 +158,7 @@ export function buildEzgoDc(spec: EzgoDcSpec): ModelPack {
       name: spec.computerName,
       description: spec.computerDesc,
       commonFailures: ["No wall power at the cord", "No DC coming out", "Error LED blink codes"],
-      expectedValues: [{ label: "Pack while charging", value: spec.voltage === 48 ? "Going up, often 56 V+ while charging" : "Going up, often 42 V+ while charging" }],
+      expectedValues: [{ label: "Pack while charging", value: vx.chargeUp }],
     },
     receptacle: {
       name: "Charger plug",
@@ -133,8 +174,8 @@ export function buildEzgoDc(spec: EzgoDcSpec): ModelPack {
     },
   });
 
-  const chargeMin = spec.voltage === 48 ? 50 : 38;
-  const chargeMax = spec.voltage === 48 ? 70 : 52;
+  const chargeMin = vx.chargeMin;
+  const chargeMax = vx.chargeMax;
 
   const steps: Record<string, DiagnosticStep> = {
     "tno-setup": obs(
@@ -162,7 +203,7 @@ export function buildEzgoDc(spec: EzgoDcSpec): ModelPack {
       spec.packRested.label,
       spec.packRested.min,
       spec.packRested.max,
-      spec.voltage === 48 ? "50.1" : "38.2",
+      vx.packHi,
       { kind: "step", id: "tno-click" },
       { kind: "diagnosis", id: "tdx-pack" },
     ),
@@ -195,7 +236,7 @@ export function buildEzgoDc(spec: EzgoDcSpec): ModelPack {
       "Pack voltage",
       spec.packRested.min - 1,
       spec.packRested.max,
-      spec.voltage === 48 ? "48.8" : "36.6",
+      vx.ksi,
       { kind: "step", id: "tno-its" },
       { kind: "diagnosis", id: "tdx-tow" },
     ),
@@ -244,7 +285,7 @@ export function buildEzgoDc(spec: EzgoDcSpec): ModelPack {
       "Pack voltage",
       spec.packRested.min - 2,
       spec.packRested.max,
-      spec.voltage === 48 ? "48.0" : "36.4",
+      vx.coil,
       { kind: "step", id: "tno-coil-r" },
       { kind: "diagnosis", id: "tdx-key-fr" },
     ),
@@ -274,7 +315,7 @@ export function buildEzgoDc(spec: EzgoDcSpec): ModelPack {
       "Within 0.5 V of pack",
       spec.packRested.min - 1,
       spec.packRested.max,
-      spec.voltage === 48 ? "48.4" : "36.8",
+      vx.l2,
       { kind: "step", id: "tno-motor" },
       { kind: "diagnosis", id: "tdx-solenoid-contacts" },
     ),
@@ -335,7 +376,7 @@ export function buildEzgoDc(spec: EzgoDcSpec): ModelPack {
       spec.packLoad.label,
       spec.packLoad.min,
       spec.packLoad.max,
-      spec.voltage === 48 ? "46.5" : "34.5",
+      vx.load,
       { kind: "diagnosis", id: "tdx-slow" },
       { kind: "diagnosis", id: "tdx-pack" },
       { caution: "Block the wheels." },
@@ -351,7 +392,7 @@ export function buildEzgoDc(spec: EzgoDcSpec): ModelPack {
       `≥ ${chargeMin} V and rising`,
       chargeMin,
       chargeMax,
-      spec.voltage === 48 ? "56.8" : "43.5",
+      vx.chg,
       { kind: "diagnosis", id: "tdx-charge-ok" },
       { kind: "diagnosis", id: "tdx-charger" },
     ),

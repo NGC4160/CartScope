@@ -1032,3 +1032,86 @@ test("Club Car DS 2000 plates fill gaps and keep 1995–96 titles on the same pa
     assert.ok(!sheetsForPack(packId).some((s) => DS2000_PD48_IDS.includes(s.id)), packId);
   }
 });
+
+const GEM_2013_IDS = [
+  "gem-2013-electrical-system",
+  "gem-2013-ts-ab",
+  "gem-2013-ts-c",
+  "gem-2013-battery",
+  "gem-2013-psdm",
+  "gem-2013-power-dist",
+  "gem-2013-charging",
+  "gem-2013-charging-e6",
+  "gem-2013-fast-charge",
+  "gem-2013-fast-charge-e6",
+  "gem-2013-park-brake",
+  "gem-2013-dcdc",
+  "gem-2013-contactor",
+  "gem-2013-contactor-e6",
+  "gem-2013-controller",
+  "gem-2013-display",
+  "gem-2013-display-2",
+  "gem-2013-display-3",
+  "gem-2013-horn",
+  "gem-2013-heater",
+  "gem-2013-dash-fan",
+  "gem-2013-light-bar",
+  "gem-2013-audio",
+  "gem-2013-front-lights",
+  "gem-2013-rear-lights",
+  "gem-2013-rear-lights-2",
+  "gem-2013-rear-except-ny",
+  "gem-2013-rear-ny",
+  "gem-2013-turn",
+  "gem-2013-wiper",
+  "gem-2013-conv-harn",
+  "gem-2013-conv-pins",
+  "gem-2013-hl-harn",
+  "gem-2013-hl-pins",
+  "gem-2013-front-harn",
+  "gem-2013-front-pins",
+  "gem-2013-ip-harn",
+  "gem-2013-ip-pins",
+  "gem-2013-ctrl-harn",
+  "gem-2013-ctrl-harn-2",
+  "gem-2013-ctrl-pins",
+  "gem-2013-main-harn",
+  "gem-2013-main-harn-2",
+  "gem-2013-main-pins",
+  "gem-2013-tail-harn",
+  "gem-2013-tail-pins",
+];
+
+test("GEM 2013 e-Series pack uses printed 9924112 titles and stays isolated", () => {
+  assertPackOnly("gem-eseries-2013", GEM_2013_IDS);
+
+  const block = getSheet("gem-2013-electrical-system");
+  assert.ok(block);
+  assert.equal(block.title, "ELECTRICAL SYSTEM");
+  assert.match(block.manualRef, /9924112/);
+  assert.match(block.manualRef, /5\.3/);
+  assertPublicSrc(block.src);
+
+  const ts = getSheet("gem-2013-ts-ab");
+  assert.ok(ts);
+  assert.equal(ts.title, "DRIVE AND POWER SYSTEM TROUBLESHOOTING DIAGRAMS");
+  assertPublicSrc(ts.src);
+
+  const ctrl = getSheet("gem-2013-controller");
+  assert.ok(ctrl);
+  assert.equal(ctrl.title, "MOTOR CONTROLLER SYSTEM");
+  assertPublicSrc(ctrl.src);
+
+  const e6 = getSheet("gem-2013-contactor-e6");
+  assert.ok(e6);
+  assert.match(e6.title, /e6/);
+  assert.match(e6.title, /eL XD/);
+  assertPublicSrc(e6.src);
+
+  const pins = getSheet("gem-2013-ctrl-pins");
+  assert.ok(pins);
+  assert.equal(pins.kind, "pinout");
+  assertPublicSrc(pins.src);
+
+  assert.equal(getSheet("gem-2013-abbrev"), undefined);
+});
