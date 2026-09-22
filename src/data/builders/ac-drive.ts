@@ -4,11 +4,13 @@ import type { Diagnosis, DiagnosticStep, ModelPack, SymptomDef } from "@/data/ty
 
 export interface AcDriveSpec {
   id: string;
-  manufacturer: "ezgo" | "yamaha";
+  manufacturer: "ezgo" | "yamaha" | "tomberlin" | "evolution" | "badboy";
   manufacturerLabel: string;
   name: string;
   fullName: string;
   years: string;
+  yearMin?: number;
+  yearMax?: number;
   architecture: string;
   diagramTitle: string;
   diagramNotes: string[];
@@ -400,6 +402,8 @@ export function buildAcDrive(spec: AcDriveSpec): ModelPack {
     powertrain: "electric",
     architecture: spec.architecture,
     years: spec.years,
+    yearMin: spec.yearMin,
+    yearMax: spec.yearMax,
     diagramTitle: spec.diagramTitle,
     diagramNotes: spec.diagramNotes,
     components,

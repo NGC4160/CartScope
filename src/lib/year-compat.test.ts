@@ -324,6 +324,55 @@ test("2014 electric Precedent matches Excel PowerDrive and ERIC, not IQ 2004–2
   assert.equal(check("club-car-precedent-iq", "Precedent IQ", iqYears, "2010").status, "ok");
 });
 
+test("Tomberlin EMerge year bounds stay on the matching controller pack", () => {
+  const ge403 = yearCompatibility({
+    cartYear: "2008",
+    packYears: "2007–2009 EMerge GE403 / GE4003",
+    packName: "EMerge GE403",
+    packId: "tomberlin-emerge-ge403",
+    yearMin: 2007,
+    yearMax: 2009,
+  });
+  const ge403Late = yearCompatibility({
+    cartYear: "2012",
+    packYears: "2007–2009 EMerge GE403 / GE4003",
+    packName: "EMerge GE403",
+    packId: "tomberlin-emerge-ge403",
+    yearMin: 2007,
+    yearMax: 2009,
+  });
+  const c1268 = yearCompatibility({
+    cartYear: "2012",
+    packYears: "2009–2014 EMerge Curtis 1268",
+    packName: "EMerge Curtis 1268",
+    packId: "tomberlin-emerge-curtis1268",
+    yearMin: 2009,
+    yearMax: 2014,
+  });
+  const sevcon = yearCompatibility({
+    cartYear: "2018",
+    packYears: "2015–2023 EMerge Sevcon Gen4",
+    packName: "EMerge Sevcon Gen4",
+    packId: "tomberlin-emerge-sevcon",
+    yearMin: 2015,
+    yearMax: 2023,
+  });
+  const sevconEarly = yearCompatibility({
+    cartYear: "2012",
+    packYears: "2015–2023 EMerge Sevcon Gen4",
+    packName: "EMerge Sevcon Gen4",
+    packId: "tomberlin-emerge-sevcon",
+    yearMin: 2015,
+    yearMax: 2023,
+  });
+
+  assert.equal(ge403.status, "ok");
+  assert.equal(ge403Late.status, "unsupported");
+  assert.equal(c1268.status, "ok");
+  assert.equal(sevcon.status, "ok");
+  assert.equal(sevconEarly.status, "unsupported");
+});
+
 test("yearIssueLine rewrites an inverted 1991–1990 banner onto the field 1991–1996 string", () => {
   const inverted = {
     status: "unsupported" as const,

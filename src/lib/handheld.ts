@@ -39,6 +39,9 @@ function makeToken(job: JobRecord, pack: ModelPack): string {
   if (/ez-?go/i.test(label) || pack.manufacturer === "ezgo") return "EZGO";
   if (/club/i.test(label) || pack.manufacturer === "club-car") return "ClubCar";
   if (/yamaha/i.test(label) || pack.manufacturer === "yamaha") return "Yamaha";
+  if (/tomberlin/i.test(label) || pack.manufacturer === "tomberlin") return "Tomberlin";
+  if (/evolution/i.test(label) || pack.manufacturer === "evolution") return "Evolution";
+  if (/bad\s*boy/i.test(label) || pack.manufacturer === "badboy") return "BadBoy";
   return fileToken(label, "Cart");
 }
 

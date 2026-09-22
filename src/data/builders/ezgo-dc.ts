@@ -9,6 +9,8 @@ export interface EzgoDcSpec {
   name: string;
   fullName: string;
   years: string;
+  yearMin?: number;
+  yearMax?: number;
   architecture: string;
   diagramTitle: string;
   diagramNotes: string[];
@@ -464,6 +466,8 @@ export function buildEzgoDc(spec: EzgoDcSpec): ModelPack {
     powertrain: "electric",
     architecture: spec.architecture,
     years: spec.years,
+    yearMin: spec.yearMin,
+    yearMax: spec.yearMax,
     diagramTitle: spec.diagramTitle,
     diagramNotes: spec.diagramNotes,
     components,

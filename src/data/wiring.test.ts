@@ -749,3 +749,153 @@ test("Star Sirius pack lists community Curtis 1243 chassis then factory Sirius b
   assert.ok(!packsWithWiring().includes("icon-revenge"));
   assert.ok(!packsWithWiring().includes("icon-gas"));
 });
+
+const EMERGE_GE403_IDS = ["emerge-ge403-2008", "emerge-0709-lighting"];
+const EMERGE_1268_IDS = [
+  "emerge-curtis1268-2009-2014",
+  "emerge-1011-control-9-7",
+  "emerge-1011-lighting-9-8",
+];
+const EMERGE_SEVCON_IDS = [
+  "emerge-sevcon-2015",
+  "emerge-sevcon-2016-2019",
+  "emerge-2018-se-9-7-1",
+  "emerge-2018-ssle-9-7-2",
+  "emerge-sevcon-2023",
+];
+const EVO_AC_IDS = ["evo-1232se-system", "evo-1232se-35pin", "evo-touchscreen"];
+const EVO_D5_IDS = [
+  "evo-d5-ac-system",
+  "evo-d5-comm",
+  "evo-d5-touch-panel",
+  "evo-d5-comm-sound",
+  "evo-d5-lithium-layout",
+  "evo-d5-lithium-circuit",
+];
+const BB_CURTIS_IDS = [
+  "bb-curtis-fig3",
+  "bb-curtis-35pin",
+  "bb-curtis-table2-p1",
+  "bb-curtis-table2-p2",
+  "bb-curtis-fig4",
+  "bb-curtis-fig5",
+  "bb-curtis-fig6",
+];
+
+function assertPackOnly(packId: string, ids: string[]) {
+  assert.deepEqual(sheetsForPack(packId).map((s) => s.id), ids);
+  for (const other of packsWithWiring()) {
+    if (other === packId) continue;
+    assert.ok(!sheetsForPack(other).some((s) => ids.includes(s.id)), other);
+  }
+}
+
+test("Tomberlin EMerge GE403 / Curtis 1268 / Sevcon packs use printed binder titles and stay isolated", () => {
+  assertPackOnly("tomberlin-emerge-ge403", EMERGE_GE403_IDS);
+  assertPackOnly("tomberlin-emerge-curtis1268", EMERGE_1268_IDS);
+  assertPackOnly("tomberlin-emerge-sevcon", EMERGE_SEVCON_IDS);
+
+  const ge403 = getSheet("emerge-ge403-2008");
+  assert.ok(ge403);
+  assert.match(ge403.title, /GE4003/);
+  assert.match(ge403.manualRef, /2008/);
+  assert.equal(ge403.landscape, false);
+  assertPublicSrc(ge403.src);
+
+  const lighting = getSheet("emerge-0709-lighting");
+  assert.ok(lighting);
+  assert.equal(lighting.title, "Lighting circuit");
+  assertPublicSrc(lighting.src);
+
+  const c1268 = getSheet("emerge-curtis1268-2009-2014");
+  assert.ok(c1268);
+  assert.match(c1268.title, /Curtis 1268/);
+  assert.equal(c1268.landscape, true);
+  assertPublicSrc(c1268.src);
+
+  const control = getSheet("emerge-1011-control-9-7");
+  assert.ok(control);
+  assert.equal(control.title, "Control circuit, MERGE 9-7");
+  assert.match(control.manualRef, /9-7/);
+  assertPublicSrc(control.src);
+
+  const se = getSheet("emerge-2018-se-9-7-1");
+  assert.ok(se);
+  assert.equal(se.title, "SE Schematic, 9-7-1");
+  assertPublicSrc(se.src);
+
+  const p75 = getSheet("emerge-sevcon-2023");
+  assert.ok(p75);
+  assert.match(p75.title, /page 75/);
+  assertPublicSrc(p75.src);
+});
+
+test("Evolution AC 1232SE and D5 packs use printed plate titles and stay isolated", () => {
+  assertPackOnly("evolution-ac", EVO_AC_IDS);
+  assertPackOnly("evolution-d5", EVO_D5_IDS);
+
+  const sys = getSheet("evo-1232se-system");
+  assert.ok(sys);
+  assert.equal(sys.title, "1232SE SYSTEM DIAGRAM");
+  assertPublicSrc(sys.src);
+
+  const pin = getSheet("evo-1232se-35pin");
+  assert.ok(pin);
+  assert.equal(pin.title, "35pins connector for AC controller");
+  assertPublicSrc(pin.src);
+
+  const ts = getSheet("evo-touchscreen");
+  assert.ok(ts);
+  assert.equal(ts.title, "TOUCHSCREEN WIRING DIAGRAM");
+  assert.equal(ts.landscape, true);
+  assertPublicSrc(ts.src);
+
+  const d5 = getSheet("evo-d5-ac-system");
+  assert.ok(d5);
+  assert.equal(d5.title, "AC SYSTEM DIAGRAM-V1.0");
+  assert.equal(d5.landscape, true);
+  assertPublicSrc(d5.src);
+
+  const lith = getSheet("evo-d5-lithium-circuit");
+  assert.ok(lith);
+  assert.equal(lith.title, "LITHIUM BATTERY PACK INTERNAL CIRCUIT DIAGRAM-V1.0");
+  assertPublicSrc(lith.src);
+
+  assert.equal(getSheet("evo-d5-light-kits"), undefined);
+});
+
+test("Yamaha YTF1 plate is a catalog gap fill and is not remapped onto YDRA/YDRE", () => {
+  assert.deepEqual(sheetsForPack("yamaha-ytf1").map((s) => s.id), ["ytf1-wiring"]);
+  const sheet = getSheet("ytf1-wiring");
+  assert.ok(sheet);
+  assert.equal(sheet.title, "YTF1 WIRING DIAGRAM");
+  assert.match(sheet.manualRef, /JW6 11-1 STANDARD/);
+  assertPublicSrc(sheet.src);
+
+  assert.ok(!sheetsForPack("yamaha-ydra").some((s) => s.id === "ytf1-wiring"));
+  assert.ok(!sheetsForPack("yamaha-ydre-ac").some((s) => s.id === "ytf1-wiring"));
+  assert.ok(!sheetsForPack("yamaha-ydre-dc").some((s) => s.id === "ytf1-wiring"));
+});
+
+test("Bad Boy Curtis 1232E pack lists Figure 3 / 35-pin / Table 2 / throttle figures only", () => {
+  assertPackOnly("badboy-curtis-1232e", BB_CURTIS_IDS);
+
+  const fig3 = getSheet("bb-curtis-fig3");
+  assert.ok(fig3);
+  assert.equal(fig3.title, "Figure 3: Basic Wiring Diagram");
+  assert.match(fig3.manualRef, /os 31/);
+  assertPublicSrc(fig3.src);
+
+  const table2 = getSheet("bb-curtis-table2-p1");
+  assert.ok(table2);
+  assert.equal(table2.title, "Table 2 Low Power Connections");
+  assertPublicSrc(table2.src);
+
+  const fig5 = getSheet("bb-curtis-fig5");
+  assert.ok(fig5);
+  assert.equal(fig5.title, "Figure 5: Wiring for Type 2 Throttles");
+  assertPublicSrc(fig5.src);
+
+  assert.ok(!packsWithWiring().includes("badboy-ambush"));
+  assert.ok(!packsWithWiring().includes("badboy-recoil"));
+});

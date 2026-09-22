@@ -28,6 +28,13 @@ import { yamahaG29 } from "@/data/packs/yamaha-g29";
 import { starSirius } from "@/data/packs/star-sirius";
 import { yamahaYdra } from "@/data/packs/yamaha-ydra";
 import { yamahaYdreAc } from "@/data/packs/yamaha-ydre-ac";
+import { yamahaYtf1 } from "@/data/packs/yamaha-ytf1";
+import { tomberlinEmergeGe403 } from "@/data/packs/tomberlin-emerge-ge403";
+import { tomberlinEmergeCurtis1268 } from "@/data/packs/tomberlin-emerge-curtis1268";
+import { tomberlinEmergeSevcon } from "@/data/packs/tomberlin-emerge-sevcon";
+import { evolutionAc } from "@/data/packs/evolution-ac";
+import { evolutionD5 } from "@/data/packs/evolution-d5";
+import { badboyCurtis1232e } from "@/data/packs/badboy-curtis-1232e";
 
 export const MODEL_PACKS: ModelPack[] = [
   clubCarDsVGlide,
@@ -57,7 +64,14 @@ export const MODEL_PACKS: ModelPack[] = [
   yamahaYdra,
   yamahaG29,
   yamahaYdreAc,
+  yamahaYtf1,
   starSirius,
+  tomberlinEmergeGe403,
+  tomberlinEmergeCurtis1268,
+  tomberlinEmergeSevcon,
+  evolutionAc,
+  evolutionD5,
+  badboyCurtis1232e,
 ].map((p) => applyShopTermsToPack(p));
 
 export const MANUFACTURERS: { id: ManufacturerId; label: string; blurb: string }[] = [
@@ -74,12 +88,27 @@ export const MANUFACTURERS: { id: ManufacturerId; label: string; blurb: string }
   {
     id: "yamaha",
     label: "Yamaha",
-    blurb: "Drive / G29 gas and electric carts.",
+    blurb: "Drive / G29 gas and electric carts, plus YTF1.",
   },
   {
     id: "star",
     label: "Star EV",
     blurb: "Sirius body electrical and Star chassis (Curtis 1243).",
+  },
+  {
+    id: "tomberlin",
+    label: "Tomberlin",
+    blurb: "EMerge GE403, Curtis 1268, and Sevcon Gen4.",
+  },
+  {
+    id: "evolution",
+    label: "Evolution",
+    blurb: "AC Drive 1232SE and D5 lithium AC system.",
+  },
+  {
+    id: "badboy",
+    label: "Bad Boy",
+    blurb: "Curtis 1232E/SE controller plates (Ambush / Recoil later).",
   },
 ];
 
