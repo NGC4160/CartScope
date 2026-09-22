@@ -182,6 +182,14 @@ const ERIC_BATCH7_IDS = [
   "prec15-eric-fig24-6",
   "prec15-eric-fig24-7",
 ];
+const ERIC_BATCH8_IDS = [
+  "prec19-batt-fig12-1",
+  "prec19-eric-main",
+  "prec19-eric-dash",
+  "prec19-eric-dcdc",
+  "prec19-eric-iplight",
+  "prec19-eric-light",
+];
 
 test("Precedent ERIC pack leads with 2014 ERIC plates, then 2017 ERIC Excel sheets, not the 2019 main harness", () => {
   const sheets = sheetsForPack("club-car-precedent-eric");
@@ -191,11 +199,18 @@ test("Precedent ERIC pack leads with 2014 ERIC plates, then 2017 ERIC Excel shee
     ...ERIC_2017_SHEET_IDS,
     ...ERIC_BATCH6_IDS,
     ...ERIC_BATCH7_IDS,
+    ...ERIC_BATCH8_IDS,
   ]);
   assert.ok(!ids.includes("prec19-e-main"));
   assert.ok(!sheets.some((s) => s.title === "2019 Precedent electric — main wire bundle"));
 
-  for (const id of [...ERIC_2014_SHEET_IDS, ...ERIC_2017_SHEET_IDS, ...ERIC_BATCH6_IDS, ...ERIC_BATCH7_IDS]) {
+  for (const id of [
+    ...ERIC_2014_SHEET_IDS,
+    ...ERIC_2017_SHEET_IDS,
+    ...ERIC_BATCH6_IDS,
+    ...ERIC_BATCH7_IDS,
+    ...ERIC_BATCH8_IDS,
+  ]) {
     const sheet = getSheet(id);
     assert.ok(sheet, id);
     assertPublicSrc(sheet.src);
@@ -1471,7 +1486,8 @@ const RXVGAS_IDS = ["rxvgas-fig10"];
 
 test("Jesse-binder Batch 7 gap-fill plates land only on the matching packs", () => {
   const eric = sheetsForPack("club-car-precedent-eric").map((s) => s.id);
-  assert.deepEqual(eric.slice(-ERIC_BATCH7_IDS.length), ERIC_BATCH7_IDS);
+  const ericB7 = eric.indexOf(ERIC_BATCH7_IDS[0]!);
+  assert.deepEqual(eric.slice(ericB7, ericB7 + ERIC_BATCH7_IDS.length), ERIC_BATCH7_IDS);
   const ericMain = getSheet("prec15-eric-fig21-1");
   assert.ok(ericMain);
   assert.equal(ericMain.title, "Figure 21-1 Wiring Diagram – Excel System with ERIC Charging");
@@ -1485,7 +1501,8 @@ test("Jesse-binder Batch 7 gap-fill plates land only on the matching packs", () 
   assert.equal(getSheet("prec15-eric-fig21-7"), undefined);
 
   const gas = sheetsForPack("club-car-precedent-gas").map((s) => s.id);
-  assert.deepEqual(gas.slice(-PREC_GAS_BATCH7_IDS.length), PREC_GAS_BATCH7_IDS);
+  const gasB7 = gas.indexOf(PREC_GAS_BATCH7_IDS[0]!);
+  assert.deepEqual(gas.slice(gasB7, gasB7 + PREC_GAS_BATCH7_IDS.length), PREC_GAS_BATCH7_IDS);
   const tps = getSheet("prec15-gas-fig13-1");
   assert.ok(tps);
   assert.equal(tps.title, "Figure 13-1 Wiring Diagram – Precedent Gasoline Vehicle with TPS");
@@ -1541,6 +1558,100 @@ test("Jesse-binder Batch 7 gap-fill plates land only on the matching packs", () 
     const ids = sheetsForPack(packId).map((s) => s.id);
     for (const id of allBatch7) {
       const owner = Object.entries(batch7Only).find(([, list]) => list.includes(id))?.[0];
+      if (packId === owner) continue;
+      assert.ok(!ids.includes(id), `${packId} should not have ${id}`);
+    }
+  }
+});
+
+const PREC_GAS_BATCH8_IDS = [
+  "prec19-gas-eng",
+  "prec19-gas-main",
+  "prec19-gas-ip",
+  "prec19-gas-iplight",
+  "tempo21-ex40-main",
+  "tempo21-ex40-dash",
+  "tempo21-ex40-eng",
+];
+const TEMPO_ERIC_BATCH8_IDS = [
+  "tempo21-batt-fig12-2",
+  "tempo21-e-2p",
+  "tempo21-e-4p",
+  "tempo21-e-lighting",
+];
+const TEMPO_GAS_BATCH8_IDS = ["tempo21-kohler-eng", "tempo21-kohler-main", "tempo21-kohler-ip"];
+
+test("Jesse-binder Batch 8 gap-fill plates land only on the matching packs", () => {
+  const eric = sheetsForPack("club-car-precedent-eric").map((s) => s.id);
+  assert.deepEqual(eric.slice(-ERIC_BATCH8_IDS.length), ERIC_BATCH8_IDS);
+  const batt = getSheet("prec19-batt-fig12-1");
+  assert.ok(batt);
+  assert.equal(batt.title, "Figure 12-1 Battery Wiring Diagram");
+  assert.equal(batt.kind, "charge");
+  assertPublicSrc(batt.src);
+  const eMain = getSheet("prec19-eric-main");
+  assert.ok(eMain);
+  assert.equal(eMain.title, "Electric: Main Harness");
+  assert.equal(eMain.landscape, true);
+  assertPublicSrc(eMain.src);
+  assert.equal(getSheet("prec19-eric-fig15-6"), undefined);
+  assert.equal(getSheet("prec19-sonic-fig12-2"), undefined);
+
+  const gas = sheetsForPack("club-car-precedent-gas").map((s) => s.id);
+  assert.deepEqual(gas.slice(-PREC_GAS_BATCH8_IDS.length), PREC_GAS_BATCH8_IDS);
+  const gMain = getSheet("prec19-gas-main");
+  assert.ok(gMain);
+  assert.equal(gMain.title, "Gasoline: Main Harness");
+  assertPublicSrc(gMain.src);
+  const ex40 = getSheet("tempo21-ex40-main");
+  assert.ok(ex40);
+  assert.equal(ex40.title, "Subaru EX-40: Main Harness");
+  assertPublicSrc(ex40.src);
+
+  const tempoEric = sheetsForPack("club-car-tempo-eric").map((s) => s.id);
+  assert.deepEqual(tempoEric.slice(-TEMPO_ERIC_BATCH8_IDS.length), TEMPO_ERIC_BATCH8_IDS);
+  const tBatt = getSheet("tempo21-batt-fig12-2");
+  assert.ok(tBatt);
+  assert.equal(tBatt.title, "Figure 12-2 Battery Wiring Diagram");
+  assertPublicSrc(tBatt.src);
+  const twoP = getSheet("tempo21-e-2p");
+  assert.ok(twoP);
+  assert.equal(twoP.title, "Electric: Two Passenger Main Harness");
+  assertPublicSrc(twoP.src);
+  assert.equal(getSheet("tempo21-e-dash"), undefined);
+  assert.equal(getSheet("tempo21-e-iplight"), undefined);
+
+  const tempoGas = sheetsForPack("club-car-tempo-gas").map((s) => s.id);
+  assert.deepEqual(tempoGas.slice(-TEMPO_GAS_BATCH8_IDS.length), TEMPO_GAS_BATCH8_IDS);
+  const kohler = getSheet("tempo21-kohler-main");
+  assert.ok(kohler);
+  assert.equal(kohler.title, "Kohler ECH440: Main Harness");
+  assertPublicSrc(kohler.src);
+  assert.equal(getSheet("tempo21-gas-iplight"), undefined);
+
+  const batch8Only: Record<string, string[]> = {
+    "club-car-precedent-eric": ERIC_BATCH8_IDS,
+    "club-car-precedent-gas": PREC_GAS_BATCH8_IDS,
+    "club-car-tempo-eric": TEMPO_ERIC_BATCH8_IDS,
+    "club-car-tempo-gas": TEMPO_GAS_BATCH8_IDS,
+  };
+  const allBatch8 = Object.values(batch8Only).flat();
+  const titles = allBatch8.map((id) => {
+    const sheet = getSheet(id);
+    assert.ok(sheet, id);
+    return sheet.title;
+  });
+  assert.equal(new Set(titles).size, titles.length);
+  for (const packId of packsWithWiring()) {
+    for (const sheet of sheetsForPack(packId)) {
+      if (allBatch8.includes(sheet.id)) continue;
+      assert.ok(!titles.includes(sheet.title), `title collision: ${sheet.title}`);
+    }
+  }
+  for (const packId of packsWithWiring()) {
+    const ids = sheetsForPack(packId).map((s) => s.id);
+    for (const id of allBatch8) {
+      const owner = Object.entries(batch8Only).find(([, list]) => list.includes(id))?.[0];
       if (packId === owner) continue;
       assert.ok(!ids.includes(id), `${packId} should not have ${id}`);
     }

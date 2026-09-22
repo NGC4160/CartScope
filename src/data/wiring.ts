@@ -2842,6 +2842,187 @@ export const WIRING_SHEETS: WiringSheet[] = [
     kind: "accessory",
     landscape: false,
   },
+  // Jesse-binder Batch 8 — Precedent 2019 / Tempo ERIC + gasoline gap-fill
+  {
+    id: "prec19-batt-fig12-1",
+    title: "Figure 12-1 Battery Wiring Diagram",
+    manualRef:
+      "2019 Precedent, Villager 2 and 4 Maintenance and Service Manual, Figure 12-1 Battery Wiring Diagram, page 12-4 — Electric Vehicle Troubleshooting and Electrical System",
+    src: "/wiring/prec19-batt-fig12-1.jpg",
+    kind: "charge",
+    landscape: false,
+  },
+  {
+    id: "prec19-gas-eng",
+    title: "Gasoline: Engine Harness",
+    manualRef:
+      "2019 Precedent, Villager 2 and 4 Maintenance and Service Manual, Section 26 Wiring Diagrams — Gasoline: Engine Harness",
+    src: "/wiring/prec19-gas-eng.jpg",
+    kind: "harness",
+    landscape: true,
+  },
+  {
+    id: "prec19-gas-main",
+    title: "Gasoline: Main Harness",
+    manualRef:
+      "2019 Precedent, Villager 2 and 4 Maintenance and Service Manual, Section 26 Wiring Diagrams — Gasoline: Main Harness",
+    src: "/wiring/prec19-gas-main.jpg",
+    kind: "full",
+    landscape: true,
+  },
+  {
+    id: "prec19-gas-ip",
+    title: "Gasoline: Instrument Panel Harness",
+    manualRef:
+      "2019 Precedent, Villager 2 and 4 Maintenance and Service Manual, Section 26 Wiring Diagrams — Gasoline: Instrument Panel Harness",
+    src: "/wiring/prec19-gas-ip.jpg",
+    kind: "harness",
+    landscape: true,
+  },
+  {
+    id: "prec19-gas-iplight",
+    title: "Gasoline: Instrument Panel Light Harness",
+    manualRef:
+      "2019 Precedent, Villager 2 and 4 Maintenance and Service Manual, Section 26 Wiring Diagrams — Gasoline: Instrument Panel Light Harness",
+    src: "/wiring/prec19-gas-iplight.jpg",
+    kind: "accessory",
+    landscape: true,
+  },
+  {
+    id: "prec19-eric-main",
+    title: "Electric: Main Harness",
+    manualRef:
+      "2019 Precedent, Villager 2 and 4 Maintenance and Service Manual, Section 26 Wiring Diagrams — Electric: Main Harness",
+    src: "/wiring/prec19-eric-main.jpg",
+    kind: "full",
+    landscape: true,
+  },
+  {
+    id: "prec19-eric-dash",
+    title: "Electric: Instrument Panel Dash Harness",
+    manualRef:
+      "2019 Precedent, Villager 2 and 4 Maintenance and Service Manual, Section 26 Wiring Diagrams — Electric: Instrument Panel Dash Harness",
+    src: "/wiring/prec19-eric-dash.jpg",
+    kind: "harness",
+    landscape: true,
+  },
+  {
+    id: "prec19-eric-dcdc",
+    title: "Electric: DC to DC Converter Harness",
+    manualRef:
+      "2019 Precedent, Villager 2 and 4 Maintenance and Service Manual, Section 26 Wiring Diagrams — Electric: DC to DC Converter Harness",
+    src: "/wiring/prec19-eric-dcdc.jpg",
+    kind: "harness",
+    landscape: true,
+  },
+  {
+    id: "prec19-eric-iplight",
+    title: "Electric: Instrument Panel Light Harness",
+    manualRef:
+      "2019 Precedent, Villager 2 and 4 Maintenance and Service Manual, Section 26 Wiring Diagrams — Electric: Instrument Panel Light Harness",
+    src: "/wiring/prec19-eric-iplight.jpg",
+    kind: "accessory",
+    landscape: true,
+  },
+  {
+    id: "prec19-eric-light",
+    title: "Electric: Light Harness",
+    manualRef:
+      "2019 Precedent, Villager 2 and 4 Maintenance and Service Manual, Section 26 Wiring Diagrams — Electric: Light Harness",
+    src: "/wiring/prec19-eric-light.jpg",
+    kind: "accessory",
+    landscape: true,
+  },
+  {
+    id: "tempo21-batt-fig12-2",
+    title: "Figure 12-2 Battery Wiring Diagram",
+    manualRef:
+      "Tempo, Tempo Connect, and Tempo 2+2 Maintenance and Service Manual, Figure 12-2 Battery Wiring Diagram, page 12-3 — Electric Vehicle Troubleshooting and Electrical System",
+    src: "/wiring/tempo21-batt-fig12-2.jpg",
+    kind: "charge",
+    landscape: false,
+  },
+  {
+    id: "tempo21-kohler-eng",
+    title: "Kohler ECH440: Engine Harness",
+    manualRef:
+      "Tempo, Tempo Connect, and Tempo 2+2 Maintenance and Service Manual, Section 32 Wiring Diagrams — Kohler ECH440: Engine Harness",
+    src: "/wiring/tempo21-kohler-eng.jpg",
+    kind: "harness",
+    landscape: true,
+  },
+  {
+    id: "tempo21-kohler-main",
+    title: "Kohler ECH440: Main Harness",
+    manualRef:
+      "Tempo, Tempo Connect, and Tempo 2+2 Maintenance and Service Manual, Section 32 Wiring Diagrams — Kohler ECH440: Main Harness",
+    src: "/wiring/tempo21-kohler-main.jpg",
+    kind: "full",
+    landscape: true,
+  },
+  {
+    id: "tempo21-kohler-ip",
+    title: "Kohler ECH440: Instrument Panel Harness",
+    manualRef:
+      "Tempo, Tempo Connect, and Tempo 2+2 Maintenance and Service Manual, Section 32 Wiring Diagrams — Kohler ECH440: Instrument Panel Harness",
+    src: "/wiring/tempo21-kohler-ip.jpg",
+    kind: "harness",
+    landscape: true,
+  },
+  {
+    id: "tempo21-ex40-main",
+    title: "Subaru EX-40: Main Harness",
+    manualRef:
+      "Tempo, Tempo Connect, and Tempo 2+2 Maintenance and Service Manual, Section 32 Wiring Diagrams — Subaru EX-40: Main Harness",
+    src: "/wiring/tempo21-ex40-main.jpg",
+    kind: "full",
+    landscape: true,
+  },
+  {
+    id: "tempo21-ex40-dash",
+    title: "Subaru EX-40: Instrument Panel Dash Harness",
+    manualRef:
+      "Tempo, Tempo Connect, and Tempo 2+2 Maintenance and Service Manual, Section 32 Wiring Diagrams — Subaru EX-40: Instrument Panel Dash Harness",
+    src: "/wiring/tempo21-ex40-dash.jpg",
+    kind: "harness",
+    landscape: true,
+  },
+  {
+    id: "tempo21-ex40-eng",
+    title: "Subaru EX-40: Engine Harness",
+    manualRef:
+      "Tempo, Tempo Connect, and Tempo 2+2 Maintenance and Service Manual, Section 32 Wiring Diagrams — Subaru EX-40: Engine Harness",
+    src: "/wiring/tempo21-ex40-eng.jpg",
+    kind: "harness",
+    landscape: true,
+  },
+  {
+    id: "tempo21-e-2p",
+    title: "Electric: Two Passenger Main Harness",
+    manualRef:
+      "Tempo, Tempo Connect, and Tempo 2+2 Maintenance and Service Manual, Section 32 Wiring Diagrams — Electric: Two Passenger Main Harness",
+    src: "/wiring/tempo21-e-2p.jpg",
+    kind: "full",
+    landscape: true,
+  },
+  {
+    id: "tempo21-e-4p",
+    title: "Electric: Four Passenger Main Harness",
+    manualRef:
+      "Tempo, Tempo Connect, and Tempo 2+2 Maintenance and Service Manual, Section 32 Wiring Diagrams — Electric: Four Passenger Main Harness",
+    src: "/wiring/tempo21-e-4p.jpg",
+    kind: "full",
+    landscape: true,
+  },
+  {
+    id: "tempo21-e-lighting",
+    title: "Electric: Lighting Harness",
+    manualRef:
+      "Tempo, Tempo Connect, and Tempo 2+2 Maintenance and Service Manual, Section 32 Wiring Diagrams — Electric: Lighting Harness",
+    src: "/wiring/tempo21-e-lighting.jpg",
+    kind: "accessory",
+    landscape: true,
+  },
 ];
 
 const BY_PACK: Record<string, string[]> = {
@@ -2914,6 +3095,12 @@ const BY_PACK: Record<string, string[]> = {
     "prec15-eric-fig21-4",
     "prec15-eric-fig24-6",
     "prec15-eric-fig24-7",
+    "prec19-batt-fig12-1",
+    "prec19-eric-main",
+    "prec19-eric-dash",
+    "prec19-eric-dcdc",
+    "prec19-eric-iplight",
+    "prec19-eric-light",
   ],
   "club-car-precedent-excel": [
     "prec14-excel-13-4",
@@ -2958,6 +3145,13 @@ const BY_PACK: Record<string, string[]> = {
     "prec15-gas-fig27-2",
     "prec15-gas-fig27-3",
     "prec15-gas-fig27-4",
+    "prec19-gas-eng",
+    "prec19-gas-main",
+    "prec19-gas-ip",
+    "prec19-gas-iplight",
+    "tempo21-ex40-main",
+    "tempo21-ex40-dash",
+    "tempo21-ex40-eng",
   ],
   "club-car-precedent-iq": [
     "iq-main",
@@ -2986,8 +3180,19 @@ const BY_PACK: Record<string, string[]> = {
     "tempo-e-dash",
     "tempo-e-lights",
     "prec19-e-main",
+    "tempo21-batt-fig12-2",
+    "tempo21-e-2p",
+    "tempo21-e-4p",
+    "tempo21-e-lighting",
   ],
-  "club-car-tempo-gas": ["tempo-kohler-engine", "tempo-kohler-main", "tempo-kohler-dash"],
+  "club-car-tempo-gas": [
+    "tempo-kohler-engine",
+    "tempo-kohler-main",
+    "tempo-kohler-dash",
+    "tempo21-kohler-eng",
+    "tempo21-kohler-main",
+    "tempo21-kohler-ip",
+  ],
   "club-car-carryall-295": [
     "ca295-fig11-1",
     "ca295-fig11-2",
