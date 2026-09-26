@@ -458,6 +458,14 @@ test("Carryall 295 / XRT1550 AWD year bounds accept 2010 and reject 2013", () =>
 });
 
 test("Star EV Classic DC year bounds accept 2007–2008 and reject 2012", () => {
+  const packSrc = readFileSync(new URL("../data/packs/star-classic-dc.ts", import.meta.url), "utf8");
+  const indexSrc = readFileSync(new URL("../data/index.ts", import.meta.url), "utf8");
+  assert.match(
+    packSrc,
+    /2008 Star booklet diagrams, reference for 2007 carts; confirm the controller model on the cart\./,
+  );
+  assert.match(indexSrc, /Classic DC \(Curtis 1243 \/ 1266 \/ 1268\) and Sirius body electrical/);
+
   const years =
     "2007–2008 Star EV Classic DC (2008 Operation Manual for Electric Golf Car, section 10 Wiring Diagram — Curtis 1243 36 V / 1266 48 V / 1268 48 V)";
   const ok2007 = yearCompatibility({

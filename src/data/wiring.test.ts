@@ -3,8 +3,6 @@ import { existsSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import test from "node:test";
-import { MANUFACTURERS } from "./index.ts";
-import { starClassicDc } from "./packs/star-classic-dc.ts";
 import { getSheet, packsWithWiring, sheetsForPack } from "./wiring.ts";
 
 const PUBLIC = join(dirname(fileURLToPath(import.meta.url)), "../../public");
@@ -880,16 +878,6 @@ test("Star EV Classic DC pack lists 2008 booklet 1243/1266/1268 then reman 1268-
 
   assert.ok(!sheetsForPack("star-sirius").some((s) => STAR_CLASSIC_IDS.includes(s.id)));
   assert.ok(!sheetsForPack("tomberlin-emerge-curtis1268").some((s) => STAR_CLASSIC_IDS.includes(s.id)));
-
-  assert.ok(
-    starClassicDc.diagramNotes.includes(
-      "2008 Star booklet diagrams, reference for 2007 carts; confirm the controller model on the cart.",
-    ),
-  );
-  const starBlurb = MANUFACTURERS.find((m) => m.id === "star")?.blurb ?? "";
-  assert.match(starBlurb, /Classic DC/);
-  assert.match(starBlurb, /1243 \/ 1266 \/ 1268/);
-  assert.match(starBlurb, /Sirius/);
 });
 
 const EMERGE_GE403_IDS = ["emerge-ge403-2008", "emerge-0709-lighting"];
