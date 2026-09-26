@@ -29,6 +29,7 @@ import { ezgoTxt36NonPds } from "@/data/packs/ezgo-txt-36-non-pds";
 import { ezgoTxtDcs } from "@/data/packs/ezgo-txt-dcs";
 import { ezgoTxtGas } from "@/data/packs/ezgo-txt-gas";
 import { yamahaG29 } from "@/data/packs/yamaha-g29";
+import { starClassicDc } from "@/data/packs/star-classic-dc";
 import { starSirius } from "@/data/packs/star-sirius";
 import { yamahaYdra } from "@/data/packs/yamaha-ydra";
 import { yamahaYdreAc } from "@/data/packs/yamaha-ydre-ac";
@@ -78,6 +79,7 @@ export const MODEL_PACKS: ModelPack[] = [
   yamahaG29,
   yamahaYdreAc,
   yamahaYtf1,
+  starClassicDc,
   starSirius,
   tomberlinEmergeGe403,
   tomberlinEmergeCurtis1268,
@@ -111,7 +113,7 @@ export const MANUFACTURERS: { id: ManufacturerId; label: string; blurb: string }
   {
     id: "star",
     label: "Star EV",
-    blurb: "Sirius body electrical and Star chassis (Curtis 1243).",
+    blurb: "Classic DC (Curtis 1243 / 1266 / 1268) and Sirius body electrical.",
   },
   {
     id: "tomberlin",

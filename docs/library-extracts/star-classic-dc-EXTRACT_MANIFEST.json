@@ -1,0 +1,32 @@
+{
+  "goal": "CartScope wiring plates — Star EV Classic DC (Curtis 1243 / 1266 / 1268) and Curtis 1268-5403 reman install sheet",
+  "notes": [
+    "2008 Star booklet diagrams, reference for 2007 carts; confirm the controller model on the cart.",
+    "Keep the existing Cartaholics community 2007 Curtis 1243 sheet on star-sirius. The 2008 factory-booklet 1243 is its own sheet on star-classic-dc.",
+    "Curtis 1268-5403 install sheets are a generic remanufactured-controller install sheet, not a Star factory plate.",
+    "Tomberlin EMerge Curtis 1268 stays isolated — do not map these plates onto that pack.",
+    "Full source PDFs stay out of git."
+  ],
+  "extracted": [
+    {
+      "packs": ["star-classic-dc"],
+      "source": "Star / JH Global Operation Manual for Electric Golf Car (2008), section 10 Wiring Diagram",
+      "pages": "PDF p1 right half = printed page 17, 1243 Wiring Diagram (36 V, FIG.1). PDF p2 left half = page 18, 1266 Wiring Diagram (48 V, FIG.2). PDF p2 right half = page 19, 1268 Wiring Diagram (48 V, FIG.3). Each half cropped and rotated to landscape."
+    },
+    {
+      "packs": ["star-classic-dc"],
+      "source": "FSIP / CloudElectric Generic Golf (1268-5403) Install Sheet-370, Rev 01, 05/25/18",
+      "pages": "Sheet 1 pre-install motor / solenoid / harness checks; sheet 2 generic wiring figure; sheets 3–4 back-probe pin voltages. Skipped sheets 5–6 LED troubleshooting charts."
+    }
+  ],
+  "skipped": [
+    {
+      "reason": "storage / TOC text, not a wiring figure",
+      "items": ["2008 booklet page 16 (section 9 Storage and section 10 list)"]
+    },
+    {
+      "reason": "LED fault-code charts, not a wiring figure or pin-check sheet",
+      "items": ["1268-5403 install sheet 5 of 6", "1268-5403 install sheet 6 of 6"]
+    }
+  ]
+}

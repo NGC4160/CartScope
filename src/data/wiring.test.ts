@@ -3,6 +3,8 @@ import { existsSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import test from "node:test";
+import { MANUFACTURERS } from "./index.ts";
+import { starClassicDc } from "./packs/star-classic-dc.ts";
 import { getSheet, packsWithWiring, sheetsForPack } from "./wiring.ts";
 
 const PUBLIC = join(dirname(fileURLToPath(import.meta.url)), "../../public");
@@ -804,6 +806,90 @@ test("Star Sirius pack lists community Curtis 1243 chassis then factory Sirius b
   assert.equal(getSheet("icon-revenge-wiring"), undefined);
   assert.ok(!packsWithWiring().includes("icon-revenge"));
   assert.ok(!packsWithWiring().includes("icon-gas"));
+});
+
+const STAR_CLASSIC_IDS = [
+  "star-classic-1243-fig1",
+  "star-classic-1266-fig2",
+  "star-classic-1268-fig3",
+  "curtis-1268-5403-preinstall",
+  "curtis-1268-5403-wiring",
+  "curtis-1268-5403-pincheck-3",
+  "curtis-1268-5403-pincheck-4",
+];
+
+test("Star EV Classic DC pack lists 2008 booklet 1243/1266/1268 then reman 1268-5403 install sheets", () => {
+  assertPackOnly("star-classic-dc", STAR_CLASSIC_IDS);
+
+  const fig1 = getSheet("star-classic-1243-fig1");
+  assert.ok(fig1);
+  assert.equal(fig1.title, "1243 Wiring Diagram (FIG.1)");
+  assert.match(fig1.manualRef, /2008/);
+  assert.match(fig1.manualRef, /page 17/);
+  assert.match(fig1.manualRef, /36 V/);
+  assert.match(fig1.manualRef, /reference for 2007/);
+  assert.equal(fig1.landscape, true);
+  assertPublicSrc(fig1.src);
+
+  const fig2 = getSheet("star-classic-1266-fig2");
+  assert.ok(fig2);
+  assert.equal(fig2.title, "1266 Wiring Diagram (FIG.2)");
+  assert.match(fig2.manualRef, /page 18/);
+  assert.match(fig2.manualRef, /48 V/);
+  assert.equal(fig2.landscape, true);
+  assertPublicSrc(fig2.src);
+
+  const fig3 = getSheet("star-classic-1268-fig3");
+  assert.ok(fig3);
+  assert.equal(fig3.title, "1268 Wiring Diagram (FIG.3)");
+  assert.match(fig3.manualRef, /page 19/);
+  assert.match(fig3.manualRef, /48 V/);
+  assert.equal(fig3.landscape, true);
+  assertPublicSrc(fig3.src);
+
+  const reman = getSheet("curtis-1268-5403-wiring");
+  assert.ok(reman);
+  assert.match(reman.title, /1268-5403/);
+  assert.match(reman.title, /wiring figure/);
+  assert.match(reman.manualRef, /remanufactured-controller/i);
+  assert.match(reman.manualRef, /not a Star factory plate/i);
+  assert.doesNotMatch(reman.title, /Star/);
+  assert.equal(reman.landscape, false);
+  assertPublicSrc(reman.src);
+
+  const pre = getSheet("curtis-1268-5403-preinstall");
+  assert.ok(pre);
+  assert.match(pre.title, /pre-install checks/);
+  assert.match(pre.manualRef, /not a Star factory plate/i);
+  assertPublicSrc(pre.src);
+
+  const pin3 = getSheet("curtis-1268-5403-pincheck-3");
+  assert.ok(pin3);
+  assert.equal(pin3.kind, "pinout");
+  assert.match(pin3.title, /pin checks \(sheet 3 of 6\)/);
+  assertPublicSrc(pin3.src);
+
+  const pin4 = getSheet("curtis-1268-5403-pincheck-4");
+  assert.ok(pin4);
+  assert.equal(pin4.kind, "pinout");
+  assert.match(pin4.title, /pin checks, continued/);
+  assertPublicSrc(pin4.src);
+
+  assert.equal(getSheet("curtis-1268-5403-led-5"), undefined);
+  assert.equal(getSheet("curtis-1268-5403-led-6"), undefined);
+
+  assert.ok(!sheetsForPack("star-sirius").some((s) => STAR_CLASSIC_IDS.includes(s.id)));
+  assert.ok(!sheetsForPack("tomberlin-emerge-curtis1268").some((s) => STAR_CLASSIC_IDS.includes(s.id)));
+
+  assert.ok(
+    starClassicDc.diagramNotes.includes(
+      "2008 Star booklet diagrams, reference for 2007 carts; confirm the controller model on the cart.",
+    ),
+  );
+  const starBlurb = MANUFACTURERS.find((m) => m.id === "star")?.blurb ?? "";
+  assert.match(starBlurb, /Classic DC/);
+  assert.match(starBlurb, /1243 \/ 1266 \/ 1268/);
+  assert.match(starBlurb, /Sirius/);
 });
 
 const EMERGE_GE403_IDS = ["emerge-ge403-2008", "emerge-0709-lighting"];
