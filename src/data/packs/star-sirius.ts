@@ -15,6 +15,7 @@ export const starSirius = buildEzgoDc({
     "Sirius body electrical plates are factory (Service Manual V 1.06, 5-27-25): combination-switch continuity, Sirius Headlight Wiring Diagram, Sirius Turn Signal Wiring Diagram, and the 2024 Star Sirius Add-on Cruise Control Wiring Harness.",
     "The Sirius electrical system is dual-sided: pack voltage plus a 12 V accessory converter. These factory plates are body / lighting / cruise — not a full chassis schematic.",
     "ICON / Revenge is not on this pack. The ICON gas manual on file is parts-only — no wiring plates were added.",
+    "2008 factory-booklet 1243 / 1266 / 1268 plates are on the Star EV Classic DC pack. This pack keeps the Cartaholics community 1243 chassis sheet.",
   ],
   voltage: 48,
   controllerName: "Curtis 1243-43301",

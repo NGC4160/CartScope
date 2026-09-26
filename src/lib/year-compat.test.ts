@@ -457,6 +457,46 @@ test("Carryall 295 / XRT1550 AWD year bounds accept 2010 and reject 2013", () =>
   assert.equal(late.status, "unsupported");
 });
 
+test("Star EV Classic DC year bounds accept 2007–2008 and reject 2012", () => {
+  const packSrc = readFileSync(new URL("../data/packs/star-classic-dc.ts", import.meta.url), "utf8");
+  const indexSrc = readFileSync(new URL("../data/index.ts", import.meta.url), "utf8");
+  assert.match(
+    packSrc,
+    /2008 Star booklet diagrams, reference for 2007 carts; confirm the controller model on the cart\./,
+  );
+  assert.match(indexSrc, /Classic DC \(Curtis 1243 \/ 1266 \/ 1268\) and Sirius body electrical/);
+
+  const years =
+    "2007–2008 Star EV Classic DC (2008 Operation Manual for Electric Golf Car, section 10 Wiring Diagram — Curtis 1243 36 V / 1266 48 V / 1268 48 V)";
+  const ok2007 = yearCompatibility({
+    cartYear: "2007",
+    packYears: years,
+    packName: "Classic DC (Curtis 1243 / 1266 / 1268)",
+    packId: "star-classic-dc",
+    yearMin: 2007,
+    yearMax: 2008,
+  });
+  const ok2008 = yearCompatibility({
+    cartYear: "2008",
+    packYears: years,
+    packName: "Classic DC (Curtis 1243 / 1266 / 1268)",
+    packId: "star-classic-dc",
+    yearMin: 2007,
+    yearMax: 2008,
+  });
+  const late = yearCompatibility({
+    cartYear: "2012",
+    packYears: years,
+    packName: "Classic DC (Curtis 1243 / 1266 / 1268)",
+    packId: "star-classic-dc",
+    yearMin: 2007,
+    yearMax: 2008,
+  });
+  assert.equal(ok2007.status, "ok");
+  assert.equal(ok2008.status, "ok");
+  assert.equal(late.status, "unsupported");
+});
+
 test("Tracker EViS 72 V year bounds accept 2020 and reject 2021", () => {
   const ok = yearCompatibility({
     cartYear: "2020",
