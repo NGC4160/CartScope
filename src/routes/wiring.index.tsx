@@ -1,13 +1,22 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Cable } from "lucide-react";
+import { useState } from "react";
+import { CartLookup } from "@/components/cart/CartLookup";
 import { AppShell } from "@/components/layout/AppShell";
 import { Button } from "@/components/ui/button";
 import { MANUFACTURERS, MODEL_PACKS, packsFor } from "@/data/index";
 import { sheetsForPack } from "@/data/wiring";
+import type { CartResolveResult } from "@/lib/cart-resolve";
 
 export const Route = createFileRoute("/wiring/")({ component: WiringLibrary });
 
 function WiringLibrary() {
+  const navigate = useNavigate();
+  const [year, setYear] = useState("");
+  const [make, setMake] = useState("");
+  const [model, setModel] = useState("");
+  const [lookup, setLookup] = useState<CartResolveResult | null>(null);
+
   return (
     <AppShell
       right={
@@ -20,11 +29,29 @@ function WiringLibrary() {
         <p className="font-mono text-xs font-semibold tracking-[0.18em] text-navy">WIRE PICTURES FROM THE BOOK</p>
         <h1 className="mt-1 font-display text-4xl font-semibold tracking-tight text-ink">Wire maps</h1>
         <p className="mt-3 max-w-2xl text-base leading-relaxed text-ink-muted">
-          These are the real wire pictures from the factory books. Pick the cart. Pinch to zoom. Print a copy for the
-          stall.
+          Type the year, make, and model. We open that cart’s pictures. Pinch to zoom. Print a copy for the stall.
         </p>
 
-        <div className="mt-8 grid gap-8">
+        <div className="mt-6 rounded-lg bg-surface p-4 shadow-[var(--shadow-border)] sm:p-5">
+          <CartLookup
+            year={year}
+            make={make}
+            model={model}
+            result={lookup}
+            onYear={setYear}
+            onMake={setMake}
+            onModel={setModel}
+            onResult={setLookup}
+            openLabel="Open wire pictures"
+            onOpen={(packId) => {
+              void navigate({ to: "/wiring/$modelId", params: { modelId: packId } });
+            }}
+          />
+        </div>
+
+        <details className="mt-8">
+          <summary className="cursor-pointer font-display text-lg font-semibold text-ink">All carts</summary>
+        <div className="mt-4 grid gap-8">
           {MANUFACTURERS.map((m) => (
             <section key={m.id}>
               <h2 className="font-display text-xl font-semibold text-ink">{m.label}</h2>
@@ -53,6 +80,7 @@ function WiringLibrary() {
             </section>
           ))}
         </div>
+        </details>
         <p className="mt-8 font-mono text-xs text-ink-subtle">
           {MODEL_PACKS.length} carts · each picture shows the book figure or section
         </p>

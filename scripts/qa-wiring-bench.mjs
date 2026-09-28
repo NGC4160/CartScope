@@ -1,4 +1,5 @@
 import { chromium } from "playwright";
+import { findShopCart } from "./find-cart.mjs";
 const base = "http://127.0.0.1:8080";
 const shot = (n) => `/workspace/screenshots/${n}.png`;
 const browser = await chromium.launch({ args: ["--no-sandbox", "--disable-dev-shm-usage"] });
@@ -7,9 +8,7 @@ page.on("pageerror", (e) => console.log("PAGEERROR", e.message));
 page.on("console", (m) => { if (m.type() === "error") console.log("CONSOLE", m.text()); });
 
 await page.goto(base + "/", { waitUntil: "networkidle" });
-await page.getByRole("button", { name: /Club Car/ }).click();
-await page.waitForTimeout(200);
-await page.getByRole("button", { name: /Precedent IQ/ }).click();
+await findShopCart(page, { year: "2011", make: "Club Car", model: "Precedent" });
 await page.waitForTimeout(250);
 const symptoms = page.locator("button").filter({ hasText: /Will not|No |Dead|Slow/ });
 console.log("symptoms", await symptoms.count());

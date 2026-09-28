@@ -1,4 +1,5 @@
 import { chromium } from "playwright";
+import { findShopCart } from "./find-cart.mjs";
 
 const BASE = "http://127.0.0.1:8080";
 const out = "/workspace/screenshots";
@@ -29,12 +30,7 @@ async function startNewJob() {
   await page.goto(BASE, { waitUntil: "networkidle" });
   const neu = page.getByRole("button", { name: /New job/i });
   if (await neu.count()) await neu.click();
-  await page.getByRole("button", { name: /EZ-GO|Club Car|Yamaha/i }).first().waitFor({ state: "visible" });
-}
-
-async function pickBrand(name) {
-  await page.getByRole("button", { name }).click();
-  await page.getByText(/Electric|Gas/i).first().waitFor({ state: "visible" });
+  await page.getByTestId("find-cart").waitFor({ state: "visible" });
 }
 
 async function fillLeadAcidPack({ count, voltFor, irFor, age }) {
@@ -139,8 +135,7 @@ async function confirmAndCheckShop({ last, job, serial, handheld = false }) {
 
 // --- Path A: EZ-GO TXT will not run (electric pack fail + test battery + codes) ---
 await startNewJob();
-await pickBrand(/EZ-GO/i);
-await page.getByRole("button", { name: /TXT 48 V TCT/i }).first().click();
+await findShopCart(page, { year: "2016", make: "EZ-GO", model: "TXT" });
 await page.getByRole("button", { name: /Will not run/i }).first().click();
 await page.getByRole("button", { name: /Job header/i }).click();
 const startDisabled = await page.getByRole("button", { name: /Start checks/i }).isDisabled();
@@ -205,8 +200,7 @@ await page.screenshot({ path: `${out}/qa-case-txt-brain.png` });
 
 // --- Path B: Club Car gas FE290, no pack gate, different complaint ---
 await startNewJob();
-await pickBrand(/Club Car/i);
-await page.getByRole("button", { name: /DS \/ Villager FE290/ }).click();
+await findShopCart(page, { year: "2008", make: "Club Car", model: "FE290" });
 await page.getByRole("button", { name: /Engine will not crank/i }).click();
 await page.getByRole("button", { name: /Job header/i }).click();
 console.log("gas header has no battery type", (await page.getByRole("button", { name: /^Lead-acid$/ }).count()) === 0);
@@ -240,8 +234,7 @@ await page.screenshot({ path: `${out}/qa-case-gas-brain.png` });
 
 // --- Path C: Club Car Precedent IQ, different electric complaint, pack pass ---
 await startNewJob();
-await pickBrand(/Club Car/i);
-await page.getByRole("button", { name: /Precedent IQ/ }).filter({ hasText: /IQ electric/i }).click();
+await findShopCart(page, { year: "2009", make: "Club Car", model: "Precedent" });
 await page.getByRole("button", { name: /Cart does not run/i }).click();
 await page.getByRole("button", { name: /Job header/i }).click();
 await fillHeader({ last: "Patel", job: "HCP-9904", year: "2009", battery: "Lead-acid" });
@@ -272,8 +265,7 @@ await page.screenshot({ path: `${out}/qa-case-iq-report.png` });
 
 // --- Path D: EZ-GO RXV uses four 12 V batteries (not TXT 6×8) ---
 await startNewJob();
-await pickBrand(/EZ-GO/i);
-await page.getByRole("button", { name: /RXV AC/ }).click();
+await findShopCart(page, { year: "2011", make: "EZ-GO", model: "RXV" });
 await page.getByRole("button", { name: /Cart will not run/i }).click();
 await page.getByRole("button", { name: /Job header/i }).click();
 await fillHeader({ last: "Nguyen", job: "HCP-1120", year: "2011", battery: "Lead-acid" });

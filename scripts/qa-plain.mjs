@@ -1,4 +1,5 @@
 import { chromium } from "playwright";
+import { findShopCart } from "./find-cart.mjs";
 
 const BASE = "http://127.0.0.1:8080";
 const out = "/workspace/screenshots";
@@ -15,10 +16,9 @@ const home = await page.innerText("body");
 console.log("home has 5th-grade", /Find the problem\. One step at a time/.test(home));
 console.log("home cart checks", /CART CHECKS/.test(home));
 
-await page.getByRole("button", { name: /Club Car/i }).click();
+await findShopCart(page, { year: "2011", make: "Club Car", model: "Precedent" });
 await page.waitForTimeout(400);
 await page.screenshot({ path: `${out}/qa-plain-models.png` });
-await page.getByRole("button", { name: /Precedent IQ/i }).first().click();
 await page.waitForTimeout(400);
 await page.screenshot({ path: `${out}/qa-plain-symptoms.png` });
 const firstSymptom = page.locator("button").filter({ hasText: /Cart does not run|does not run|will not/i }).first();

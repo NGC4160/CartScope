@@ -1,4 +1,5 @@
 import { chromium } from "playwright";
+import { findShopCart } from "./find-cart.mjs";
 
 const base = "http://127.0.0.1:8080";
 const shot = (name) => `/workspace/screenshots/${name}.png`;
@@ -61,9 +62,7 @@ const i = body.indexOf("Assistant");
 console.log("assistant snippet", body.slice(i, i + 900));
 
 await page.goto(base + "/", { waitUntil: "networkidle" });
-await page.getByRole("button", { name: /Club Car/ }).click();
-await page.waitForTimeout(250);
-await page.getByRole("button", { name: /Precedent IQ/ }).click();
+await findShopCart(page, { year: "2011", make: "Club Car", model: "Precedent" });
 await page.waitForTimeout(250);
 const symptom = page.getByRole("button").filter({ hasText: /Will not|No / }).first();
 if (await symptom.count()) await symptom.click();
