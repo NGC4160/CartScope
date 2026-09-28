@@ -1,9 +1,12 @@
-import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Field, HeaderNoteInput, inputClass } from "@/components/case/fields";
+import { CartLookup } from "@/components/cart/CartLookup";
+import { YearGlovePad } from "@/components/cart/YearGlovePad";
 import { Button } from "@/components/ui/button";
-import { MANUFACTURERS, packsFor } from "@/data/index";
+import { getPack } from "@/data/index";
 import type { BatteryType, ManufacturerId, ModelPack } from "@/data/types";
+import { resolveCart, type CartResolveResult } from "@/lib/cart-resolve";
 import {
   JOB_HEADER_MESSAGES,
   jobHeaderGaps,
@@ -31,7 +34,7 @@ export type StartJobResult =
   | { ok: true; jobId: string }
   | { ok: false; message: string };
 
-const STEPS = ["Brand", "Which cart", "What’s wrong", "Job header"] as const;
+const STEPS = ["Cart", "What’s wrong", "Job header"] as const;
 
 /**
  * Last-mile rewrite on the Job header paint path. Do not inline into the
@@ -49,9 +52,12 @@ export function NewJobWizard({
   onCancel?: () => void;
   onStartJob: (input: CreateJobInput) => StartJobResult | Promise<StartJobResult | void> | void;
 }) {
-  const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
+  const [step, setStep] = useState<1 | 2 | 3>(1);
   const [mfg, setMfg] = useState<ManufacturerId | null>(null);
   const [model, setModel] = useState<ModelPack | null>(null);
+  const [makeText, setMakeText] = useState("");
+  const [modelText, setModelText] = useState("");
+  const [lookup, setLookup] = useState<CartResolveResult | null>(null);
   const [symptomId, setSymptomId] = useState<string | null>(null);
   const [technician, setTechnician] = useState("");
   const [serial, setSerial] = useState("");
@@ -67,9 +73,6 @@ export function NewJobWizard({
   const startReasonRef = useRef<HTMLDivElement>(null);
   const startLockRef = useRef(false);
 
-  const models = useMemo(() => (mfg ? packsFor(mfg) : []), [mfg]);
-  const electric = models.filter((p) => p.powertrain === "electric");
-  const gas = models.filter((p) => p.powertrain === "gasoline");
   const electricCart = model?.powertrain === "electric";
 
   const header: HeaderSnapshot = {
@@ -126,6 +129,21 @@ export function NewJobWizard({
   function pickComplaint(id: string) {
     setSymptomId(id);
     setStep(stepAfterComplaintSelected());
+  }
+
+  function applyYear(next: string) {
+    const typed = sanitizeCartYearInput(next);
+    setYear(typed);
+    if (!makeText.trim() && !modelText.trim()) return;
+    const again = resolveCart({ year: typed, make: makeText, model: modelText });
+    if (again.status === "match") {
+      const pack = getPack(again.packId);
+      if (pack) {
+        setModel(pack);
+        setMfg(pack.manufacturer);
+      }
+      setLookup(again);
+    }
   }
 
   function applySnapshot(next: HeaderSnapshot) {
@@ -198,7 +216,7 @@ export function NewJobWizard({
     <div className="mx-auto w-full max-w-3xl">
       <ol className="mb-6 flex gap-2 text-xs font-medium uppercase tracking-wide text-ink-subtle">
         {STEPS.map((label, i) => {
-          const n = (i + 1) as 1 | 2 | 3 | 4;
+          const n = (i + 1) as 1 | 2 | 3;
           const active = step === n;
           const done = step > n;
           const reachable = canVisitWizardStep(n, {
@@ -214,7 +232,7 @@ export function NewJobWizard({
                 aria-current={active ? "step" : undefined}
                 onClick={() => {
                   if (!reachable) return;
-                  if (n === 4) {
+                  if (n === 3) {
                     goToHeader();
                     return;
                   }
@@ -238,56 +256,34 @@ export function NewJobWizard({
       </ol>
 
       {step === 1 ? (
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {MANUFACTURERS.map((m) => (
-            <button
-              key={m.id}
-              type="button"
-              onClick={() => {
-                setMfg(m.id);
-                setModel(null);
-                setSymptomId(null);
-                setStep(2);
-              }}
-              className="min-h-36 rounded-lg bg-surface p-5 text-left shadow-[var(--shadow-border)] transition-[box-shadow] duration-150 hover:shadow-[var(--shadow-border-hover)]"
-            >
-              <p className="font-display text-2xl font-semibold text-ink">{m.label}</p>
-              <p className="mt-2 text-sm leading-snug text-ink-muted">{m.blurb}</p>
-            </button>
-          ))}
+        <div>
+          <p className="mb-4 text-sm text-ink-muted">
+            Type the year, make, and model. We open that cart’s book — no list to pick from.
+          </p>
+          <CartLookup
+            year={year}
+            make={makeText}
+            model={modelText}
+            result={lookup}
+            onYear={setYear}
+            onMake={setMakeText}
+            onModel={setModelText}
+            onResult={setLookup}
+            openLabel="What’s wrong"
+            onOpen={(packId) => {
+              const pack = getPack(packId);
+              if (!pack) return;
+              setMfg(pack.manufacturer);
+              setModel(pack);
+              setSymptomId(null);
+              setBatteryType("");
+              setStep(2);
+            }}
+          />
         </div>
       ) : null}
 
-      {step === 2 ? (
-        <div className="grid gap-6">
-          <ModelGroup
-            title="Electric"
-            packs={electric}
-            onPick={(p) => {
-              setModel(p);
-              setSymptomId(null);
-              setBatteryType("");
-              setStep(3);
-            }}
-          />
-          <ModelGroup
-            title="Gas"
-            packs={gas}
-            onPick={(p) => {
-              setModel(p);
-              setSymptomId(null);
-              setBatteryType("");
-              setStep(3);
-            }}
-          />
-          <Button variant="ghost" onClick={() => setStep(1)}>
-            <ChevronLeft className="size-4" />
-            Brand
-          </Button>
-        </div>
-      ) : null}
-
-      {step === 3 && model ? (
+      {step === 2 && model ? (
         <div>
           <p className="mb-3 text-sm text-ink-muted">
             What is wrong with <span className="font-medium text-ink">{model.fullName}</span>? Pick the main problem.
@@ -322,9 +318,9 @@ export function NewJobWizard({
             })}
           </div>
           <div className="relative z-10 mt-5 flex flex-wrap gap-2 pb-16">
-            <Button variant="ghost" onClick={() => setStep(2)}>
+            <Button variant="ghost" onClick={() => setStep(1)}>
               <ChevronLeft className="size-4" />
-              Which cart
+              Cart
             </Button>
             <Button className="ml-auto min-w-44" disabled={!symptomId} onClick={goToHeader}>
               Job header
@@ -339,7 +335,7 @@ export function NewJobWizard({
         </div>
       ) : null}
 
-      {step === 4 && model ? (
+      {step === 3 && model ? (
         <form ref={formRef} noValidate onSubmit={onStartSubmit}>
           <p className="mb-3 text-sm text-ink-muted">
             Every case needs the customer last name, the Housecall Pro job number, who checked it, and
@@ -395,7 +391,7 @@ export function NewJobWizard({
                 id="job-header-cartYear"
                 name="cartYear"
                 value={year}
-                onChange={(next) => setYear(sanitizeCartYearInput(next))}
+                onChange={applyYear}
                 inputMode="numeric"
                 enterKeyHint="done"
                 aria-label="Year"
@@ -404,7 +400,7 @@ export function NewJobWizard({
                 aria-describedby="year-compat-note"
                 className={inputClass + " min-h-16 text-2xl tabular-nums tracking-wide"}
               />
-              <YearGlovePad year={year} onChange={setYear} />
+              <YearGlovePad year={year} onChange={applyYear} />
               {gaps.includes("cartYear") ? (
                 <span className="mt-1 block text-sm text-danger">{JOB_HEADER_MESSAGES.cartYear}</span>
               ) : null}
@@ -540,7 +536,7 @@ export function NewJobWizard({
               </div>
             ) : null}
             <div className="flex flex-wrap gap-2">
-            <Button type="button" variant="ghost" onClick={() => setStep(3)}>
+            <Button type="button" variant="ghost" onClick={() => setStep(2)}>
               <ChevronLeft className="size-4" />
               What’s wrong
             </Button>
@@ -581,83 +577,4 @@ function focusJobHeaderField(field: string) {
   if (!(el instanceof HTMLElement)) return;
   el.focus();
   el.scrollIntoView({ block: "center", behavior: "smooth" });
-}
-
-const YEAR_PAD_KEYS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "clear", "0", "back"] as const;
-
-function YearGlovePad({
-  year,
-  onChange,
-}: {
-  year: string;
-  onChange: (next: string) => void;
-}) {
-  function press(key: (typeof YEAR_PAD_KEYS)[number]) {
-    if (key === "clear") {
-      onChange("");
-      return;
-    }
-    if (key === "back") {
-      onChange(sanitizeCartYearInput(year.slice(0, -1)));
-      return;
-    }
-    onChange(sanitizeCartYearInput(year + key));
-  }
-
-  return (
-    <div
-      data-testid="year-glove-pad"
-      className="mt-2 grid grid-cols-3 gap-2"
-      role="group"
-      aria-label="Year number pad"
-    >
-      {YEAR_PAD_KEYS.map((key) => (
-        <button
-          key={key}
-          type="button"
-          data-testid={`year-pad-${key}`}
-          aria-label={
-            key === "clear" ? "Clear year" : key === "back" ? "Backspace year" : `Year digit ${key}`
-          }
-          onClick={() => press(key)}
-          className="min-h-14 rounded-md bg-surface text-lg font-semibold tabular-nums text-ink shadow-[var(--shadow-border)] touch-manipulation"
-        >
-          {key === "clear" ? "Clear" : key === "back" ? "Back" : key}
-        </button>
-      ))}
-    </div>
-  );
-}
-
-function ModelGroup({
-  title,
-  packs,
-  onPick,
-}: {
-  title: string;
-  packs: ModelPack[];
-  onPick: (p: ModelPack) => void;
-}) {
-  if (packs.length === 0) return null;
-  return (
-    <div>
-      <p className="mb-2 font-mono text-[11px] font-semibold uppercase tracking-[0.16em] text-navy">{title}</p>
-      <div className="grid gap-3 sm:grid-cols-2">
-        {packs.map((p) => (
-          <button
-            key={p.id}
-            type="button"
-            onClick={() => onPick(p)}
-            className="min-h-24 rounded-lg bg-surface p-4 text-left shadow-[var(--shadow-border)] transition-[box-shadow] duration-150 hover:shadow-[var(--shadow-border-hover)] sm:p-5"
-          >
-            <p className="font-display text-lg font-semibold text-ink sm:text-xl">{p.name}</p>
-            <p className="mt-1 text-sm text-ink-muted">
-              {p.voltage} V · {p.architecture}
-            </p>
-            <p className="mt-1 text-xs text-ink-subtle">{p.years}</p>
-          </button>
-        ))}
-      </div>
-    </div>
-  );
 }

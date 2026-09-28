@@ -1,5 +1,6 @@
 import { chromium } from "playwright";
 import { mkdirSync } from "node:fs";
+import { findShopCart } from "./find-cart.mjs";
 
 const BASE = process.env.BAY_QA_BASE || "http://127.0.0.1:8080";
 const out = "/workspace/screenshots";
@@ -26,8 +27,7 @@ async function startIqJob(page, who = "Ryan") {
   await page.goto(BASE, { waitUntil: "networkidle" });
   const neu = page.getByRole("button", { name: /New job/i });
   if (await neu.count()) await neu.click();
-  await page.getByRole("button", { name: /Club Car/i }).click();
-  await page.getByRole("button", { name: /DS IQ/i }).first().click();
+  await findShopCart(page, { year: "2006", make: "Club Car", model: "DS IQ" });
   await page.getByRole("button", { name: /Cart does not run/i }).first().click();
   const headerBtn = page.getByRole("button", { name: /Job header/i });
   if (await headerBtn.count()) await headerBtn.click();
@@ -467,8 +467,7 @@ async function runFactoryCheck() {
   await page.goto(BASE, { waitUntil: "networkidle" });
   const neu = page.getByRole("button", { name: /New job/i });
   if (await neu.count()) await neu.click();
-  await page.getByRole("button", { name: /Club Car/i }).click();
-  await page.getByRole("button", { name: /DS \/ Villager FE290/ }).click();
+  await findShopCart(page, { year: "2008", make: "Club Car", model: "FE290" });
   await page.getByRole("button", { name: /Engine will not crank/i }).click();
   const headerBtn = page.getByRole("button", { name: /Job header/i });
   if (await headerBtn.count()) await headerBtn.click();
@@ -590,8 +589,7 @@ async function runStickySaveAdvance() {
   await gas.goto(BASE, { waitUntil: "networkidle" });
   const neu = gas.getByRole("button", { name: /New job/i });
   if (await neu.count()) await neu.click();
-  await gas.getByRole("button", { name: /Club Car/i }).click();
-  await gas.getByRole("button", { name: /DS \/ Villager FE290/ }).click();
+  await findShopCart(gas, { year: "2008", make: "Club Car", model: "FE290" });
   await gas.getByRole("button", { name: /Engine will not crank/i }).click();
   const headerBtn = gas.getByRole("button", { name: /Job header/i });
   if (await headerBtn.count()) await headerBtn.click();
@@ -641,8 +639,7 @@ async function runHelperRedirect() {
   await page.goto(BASE, { waitUntil: "networkidle" });
   const neu = page.getByRole("button", { name: /New job/i });
   if (await neu.count()) await neu.click();
-  await page.getByRole("button", { name: /Club Car/i }).click();
-  await page.getByRole("button", { name: /DS \/ Villager FE290/ }).click();
+  await findShopCart(page, { year: "2008", make: "Club Car", model: "FE290" });
   await page.getByRole("button", { name: /Engine will not crank/i }).click();
   const headerBtn = page.getByRole("button", { name: /Job header/i });
   if (await headerBtn.count()) await headerBtn.click();
@@ -750,8 +747,7 @@ async function runRound7StartValidationAndBayImprovements() {
   await page.goto(BASE, { waitUntil: "networkidle" });
   const neu = page.getByRole("button", { name: /New job/i });
   if (await neu.count()) await neu.click();
-  await page.getByRole("button", { name: /Club Car/i }).click();
-  await page.getByRole("button", { name: /DS IQ/i }).first().click();
+  await findShopCart(page, { year: "2006", make: "Club Car", model: "DS IQ" });
   await page.getByRole("button", { name: /Motor braking does not work/i }).click();
   const headerBtn = page.getByRole("button", { name: /Job header/i });
   if (await headerBtn.count()) await headerBtn.click();
@@ -795,8 +791,7 @@ async function runRound7StartValidationAndBayImprovements() {
   await gas.goto(BASE, { waitUntil: "networkidle" });
   const neuGas = gas.getByRole("button", { name: /New job/i });
   if (await neuGas.count()) await neuGas.click();
-  await gas.getByRole("button", { name: /EZ-GO/i }).click();
-  await gas.getByRole("button", { name: /Marathon/i }).click();
+  await findShopCart(gas, { year: "1996", make: "EZ-GO", model: "Marathon" });
   await gas.getByRole("button", { name: /Engine will not crank/i }).click();
   const gasHeader = gas.getByRole("button", { name: /Job header/i });
   if (await gasHeader.count()) await gasHeader.click();
@@ -845,8 +840,7 @@ async function runHelperJumpFromNotFullyCharged() {
   await page.goto(BASE, { waitUntil: "networkidle" });
   const neu = page.getByRole("button", { name: /New job/i });
   if (await neu.count()) await neu.click();
-  await page.getByRole("button", { name: /Club Car/i }).click();
-  await page.getByRole("button", { name: /DS PowerDrive 48/i }).first().click();
+  await findShopCart(page, { year: "1998", make: "Club Car", model: "DS PowerDrive 48" });
   await page.getByRole("button", { name: /Cart not being fully charged/i }).click();
   const headerBtn = page.getByRole("button", { name: /Job header/i });
   if (await headerBtn.count()) await headerBtn.click();
@@ -911,8 +905,9 @@ async function startElectricPackJob(page, { brand, model, complaint, last, job, 
   await page.goto(BASE, { waitUntil: "networkidle" });
   const neu = page.getByRole("button", { name: /New job/i });
   if (await neu.count()) await neu.click();
-  await page.getByRole("button", { name: brand }).click();
-  await page.getByRole("button", { name: model }).first().click();
+  const make = brand instanceof RegExp ? brand.source.replace(/^\^|\$$|\\/g, "") : String(brand);
+  const modelName = model instanceof RegExp ? model.source.replace(/^\^|\$$|\\/g, "") : String(model);
+  await findShopCart(page, { year, make, model: modelName });
   await page.getByRole("button", { name: complaint }).first().click();
   const headerBtn = page.getByRole("button", { name: /Job header/i });
   if (await headerBtn.count()) await headerBtn.click();
@@ -1078,8 +1073,7 @@ async function runLiveFailList() {
   await fe350.goto(BASE, { waitUntil: "networkidle" });
   const neu = fe350.getByRole("button", { name: /New job/i });
   if (await neu.count()) await neu.click();
-  await fe350.getByRole("button", { name: /Club Car/i }).click();
-  await fe350.getByRole("button", { name: /DS FE350/i }).click();
+  await findShopCart(fe350, { make: "Club Car", model: "FE350" });
   await fe350.getByRole("button", { name: /Engine will not crank/i }).click();
   const feHeader = fe350.getByRole("button", { name: /Job header/i });
   if (await feHeader.count()) await feHeader.click();
@@ -1172,8 +1166,7 @@ async function runBlankYearStartBlocked() {
   await page.goto(BASE, { waitUntil: "networkidle" });
   const neu = page.getByRole("button", { name: /New job/i });
   if (await neu.count()) await neu.click();
-  await page.getByRole("button", { name: /Club Car/i }).click();
-  await page.getByRole("button", { name: /DS FE350/i }).click();
+  await findShopCart(page, { make: "Club Car", model: "FE350" });
   await page.getByRole("button", { name: /Engine will not crank/i }).click();
   const headerBtn = page.getByRole("button", { name: /Job header/i });
   if (await headerBtn.count()) await headerBtn.click();
@@ -1241,8 +1234,7 @@ async function runYamahaYdreStartToFirstCheck() {
   await page.goto(BASE, { waitUntil: "networkidle" });
   const neu = page.getByRole("button", { name: /New job/i });
   if (await neu.count()) await neu.click();
-  await page.getByRole("button", { name: /Yamaha/i }).click();
-  await page.getByRole("button", { name: /YDRE DC/i }).first().click();
+  await findShopCart(page, { year: "2012", make: "Yamaha", model: "YDRE DC" });
   await page.getByRole("button", { name: /Will not run either way/i }).first().click();
   const headerBtn = page.getByRole("button", { name: /Job header/i });
   if (await headerBtn.count()) await headerBtn.click();

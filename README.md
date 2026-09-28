@@ -58,7 +58,7 @@ Housecall Pro is not synced from CartScope. Who checked it / Helper / observatio
 
 ## Shop flow
 
-1. Start a cart check → year / make / model / complaint.
+1. Start a cart check → type year / make / model (the book opens; no cart list). Then complaint.
 2. Last name + HCP job number (required). Battery type required if electric.
 3. Pack check (electric) → codes (programmer carts) → factory steps → report.
 4. Confirm the report: the full case stays in the shared shop store (and on this tablet as a cache); a redacted copy is queued or sent for the shop brain.

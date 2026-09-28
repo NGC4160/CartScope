@@ -21,22 +21,24 @@ test("wizard stays mounted after the first job is created so Start can navigate"
 
 test("complaint selected always opens the job header step", () => {
   assert.equal(openJobHeader(null), null);
-  assert.equal(openJobHeader("no-operation"), 4);
-  assert.equal(stepAfterComplaintSelected(), 4);
+  assert.equal(openJobHeader("no-operation"), 3);
+  assert.equal(stepAfterComplaintSelected(), 3);
   assert.equal(
-    canVisitWizardStep(4, { manufacturer: "club-car", hasModel: true, symptomId: "no-operation" }),
+    canVisitWizardStep(3, { manufacturer: "club-car", hasModel: true, symptomId: "no-operation" }),
     true,
   );
   assert.equal(
-    canVisitWizardStep(4, { manufacturer: "club-car", hasModel: true, symptomId: null }),
+    canVisitWizardStep(3, { manufacturer: "club-car", hasModel: true, symptomId: null }),
     false,
   );
+  assert.equal(canVisitWizardStep(2, { hasModel: true, symptomId: null }), true);
+  assert.equal(canVisitWizardStep(2, { hasModel: false, symptomId: null }), false);
 });
 
 test("electric DS IQ no-run: complaint → header → fill → Start reaches bench", () => {
   const symptomId = "no-operation";
   const step = openJobHeader(symptomId) ?? stepAfterComplaintSelected();
-  assert.equal(step, 4);
+  assert.equal(step, 3);
 
   const empty = jobHeaderGaps({
     lastName: "",
@@ -82,7 +84,7 @@ test("electric DS IQ no-run: complaint → header → fill → Start reaches ben
 
 test("gas FE290 no-crank: header then Start reaches bench without battery type", () => {
   const symptomId = "no-crank";
-  assert.equal(openJobHeader(symptomId), 4);
+  assert.equal(openJobHeader(symptomId), 3);
 
   const empty = jobHeaderGaps({
     lastName: "",
@@ -119,7 +121,7 @@ test("gas FE290 no-crank: header then Start reaches bench without battery type",
 
 test("Yamaha YDRE DC no-run: filled header Start reaches the Check 1 bench path", () => {
   const symptomId = "no-operation";
-  assert.equal(openJobHeader(symptomId), 4);
+  assert.equal(openJobHeader(symptomId), 3);
 
   const empty = jobHeaderGaps({
     lastName: "",

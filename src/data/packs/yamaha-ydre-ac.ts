@@ -6,7 +6,9 @@ export const yamahaYdreAc = buildAcDrive({
   manufacturerLabel: "Yamaha",
   name: "YDRE AC Drive",
   fullName: "Yamaha YDRE AC Drive (48 V)",
-  years: "Later YDRE AC Drive (YDRA/E Service Manual AC sections; G29 AC family)",
+  years: "2017–2026+ Drive2 / later YDRE AC Drive (YDRA/E Service Manual AC sections; G29 AC family)",
+  yearMin: 2017,
+  yearMax: 2026,
   architecture: "YDRE AC electric · 48 V · tail speed sensor · park brake if fitted",
   diagramTitle: "Power and control picture — Yamaha YDRE AC 48 V",
   diagramNotes: [

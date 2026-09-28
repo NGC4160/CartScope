@@ -6,7 +6,9 @@ export const ezgoRxvGas = buildGas({
   manufacturerLabel: "EZ-GO",
   name: "RXV gasoline",
   fullName: "EZ-GO RXV Fleet / Freedom gasoline",
-  years: "EZ-GO RXV gasoline Repair and Service Manual — Electrical Section L",
+  years: "2008–2026+ EZ-GO RXV gasoline Repair and Service Manual — Electrical Section L",
+  yearMin: 2008,
+  yearMax: 2026,
   architecture: "4-cycle carburetor · starter-generator · 12 V · RXV gasoline chassis",
   diagramTitle: "Starting and spark picture — RXV gasoline",
   diagramNotes: [

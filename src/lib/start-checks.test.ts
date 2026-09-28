@@ -690,9 +690,11 @@ test("bay UX must prove FE350 blank Year cannot Start", () => {
 
 test("Job header Start banner paints Year / Who / HCP chips from the same gaps", () => {
   const src = readFileSync(new URL("../components/wizard/NewJobWizard.tsx", import.meta.url), "utf8");
+  const pad = readFileSync(new URL("../components/cart/YearGlovePad.tsx", import.meta.url), "utf8");
   assert.match(src, /startNeededChips/);
   assert.match(src, /start-needed-chips/);
-  assert.match(src, /year-glove-pad/);
+  assert.match(src, /YearGlovePad/);
+  assert.match(pad, /year-glove-pad/);
   assert.match(src, /min-h-16/);
 });
 

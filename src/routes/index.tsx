@@ -67,10 +67,9 @@ function Home() {
             Find the problem. One step at a time.
           </h1>
           <p className="mt-3 max-w-2xl text-base leading-relaxed text-ink-muted">
-            Pick the cart. Pick what is wrong. Write the customer last name, the Housecall Pro job number, and who
-            checked it. Follow
-            the factory checks. Save every meter number. The helper will not guess parts until the numbers prove a
-            cause.
+            Type the year, make, and model. We open that cart’s book. Then pick what is wrong, write the customer
+            last name, the Housecall Pro job number, and who checked it. Follow the factory checks. Save every meter
+            number. The helper will not guess parts until the numbers prove a cause.
           </p>
           <p className="mt-3 font-mono text-xs text-ink-subtle">
             {MODEL_PACKS.length} carts · {MODEL_PACKS.filter((p) => p.powertrain === "electric").length} electric ·{" "}
