@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { Link } from "@tanstack/react-router";
 import { Cable, FileText } from "lucide-react";
 import { Field, HeaderNoteInput, inputClass } from "@/components/case/fields";
@@ -44,95 +45,115 @@ export function CartLookup({
   openLabel?: string;
 }) {
   const query: CartQuery = { year, make, model };
+  const resultAnchor = useRef<HTMLDivElement>(null);
 
   function find() {
     onResult(resolveCart(query));
   }
 
+  useEffect(() => {
+    const y = year.trim();
+    if (y.length !== 4 || make.trim().length < 2 || model.trim().length < 3) return;
+    const timer = window.setTimeout(() => {
+      onResult(resolveCart({ year, make, model }));
+    }, 160);
+    return () => window.clearTimeout(timer);
+  }, [year, make, model, onResult]);
+
+  useEffect(() => {
+    if (!result) return;
+    resultAnchor.current?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  }, [result]);
+
   return (
-    <div className="grid gap-4">
-      <div className="grid gap-3 sm:grid-cols-3">
-        <Field label="Year" hint="Four-digit year on the cart.">
-          <HeaderNoteInput
-            name="lookupYear"
-            value={year}
-            onChange={(next) => onYear(sanitizeCartYearInput(next))}
-            inputMode="numeric"
-            enterKeyHint="done"
-            aria-label="Cart year"
-            className={inputClass + " min-h-16 text-2xl tabular-nums tracking-wide"}
-          />
-          <YearGlovePad year={year} onChange={onYear} />
-        </Field>
-        <Field label="Make">
-          <HeaderNoteInput
-            name="lookupMake"
-            value={make}
-            onChange={onMake}
-            aria-label="Cart make"
-            placeholder="Club Car, EZ-GO, Yamaha…"
-          />
-          <div className="mt-2 flex flex-wrap gap-2">
-            {MAKE_CHIPS.map((chip) => (
-              <button
-                key={chip}
-                type="button"
-                onClick={() => onMake(chip)}
-                className={
-                  "min-h-11 rounded-md px-3 text-sm font-medium shadow-[var(--shadow-border)] " +
-                  (make.toLowerCase() === chip.toLowerCase()
-                    ? "bg-navy text-navy-fg"
-                    : "bg-surface text-ink")
+    <div className="grid gap-4 md:grid-cols-[16rem_minmax(0,1fr)] md:items-start">
+      <Field label="Year" hint="Four-digit year on the cart.">
+        <HeaderNoteInput
+          name="lookupYear"
+          value={year}
+          onChange={(next) => onYear(sanitizeCartYearInput(next))}
+          inputMode="numeric"
+          enterKeyHint="done"
+          aria-label="Cart year"
+          className={inputClass + " min-h-16 text-2xl tabular-nums tracking-wide"}
+        />
+        <YearGlovePad year={year} onChange={onYear} />
+      </Field>
+
+      <div className="grid gap-3">
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Field label="Make">
+            <HeaderNoteInput
+              name="lookupMake"
+              value={make}
+              onChange={onMake}
+              aria-label="Cart make"
+              placeholder="Club Car, EZ-GO, Yamaha…"
+            />
+            <div className="mt-2 flex flex-wrap gap-2">
+              {MAKE_CHIPS.map((chip) => (
+                <button
+                  key={chip}
+                  type="button"
+                  onClick={() => onMake(chip)}
+                  className={
+                    "min-h-11 rounded-md px-3 text-sm font-medium shadow-[var(--shadow-border)] " +
+                    (make.toLowerCase() === chip.toLowerCase()
+                      ? "bg-navy text-navy-fg"
+                      : "bg-surface text-ink")
+                  }
+                >
+                  {chip}
+                </button>
+              ))}
+            </div>
+          </Field>
+          <Field label="Model" hint="Precedent, TXT, Drive2, Onward, RXV…">
+            <HeaderNoteInput
+              name="lookupModel"
+              value={model}
+              onChange={onModel}
+              aria-label="Cart model"
+              placeholder="Precedent, TXT, Drive2…"
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  find();
                 }
-              >
-                {chip}
-              </button>
-            ))}
-          </div>
-        </Field>
-        <Field label="Model" hint="Precedent, TXT, Drive2, Onward, RXV…">
-          <HeaderNoteInput
-            name="lookupModel"
-            value={model}
-            onChange={onModel}
-            aria-label="Cart model"
-            placeholder="Precedent, TXT, Drive2…"
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                find();
-              }
-            }}
-          />
-        </Field>
-      </div>
-      <Button type="button" data-testid="find-cart" onClick={find} className="w-full sm:w-auto">
-        Find this cart
-      </Button>
+              }}
+            />
+            <Button type="button" data-testid="find-cart" onClick={find} className="mt-3 w-full">
+              Find this cart
+            </Button>
+          </Field>
+        </div>
 
-      {result?.status === "need-input" ? (
-        <p className="rounded-md bg-paper-sunken px-4 py-3 text-sm text-ink-muted" role="status">
-          {result.message}
-        </p>
-      ) : null}
+        <div ref={resultAnchor}>
+          {result?.status === "need-input" ? (
+            <p className="rounded-md bg-paper-sunken px-4 py-3 text-sm text-ink-muted" role="status">
+              {result.message}
+            </p>
+          ) : null}
 
-      {result?.status === "none" ? (
-        <div
-          data-testid="cart-no-match"
-          className="rounded-lg bg-warn-bg px-4 py-3 text-sm text-ink"
-          role="status"
-        >
-          <p className="font-medium">No exact match</p>
-          <p className="mt-1">{result.message}</p>
-          {result.closestYearSpan ? (
-            <p className="mt-2 text-ink-muted">Closest year range on file: {result.closestYearSpan}.</p>
+          {result?.status === "none" ? (
+            <div
+              data-testid="cart-no-match"
+              className="rounded-lg bg-warn-bg px-4 py-3 text-sm text-ink"
+              role="status"
+            >
+              <p className="font-medium">No exact match</p>
+              <p className="mt-1">{result.message}</p>
+              {result.closestYearSpan ? (
+                <p className="mt-2 text-ink-muted">Closest year range on file: {result.closestYearSpan}.</p>
+              ) : null}
+            </div>
+          ) : null}
+
+          {result?.status === "match" ? (
+            <CartMatchPanel result={result} query={query} onResult={onResult} onOpen={onOpen} openLabel={openLabel} />
           ) : null}
         </div>
-      ) : null}
-
-      {result?.status === "match" ? (
-        <CartMatchPanel result={result} query={query} onResult={onResult} onOpen={onOpen} openLabel={openLabel} />
-      ) : null}
+      </div>
     </div>
   );
 }

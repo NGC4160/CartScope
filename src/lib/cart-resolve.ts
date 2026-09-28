@@ -402,7 +402,7 @@ function closestForFamily(
     const span = formatPackYears(packRanges(pack)) || pack.years;
     return { pack, span };
   }
-  let best: { pack: ModelPack; dist: number; span: string } | null = null;
+  let best: { pack: CartEntry; dist: number; span: string } | null = null;
   for (const pack of packs) {
     const ranges = packRanges(pack);
     if (ranges.length === 0) continue;

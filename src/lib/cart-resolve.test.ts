@@ -155,3 +155,35 @@ test("typed gas or 36 V skips the extra question", () => {
   assert.ok(txt36.packId === "ezgo-txt-36-non-pds" || txt36.packId === "ezgo-pds-36");
   assert.equal(txt36.question, null);
 });
+
+test("only same-year gas/electric or voltage ties keep one question", () => {
+  const withQuestion: string[] = [];
+  const probes: Array<[number, string, string]> = [
+    [2004, "Club Car", "Precedent"],
+    [2011, "Club Car", "Precedent"],
+    [2012, "Club Car", "Precedent"],
+    [2015, "Club Car", "Precedent"],
+    [2019, "Club Car", "Tempo"],
+    [2020, "Club Car", "Tempo"],
+    [2021, "Club Car", "Onward"],
+    [2008, "EZ-GO", "TXT"],
+    [2010, "EZ-GO", "TXT"],
+    [2008, "EZ-GO", "RXV"],
+    [2018, "EZ-GO", "RXV"],
+    [2010, "Yamaha", "Drive"],
+    [2015, "Yamaha", "Drive"],
+    [2021, "Yamaha", "Drive2"],
+  ];
+  for (const [year, make, model] of probes) {
+    const result = resolveCart({ year, make, model });
+    if (result.status === "match" && result.question) {
+      withQuestion.push(`${year} ${make} ${model} → ${result.question.prompt} (default ${result.packId})`);
+    }
+  }
+  assert.deepEqual(withQuestion, [
+    "2020 Club Car Tempo → Gas or electric? (default club-car-tempo-eric)",
+    "2021 Club Car Onward → Gas or electric? (default club-car-tempo-eric)",
+    "2010 Yamaha Drive → Gas or electric? (default yamaha-ydre-dc)",
+    "2015 Yamaha Drive → Gas or electric? (default yamaha-ydre-dc)",
+  ]);
+});
