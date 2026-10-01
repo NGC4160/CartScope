@@ -1,9 +1,11 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { Cable, FileText } from "lucide-react";
 import { Field, HeaderNoteInput, inputClass } from "@/components/case/fields";
 import { YearGlovePad } from "@/components/cart/YearGlovePad";
+import { ControllerMatchPanel } from "@/components/cart/ControllerLookup";
 import { Button } from "@/components/ui/button";
+import { controllerStampsForPack } from "@/data/controllers";
 import { getPack } from "@/data/index";
 import { sheetsForPack } from "@/data/wiring";
 import { manualsOnFile } from "@/lib/manuals";
@@ -13,6 +15,11 @@ import {
   type CartQuery,
   type CartResolveResult,
 } from "@/lib/cart-resolve";
+import {
+  CONTROLLER_ONLY_CART_MESSAGE,
+  resolveController,
+  type ControllerResolveResult,
+} from "@/lib/controller-resolve";
 import { sanitizeCartYearInput } from "@/lib/year-compat";
 
 const MAKE_CHIPS = ["Club Car", "EZ-GO", "Yamaha"] as const;
@@ -46,6 +53,8 @@ export function CartLookup({
 }) {
   const query: CartQuery = { year, make, model };
   const resultAnchor = useRef<HTMLDivElement>(null);
+  const [controllerResult, setControllerResult] = useState<ControllerResolveResult | null>(null);
+  const controllerOnly = result?.status === "none" && result.message === CONTROLLER_ONLY_CART_MESSAGE;
 
   function find() {
     onResult(resolveCart(query));
@@ -64,6 +73,14 @@ export function CartLookup({
     if (!result) return;
     resultAnchor.current?.scrollIntoView({ block: "nearest", behavior: "smooth" });
   }, [result]);
+
+  useEffect(() => {
+    if (!controllerOnly) {
+      setControllerResult(null);
+      return;
+    }
+    setControllerResult(resolveController({ query: `${make} ${model}`.trim() }));
+  }, [controllerOnly, make, model]);
 
   return (
     <div className="grid gap-4 md:grid-cols-[16rem_minmax(0,1fr)] md:items-start">
@@ -135,7 +152,7 @@ export function CartLookup({
             </p>
           ) : null}
 
-          {result?.status === "none" ? (
+          {result?.status === "none" && !controllerOnly ? (
             <div
               data-testid="cart-no-match"
               className="rounded-lg bg-warn-bg px-4 py-3 text-sm text-ink"
@@ -146,6 +163,34 @@ export function CartLookup({
               {result.closestYearSpan ? (
                 <p className="mt-2 text-ink-muted">Closest year range on file: {result.closestYearSpan}.</p>
               ) : null}
+            </div>
+          ) : null}
+
+          {controllerOnly && controllerResult?.status === "match" ? (
+            <div data-testid="cart-controller-redirect">
+              <p className="mb-3 rounded-md bg-paper-sunken px-4 py-3 text-sm text-ink-muted">
+                That stamp is a controller book, not a cart. To start a cart check, type the year, make, and model on
+                the vehicle.
+              </p>
+              <ControllerMatchPanel
+                result={controllerResult}
+                query={`${make} ${model}`.trim()}
+                onResult={setControllerResult}
+              />
+            </div>
+          ) : null}
+
+          {controllerOnly && controllerResult && controllerResult.status !== "match" ? (
+            <div
+              data-testid="cart-controller-redirect"
+              className="rounded-lg bg-warn-bg px-4 py-3 text-sm text-ink"
+              role="status"
+            >
+              <p className="font-medium">Controller stamp</p>
+              <p className="mt-1">{CONTROLLER_ONLY_CART_MESSAGE}</p>
+              <Link to="/controllers" className="mt-2 inline-flex min-h-11 items-center font-medium text-navy">
+                Open controller books
+              </Link>
             </div>
           ) : null}
 
@@ -174,6 +219,7 @@ function CartMatchPanel({
   const pack = getPack(result.packId);
   const sheets = pack ? sheetsForPack(pack.id) : [];
   const manuals = pack ? manualsOnFile(pack, sheets) : null;
+  const controllerStamps = controllerStampsForPack(result.packId);
   const siblingSheets = result.siblings.flatMap((sib) =>
     sheetsForPack(sib.id).map((sheet) => ({ sheet, packName: sib.name })),
   );
@@ -243,6 +289,20 @@ function CartMatchPanel({
                 </li>
               ))}
             </ul>
+          </div>
+        ) : null}
+        {controllerStamps.length > 0 ? (
+          <div className="mt-2 rounded-md bg-paper-sunken px-3 py-2" data-testid="controller-stamps-secondary">
+            <p className="text-xs font-medium uppercase tracking-wide text-ink-subtle">
+              Controller books by stamp — not this cart year
+            </p>
+            <p className="mt-1 text-sm text-ink-muted">
+              If the box says {controllerStamps.map((m) => m.name).join(", ")}, open that controller book. Versions
+              differ — read the stamp.
+            </p>
+            <Link to="/controllers" className="mt-2 inline-flex min-h-11 items-center text-sm font-medium text-navy">
+              Open by controller model
+            </Link>
           </div>
         ) : null}
       </div>

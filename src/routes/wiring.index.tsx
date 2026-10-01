@@ -30,6 +30,12 @@ function WiringLibrary() {
         <h1 className="mt-1 font-display text-4xl font-semibold tracking-tight text-ink">Wire maps</h1>
         <p className="mt-3 max-w-2xl text-base leading-relaxed text-ink-muted">
           Type the year, make, and model. We open that cart’s pictures. Pinch to zoom. Print a copy for the stall.
+          Controller PDFs are a separate library — open them by the stamp on the box, not a random cart year.
+        </p>
+        <p className="mt-3">
+          <Link to="/controllers" className="inline-flex min-h-11 items-center font-medium text-navy">
+            Looking up a controller stamp? Open Controllers
+          </Link>
         </p>
 
         <div className="mt-6 rounded-lg bg-surface p-4 shadow-[var(--shadow-border)] sm:p-5">
