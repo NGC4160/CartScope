@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Cable } from "lucide-react";
+import { BookOpen, Cable } from "lucide-react";
 import type { ReactNode } from "react";
 
 export function AppShell({
@@ -33,6 +33,13 @@ export function AppShell({
           <Cable className="size-4" />
           Wire maps
         </Link>
+        <Link
+          to="/controllers"
+          className="hidden min-h-10 items-center gap-1.5 rounded-md px-3 text-sm text-navy-fg/90 hover:bg-navy-deep sm:flex"
+        >
+          <BookOpen className="size-4" />
+          Controllers
+        </Link>
         <div className="ml-auto flex items-center gap-2">
           <Link
             to="/wiring"
@@ -40,6 +47,13 @@ export function AppShell({
             aria-label="Wire maps"
           >
             <Cable className="size-5" />
+          </Link>
+          <Link
+            to="/controllers"
+            className="flex size-10 items-center justify-center rounded-md text-navy-fg sm:hidden"
+            aria-label="Controllers"
+          >
+            <BookOpen className="size-5" />
           </Link>
           {right}
         </div>

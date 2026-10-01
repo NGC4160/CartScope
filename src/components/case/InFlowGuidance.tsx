@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type PointerEvent } from "react";
+import { Link } from "@tanstack/react-router";
 import { BookOpen, ChevronRight, Loader2, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Field, inputClass } from "@/components/case/fields";
@@ -12,6 +13,7 @@ import {
   settleHelperAsk,
 } from "@/lib/helper-redirect";
 import { manualsOnFile } from "@/lib/manuals";
+import { controllerStampsForPack } from "@/data/controllers";
 import { sheetsForPack } from "@/data/wiring";
 import { evaluateProof } from "@/lib/proof";
 import { runJobAssistant } from "@/lib/run-assistant";
@@ -42,6 +44,7 @@ export function InFlowGuidance({
 
   const proof = evaluateProof(job, pack);
   const coverage = useMemo(() => manualsOnFile(pack, sheetsForPack(pack.id)), [pack]);
+  const controllerStamps = useMemo(() => controllerStampsForPack(pack.id), [pack]);
   const patchJob = useJobStore((s) => s.patchJob);
   const observation = job.techObservation ?? "";
   const [busy, setBusy] = useState(false);
@@ -214,6 +217,22 @@ export function InFlowGuidance({
               unverified PDF is saved automatically.
             </p>
           </div>
+        )}
+        {controllerStamps.length > 0 ? (
+          <p className="mt-2 text-xs text-ink-muted">
+            Controller books are by stamp, not this cart year
+            {controllerStamps.length ? ` (${controllerStamps.map((m) => m.name).join(", ")})` : ""}.{" "}
+            <Link to="/controllers" className="font-medium text-navy">
+              Open by controller model
+            </Link>
+          </p>
+        ) : (
+          <p className="mt-2 text-xs text-ink-muted">
+            Full controller manuals are filed by the stamp on the box.{" "}
+            <Link to="/controllers" className="font-medium text-navy">
+              Open Controllers
+            </Link>
+          </p>
         )}
         {sourceOpen ? (
           <div className="mt-3 space-y-2">

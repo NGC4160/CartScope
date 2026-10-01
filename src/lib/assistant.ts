@@ -3,6 +3,7 @@ import { getPack } from "@/data/index";
 import { sheetsForPack } from "@/data/wiring";
 import { parseAssistantReply } from "@/lib/assistant-parse";
 import { manualsOnFile } from "@/lib/manuals";
+import { controllerHelperBrief } from "@/lib/controller-resolve";
 
 export interface AssistantMeasurement {
   step: string;
@@ -90,6 +91,7 @@ function brief(data: AssistantInput): string {
           .map((i) => `- [${i.kind}] ${i.title} — ${i.ref}`)
           .join("\n")}`
       : "NO SERVICE MANUAL ON FILE for this cart. Say that clearly. Offer to source a candidate. Do not add a PDF to the shop library.",
+    controllerHelperBrief(pack.id),
     ``,
     `MODEL: ${pack.fullName}`,
     `YEARS: ${pack.years}`,
@@ -165,6 +167,8 @@ export const askBenchAssistant = createServerFn({ method: "POST" })
               "Never treat a random forum, Facebook group, or unverified PDF as the truth. " +
               "If SERVICE MANUAL ON FILE is false, say clearly: “No service manual is on file for this cart.” " +
               "Then offer to source a candidate title. Do not add any PDF to the shop library. Approval is required. " +
+              "Controller PDFs are tagged by the model stamp (Curtis 1268, 1206MX…). Never attach one to a random year/make/model cart. " +
+              "Platform notes (EZ-GO TXT, RXV, Precedent) are secondary only. Ask which stamp is on the box if versions differ. " +
               "Use the factory pack data and the evidence case block. Follow the factory check list for THIS cart and THIS complaint. " +
               "Do not invent an EZ-GO TXT-only tree for other carts. " +
               "Write in full sentences. Everyday words. Short sentences. " +

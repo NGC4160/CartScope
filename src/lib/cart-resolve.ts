@@ -10,6 +10,11 @@
 import { CART_CATALOG, type CartEntry } from "../data/cart-catalog.ts";
 import type { ManufacturerId, Powertrain } from "../data/types.ts";
 import {
+  CONTROLLER_NUMBER_FAMILIES,
+  CONTROLLER_ONLY_CART_MESSAGE,
+  looksLikeControllerStamp,
+} from "./controller-resolve.ts";
+import {
   formatPackYears,
   parseCartYear,
   resolvePackYearRanges,
@@ -477,6 +482,19 @@ export function resolveCart(query: CartQuery): CartResolveResult {
       status: "need-input",
       picker: false,
       message: "Type the model (Precedent, TXT, Drive2, RXV…). We use that plus the year to open the book.",
+    };
+  }
+
+  const controllerStamp = looksLikeControllerStamp(blob) || looksLikeControllerStamp(query.model);
+  const cartFamily = familyList.find((family) => !CONTROLLER_NUMBER_FAMILIES.has(family));
+  if (controllerStamp && !make && !cartFamily) {
+    return {
+      status: "none",
+      picker: false,
+      message: CONTROLLER_ONLY_CART_MESSAGE,
+      closestYearSpan: null,
+      closestPackId: null,
+      closestPackName: null,
     };
   }
 

@@ -11,10 +11,13 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as WiringRouteImport } from './routes/wiring'
+import { Route as ControllersRouteImport } from './routes/controllers'
 import { Route as ApiJobsRouteImport } from './routes/api.jobs'
 import { Route as BenchJobIdRouteImport } from './routes/bench.$jobId'
 import { Route as WiringIndexRouteImport } from './routes/wiring.index'
 import { Route as WiringModelIdRouteImport } from './routes/wiring.$modelId'
+import { Route as ControllersIndexRouteImport } from './routes/controllers.index'
+import { Route as ControllersModelTagRouteImport } from './routes/controllers.$modelTag'
 import { Route as PrintDiagramModelIdRouteImport } from './routes/print.diagram.$modelId'
 import { Route as PrintReportJobIdRouteImport } from './routes/print.report.$jobId'
 import { Route as PrintWiringSheetIdRouteImport } from './routes/print.wiring.$sheetId'
@@ -27,6 +30,11 @@ const IndexRoute = IndexRouteImport.update({
 const WiringRoute = WiringRouteImport.update({
   id: '/wiring',
   path: '/wiring',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ControllersRoute = ControllersRouteImport.update({
+  id: '/controllers',
+  path: '/controllers',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiJobsRoute = ApiJobsRouteImport.update({
@@ -49,6 +57,16 @@ const WiringModelIdRoute = WiringModelIdRouteImport.update({
   path: '/$modelId',
   getParentRoute: () => WiringRoute,
 } as any)
+const ControllersIndexRoute = ControllersIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => ControllersRoute,
+} as any)
+const ControllersModelTagRoute = ControllersModelTagRouteImport.update({
+  id: '/$modelTag',
+  path: '/$modelTag',
+  getParentRoute: () => ControllersRoute,
+} as any)
 const PrintDiagramModelIdRoute = PrintDiagramModelIdRouteImport.update({
   id: '/print/diagram/$modelId',
   path: '/print/diagram/$modelId',
@@ -68,10 +86,13 @@ const PrintWiringSheetIdRoute = PrintWiringSheetIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/wiring': typeof WiringRouteWithChildren
+  '/controllers': typeof ControllersRouteWithChildren
   '/api/jobs': typeof ApiJobsRoute
   '/bench/$jobId': typeof BenchJobIdRoute
   '/wiring/$modelId': typeof WiringModelIdRoute
   '/wiring/': typeof WiringIndexRoute
+  '/controllers/$modelTag': typeof ControllersModelTagRoute
+  '/controllers/': typeof ControllersIndexRoute
   '/print/diagram/$modelId': typeof PrintDiagramModelIdRoute
   '/print/report/$jobId': typeof PrintReportJobIdRoute
   '/print/wiring/$sheetId': typeof PrintWiringSheetIdRoute
@@ -82,6 +103,8 @@ export interface FileRoutesByTo {
   '/bench/$jobId': typeof BenchJobIdRoute
   '/wiring/$modelId': typeof WiringModelIdRoute
   '/wiring': typeof WiringIndexRoute
+  '/controllers/$modelTag': typeof ControllersModelTagRoute
+  '/controllers': typeof ControllersIndexRoute
   '/print/diagram/$modelId': typeof PrintDiagramModelIdRoute
   '/print/report/$jobId': typeof PrintReportJobIdRoute
   '/print/wiring/$sheetId': typeof PrintWiringSheetIdRoute
@@ -90,10 +113,13 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/wiring': typeof WiringRouteWithChildren
+  '/controllers': typeof ControllersRouteWithChildren
   '/api/jobs': typeof ApiJobsRoute
   '/bench/$jobId': typeof BenchJobIdRoute
   '/wiring/$modelId': typeof WiringModelIdRoute
   '/wiring/': typeof WiringIndexRoute
+  '/controllers/$modelTag': typeof ControllersModelTagRoute
+  '/controllers/': typeof ControllersIndexRoute
   '/print/diagram/$modelId': typeof PrintDiagramModelIdRoute
   '/print/report/$jobId': typeof PrintReportJobIdRoute
   '/print/wiring/$sheetId': typeof PrintWiringSheetIdRoute
@@ -103,10 +129,13 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/wiring'
+    | '/controllers'
     | '/api/jobs'
     | '/bench/$jobId'
     | '/wiring/$modelId'
     | '/wiring/'
+    | '/controllers/$modelTag'
+    | '/controllers/'
     | '/print/diagram/$modelId'
     | '/print/report/$jobId'
     | '/print/wiring/$sheetId'
@@ -117,6 +146,8 @@ export interface FileRouteTypes {
     | '/bench/$jobId'
     | '/wiring/$modelId'
     | '/wiring'
+    | '/controllers/$modelTag'
+    | '/controllers'
     | '/print/diagram/$modelId'
     | '/print/report/$jobId'
     | '/print/wiring/$sheetId'
@@ -124,10 +155,13 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/wiring'
+    | '/controllers'
     | '/api/jobs'
     | '/bench/$jobId'
     | '/wiring/$modelId'
     | '/wiring/'
+    | '/controllers/$modelTag'
+    | '/controllers/'
     | '/print/diagram/$modelId'
     | '/print/report/$jobId'
     | '/print/wiring/$sheetId'
@@ -136,6 +170,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   WiringRoute: typeof WiringRouteWithChildren
+  ControllersRoute: typeof ControllersRouteWithChildren
   ApiJobsRoute: typeof ApiJobsRoute
   BenchJobIdRoute: typeof BenchJobIdRoute
   PrintDiagramModelIdRoute: typeof PrintDiagramModelIdRoute
@@ -157,6 +192,13 @@ declare module '@tanstack/react-router' {
       path: '/wiring'
       fullPath: '/wiring'
       preLoaderRoute: typeof WiringRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/controllers': {
+      id: '/controllers'
+      path: '/controllers'
+      fullPath: '/controllers'
+      preLoaderRoute: typeof ControllersRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/jobs': {
@@ -186,6 +228,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/wiring/$modelId'
       preLoaderRoute: typeof WiringModelIdRouteImport
       parentRoute: typeof WiringRoute
+    }
+    '/controllers/': {
+      id: '/controllers/'
+      path: '/'
+      fullPath: '/controllers/'
+      preLoaderRoute: typeof ControllersIndexRouteImport
+      parentRoute: typeof ControllersRoute
+    }
+    '/controllers/$modelTag': {
+      id: '/controllers/$modelTag'
+      path: '/$modelTag'
+      fullPath: '/controllers/$modelTag'
+      preLoaderRoute: typeof ControllersModelTagRouteImport
+      parentRoute: typeof ControllersRoute
     }
     '/print/diagram/$modelId': {
       id: '/print/diagram/$modelId'
@@ -224,9 +280,23 @@ const WiringRouteChildren: WiringRouteChildren = {
 const WiringRouteWithChildren =
   WiringRoute._addFileChildren(WiringRouteChildren)
 
+interface ControllersRouteChildren {
+  ControllersModelTagRoute: typeof ControllersModelTagRoute
+  ControllersIndexRoute: typeof ControllersIndexRoute
+}
+
+const ControllersRouteChildren: ControllersRouteChildren = {
+  ControllersModelTagRoute: ControllersModelTagRoute,
+  ControllersIndexRoute: ControllersIndexRoute,
+}
+
+const ControllersRouteWithChildren =
+  ControllersRoute._addFileChildren(ControllersRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   WiringRoute: WiringRouteWithChildren,
+  ControllersRoute: ControllersRouteWithChildren,
   ApiJobsRoute: ApiJobsRoute,
   BenchJobIdRoute: BenchJobIdRoute,
   PrintDiagramModelIdRoute: PrintDiagramModelIdRoute,
