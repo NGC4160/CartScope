@@ -26,7 +26,7 @@ import { formatPackCellLine } from "@/lib/pack-rules";
 import { packNaCopy } from "@/lib/pack-na";
 import { evaluateProof } from "@/lib/proof";
 import { manualsOnFile } from "@/lib/manuals";
-import { manualsReportLines, partialReportGaps } from "@/lib/report-continuity";
+import { completeBlockers, manualsReportLines, partialReportGaps } from "@/lib/report-continuity";
 import { sheetsForPack } from "@/data/wiring";
 import { formatTime } from "@/lib/utils";
 import { useJobStore } from "@/store/jobs";
@@ -52,6 +52,8 @@ export function CaseReport({
   const proof = evaluateProof(job, pack);
   const submitGate = bayFormSubmitGate;
   const confirm = useJobStore((s) => s.confirmReport);
+  const blockers = completeBlockers(job, pack);
+  const canConfirm = blockers.length === 0;
   const patch = useJobStore((s) => s.patchJob);
   const setPhase = useJobStore((s) => s.setPhase);
   const allCandidates = useManualStore((s) => s.candidates);
@@ -90,9 +92,16 @@ export function CaseReport({
 
   async function onConfirm() {
     if (job.reportConfirmed) return;
+    if (!canConfirm) {
+      setError(blockers[0] ?? "Required checks are still missing.");
+      return;
+    }
     const next = { ...job, retestNote: retest.trim() };
     patch(job.id, { retestNote: next.retestNote });
-    confirm(job.id);
+    if (!confirm(job.id)) {
+      setError(blockers[0] ?? "Required checks are still missing.");
+      return;
+    }
     await fileShopCopy({ ...next, reportConfirmed: true, status: "complete" });
   }
 
@@ -108,7 +117,7 @@ export function CaseReport({
     chip: bayProgressChip(job, pack),
     label: bayReportActionLabel(Boolean(job.reportConfirmed)),
     onAction: primarySubmit,
-    disabled: filing,
+    disabled: filing || (!job.reportConfirmed && !canConfirm),
     secondaryLabel: job.reportConfirmed ? undefined : "Back to checks",
     onSecondary: job.reportConfirmed ? undefined : back,
   });
@@ -401,6 +410,17 @@ export function CaseReport({
           </section>
         ) : null}
 
+        {!job.reportConfirmed && blockers.length > 0 ? (
+          <section className="mt-6 rounded-md bg-danger-bg px-3 py-3 text-sm text-ink" data-testid="complete-blockers">
+            <p className="font-medium">Cannot mark complete yet</p>
+            <ul className="mt-2 list-disc pl-5">
+              {blockers.map((line) => (
+                <li key={line}>{line}</li>
+              ))}
+            </ul>
+          </section>
+        ) : null}
+
         {error ? <p className="mt-3 text-sm text-danger">{error}</p> : null}
 
         {!printMode ? (
@@ -411,7 +431,11 @@ export function CaseReport({
                 This case is marked complete.
               </p>
             ) : onChrome ? null : (
-              <Button onClick={() => void onConfirm()} className="min-w-52" disabled={filing}>
+              <Button
+                onClick={() => void onConfirm()}
+                className="min-w-52"
+                disabled={filing || !canConfirm}
+              >
                 Review and confirm
               </Button>
             )}

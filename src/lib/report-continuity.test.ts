@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import type { JobRecord, ModelPack } from "../data/types.ts";
 import {
+  canConfirmComplete,
+  completeBlockers,
   helperManualsNote,
   manualsReportLines,
   partialReportGaps,
@@ -106,4 +108,76 @@ test("gas reports do not treat a skipped pack as a missing pack check", () => {
   const gasPack = { ...onFilePack, id: "yamaha-ydra", powertrain: "gasoline" as const, architecture: "YDRA gas" };
   const gaps = partialReportGaps(job({ modelId: "yamaha-ydra" }), gasPack);
   assert.equal(gaps.some((g) => /Battery pack/i.test(g)), false);
+});
+
+test("confirm is blocked when an electric pack check was skipped", () => {
+  const blockers = completeBlockers(job({ log: [] }), onFilePack);
+  assert.ok(blockers.some((line) => /Battery pack/i.test(line)));
+  assert.equal(canConfirmComplete(job({ log: [] }), onFilePack), false);
+});
+
+test("confirm is blocked when required factory checks were skipped", () => {
+  const withPack = job({
+    packCheck: {
+      at: "2026-10-04T00:00:00.000Z",
+      chemistry: "lead-acid",
+      cellCount: 6,
+      nominalV: 8,
+      layoutSource: "factory-book",
+      cells: [],
+      verdict: "pass",
+      issues: [],
+    },
+    log: [
+      {
+        id: "log_1",
+        stepId: "setup",
+        stepTitle: "Set the cart up first",
+        at: "2026-10-04T00:01:00.000Z",
+        kind: "observation",
+        expectedLabel: "set",
+        unit: "",
+        attempts: [],
+        confirmedRaw: "Skipped: no time",
+        result: "skip",
+        next: { kind: "step", id: "setup" },
+        skipReason: "no time",
+      },
+    ],
+    skipReasons: { setup: "no time" },
+  });
+  const blockers = completeBlockers(withPack, onFilePack);
+  assert.ok(blockers.some((line) => /factory checks were skipped/i.test(line)));
+  assert.equal(canConfirmComplete(withPack, onFilePack), false);
+});
+
+test("gas confirm is blocked for skipped factory checks but not for a missing pack", () => {
+  const gasPack = { ...onFilePack, id: "yamaha-ydra", powertrain: "gasoline" as const, architecture: "YDRA gas" };
+  const skipped = job({
+    modelId: "yamaha-ydra",
+    skipReasons: { setup: "jumped to report" },
+  });
+  assert.ok(completeBlockers(skipped, gasPack).some((line) => /factory checks were skipped/i.test(line)));
+  assert.equal(
+    completeBlockers(job({ modelId: "yamaha-ydra", log: [] }), gasPack).some((line) => /Battery pack/i.test(line)),
+    false,
+  );
+});
+
+test("a failed pack can complete without leftover factory checks", () => {
+  const failed = job({
+    packCheck: {
+      at: "2026-10-04T00:00:00.000Z",
+      chemistry: "lead-acid",
+      cellCount: 6,
+      nominalV: 8,
+      layoutSource: "factory-book",
+      cells: [],
+      verdict: "fail",
+      issues: ["too low"],
+    },
+    skipReasons: { setup: "pack failed first" },
+  });
+  assert.deepEqual(completeBlockers(failed, onFilePack), []);
+  assert.equal(canConfirmComplete(failed, onFilePack), true);
 });

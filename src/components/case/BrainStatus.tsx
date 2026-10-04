@@ -68,6 +68,9 @@ export function BrainStatus({
       <p className="mt-2 text-sm text-ink-muted">
         The shop copy has no last name and no job number. Cases sync across shop tablets. This device keeps a local
         cache.
+        {copy?.status === "queued"
+          ? " Nothing leaves this tablet until Ryan sets the shop filing path, or you tap Save shop file."
+          : ""}
       </p>
       {copy?.filename ? (
         <p className="mt-1 font-mono text-xs text-ink-subtle">{copy.path}</p>

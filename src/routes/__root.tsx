@@ -1,6 +1,7 @@
 import { createRootRoute, HeadContent, Outlet, Scripts } from "@tanstack/react-router";
 import { AuthProvider } from "@/lib/auth/provider";
 import { PreviewHostBridge } from "@/components/preview-host-bridge";
+import { ShopGate } from "@/components/shop/ShopGate";
 import { useHydrated } from "@/hooks/use-hydrated";
 import appCss from "../styles.css?url";
 
@@ -43,9 +44,11 @@ export const Route = createRootRoute({
       </head>
       <body className="bg-paper text-ink">
         <PreviewHostBridge />
-        <JobsPersistBridge />
         <AuthProvider>
-          <Outlet />
+          <ShopGate>
+            <JobsPersistBridge />
+            <Outlet />
+          </ShopGate>
         </AuthProvider>
         <Scripts />
       </body>

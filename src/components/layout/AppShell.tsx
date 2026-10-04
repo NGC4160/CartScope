@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { BookOpen, Cable } from "lucide-react";
 import type { ReactNode } from "react";
+import { useShopSession } from "@/components/shop/ShopGate";
 
 export function AppShell({
   children,
@@ -11,6 +12,7 @@ export function AppShell({
   right?: ReactNode;
   lockViewport?: boolean;
 }) {
+  const shop = useShopSession();
   return (
     <div
       className={
@@ -55,6 +57,15 @@ export function AppShell({
           >
             <BookOpen className="size-5" />
           </Link>
+          {shop?.unlocked ? (
+            <button
+              type="button"
+              onClick={() => void shop.lock()}
+              className="hidden min-h-10 rounded-md px-3 text-sm text-navy-fg/80 hover:bg-navy-deep sm:inline-flex sm:items-center"
+            >
+              Lock shop
+            </button>
+          ) : null}
           {right}
         </div>
       </header>

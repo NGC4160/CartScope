@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { ControllerLookup, ControllerStampList } from "@/components/cart/ControllerLookup";
+import { ControllerLookup, ControllerStampList, DriveSignInNote } from "@/components/cart/ControllerLookup";
 import { AppShell } from "@/components/layout/AppShell";
 import { Button } from "@/components/ui/button";
 import { CONTROLLER_DOCS } from "@/data/controllers";
@@ -29,6 +29,9 @@ function ControllersLibrary() {
         </p>
 
         <div className="mt-6 rounded-lg bg-surface p-4 shadow-[var(--shadow-border)] sm:p-5">
+          <div className="mb-4">
+            <DriveSignInNote />
+          </div>
           <ControllerLookup query={query} result={lookup} onQuery={setQuery} onResult={setLookup} />
         </div>
 

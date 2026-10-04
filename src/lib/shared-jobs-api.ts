@@ -1,4 +1,4 @@
-import { parseSharedJobsDocument, toSharedJobsDocument } from "./shared-jobs.ts";
+import { mergeSharedJobs, parseSharedJobsDocument, toSharedJobsDocument } from "./shared-jobs.ts";
 import {
   isSharedStoreConfigured,
   readSharedJobs,
@@ -82,7 +82,9 @@ export async function handleSharedJobsPut(body: unknown): Promise<SharedJobsApiR
         },
       };
     }
-    await writeSharedJobs(next);
+    const existing = await readSharedJobs();
+    const merged = mergeSharedJobs(existing, next);
+    await writeSharedJobs(merged);
     return {
       status: 200,
       body: {
@@ -90,7 +92,7 @@ export async function handleSharedJobsPut(body: unknown): Promise<SharedJobsApiR
         empty: false,
         configured: true,
         wrote: true,
-        ...next,
+        ...merged,
       },
     };
   } catch (error) {

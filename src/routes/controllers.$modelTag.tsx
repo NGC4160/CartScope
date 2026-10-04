@@ -3,7 +3,7 @@ import { BookOpen, ExternalLink } from "lucide-react";
 import { AppShell } from "@/components/layout/AppShell";
 import { Button } from "@/components/ui/button";
 import { docsForModelTag, getControllerModel } from "@/data/controllers";
-import { openDriveDoc } from "@/components/cart/ControllerLookup";
+import { DriveSignInNote, openDriveDoc, TabletControllerSheets } from "@/components/cart/ControllerLookup";
 
 export const Route = createFileRoute("/controllers/$modelTag")({ component: ControllerModelPage });
 
@@ -40,6 +40,11 @@ function ControllerModelPage() {
           Tag <span className="font-mono">{model.tag}</span>. Open the Drive book. Do not use a cart year/make/model
           for this file.
         </p>
+
+        <div className="mt-4 grid gap-3">
+          <DriveSignInNote />
+          <TabletControllerSheets tag={model.tag} />
+        </div>
 
         <ul className="mt-6 grid gap-3">
           {docs.map((doc) => (
