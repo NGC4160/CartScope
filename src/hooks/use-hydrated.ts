@@ -5,7 +5,7 @@ import {
   persistTabletJobs,
   readLiveJobsRaw,
 } from "@/lib/jobs-persist";
-import { hydrateSharedJobs } from "@/lib/shared-jobs-client";
+import { bindSharedJobsApply, hydrateSharedJobs } from "@/lib/shared-jobs-client";
 import { useJobStore } from "@/store/jobs";
 
 let hydrateInFlight: Promise<void> | null = null;
@@ -32,12 +32,14 @@ export function hydrateJobStore(): Promise<void> {
         if (jobs.length && !jobsMatchDurable(readLiveJobsRaw(), jobs)) {
           await persistTabletJobs(jobs);
         }
+        const applyJobs = async (next: typeof jobs) => {
+          useJobStore.setState({ jobs: next });
+          await persistTabletJobs(next);
+        };
+        bindSharedJobsApply(applyJobs);
         void hydrateSharedJobs({
           getJobs: () => useJobStore.getState().jobs,
-          setJobs: async (next) => {
-            useJobStore.setState({ jobs: next });
-            await persistTabletJobs(next);
-          },
+          setJobs: applyJobs,
           sessionMutated: jobsSessionMutated(),
         });
       })

@@ -9,9 +9,9 @@ function json(data: unknown, status = 200) {
 export const Route = createFileRoute("/api/jobs")({
   server: {
     handlers: {
-      GET: async () => {
-        const { handleSharedJobsGet } = await import("@/lib/shared-jobs-api");
-        const result = await handleSharedJobsGet();
+      GET: async ({ request }) => {
+        const { gatedSharedJobsGet } = await import("@/lib/shop-jobs-api");
+        const result = await gatedSharedJobsGet(request);
         return json(result.body, result.status);
       },
       PUT: async ({ request }) => {
@@ -21,8 +21,8 @@ export const Route = createFileRoute("/api/jobs")({
         } catch {
           return json({ ok: false, error: "Invalid JSON" }, 400);
         }
-        const { handleSharedJobsPut } = await import("@/lib/shared-jobs-api");
-        const result = await handleSharedJobsPut(body);
+        const { gatedSharedJobsPut } = await import("@/lib/shop-jobs-api");
+        const result = await gatedSharedJobsPut(request, body);
         return json(result.body, result.status);
       },
     },

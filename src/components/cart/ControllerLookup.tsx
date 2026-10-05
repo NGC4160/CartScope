@@ -9,6 +9,7 @@ import {
   docsForModelTag,
   type ControllerDoc,
 } from "@/data/controllers";
+import { tabletSheetHref, tabletSheetsForController } from "@/lib/controller-tablet-sheets";
 import {
   applyControllerQuestion,
   resolveController,
@@ -164,6 +165,8 @@ export function ControllerMatchPanel({
         </div>
       ) : (
         <div className="mt-4 grid gap-2">
+          <DriveSignInNote />
+          <TabletControllerSheets tag={result.modelTag} />
           <p className="text-xs font-medium uppercase tracking-wide text-ink-subtle">On file in Drive</p>
           {docs.map((doc) => (
             <a
@@ -211,6 +214,40 @@ export function ControllerMatchPanel({
           All controller stamps
         </Link>
       </p>
+    </div>
+  );
+}
+
+export function DriveSignInNote() {
+  return (
+    <p className="rounded-md bg-warn-bg px-3 py-3 text-sm text-ink" data-testid="drive-signin-note">
+      Drive PDFs need the shop Google account, or Ryan must set each controller file to Anyone with the link
+      (Viewer). A signed-out tablet stops at Google sign-in. Wiring pictures already in CartScope stay here and do
+      not need Drive.
+    </p>
+  );
+}
+
+export function TabletControllerSheets({ tag }: { tag: string }) {
+  const sheets = tabletSheetsForController(tag);
+  if (sheets.length === 0) return null;
+  return (
+    <div className="grid gap-2" data-testid="tablet-controller-sheets">
+      <p className="text-xs font-medium uppercase tracking-wide text-ink-subtle">On this tablet — no Drive sign-in</p>
+      {sheets.map((sheet) => (
+        <Link
+          key={sheet.id}
+          to="/print/wiring/$sheetId"
+          params={{ sheetId: sheet.id }}
+          className="flex min-h-14 items-start gap-3 rounded-md bg-paper-sunken px-3 py-3 text-ink"
+        >
+          <BookOpen className="mt-0.5 size-4 shrink-0 text-navy" />
+          <span className="min-w-0">
+            <span className="block font-medium">{sheet.title}</span>
+            <span className="block text-sm text-ink-muted">JPEG already in CartScope · {tabletSheetHref(sheet.id)}</span>
+          </span>
+        </Link>
+      ))}
     </div>
   );
 }

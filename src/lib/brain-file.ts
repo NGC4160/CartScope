@@ -50,7 +50,8 @@ export const fileBrainCase = createServerFn({ method: "POST" })
       return {
         ok: true,
         status: "queued",
-        detail: "No shop filing path is set. The redacted copy is ready on this device.",
+        detail:
+          "No shop filing path is set. The redacted copy is ready on this tablet — use Save shop file. Ryan can set BRAIN_WEBHOOK_URL on Vercel (and optional BRAIN_WEBHOOK_SECRET) to file automatically.",
       };
     }
 

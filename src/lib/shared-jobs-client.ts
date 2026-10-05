@@ -34,6 +34,7 @@ export function resetSharedJobsClientForTests(): void {
   }
   pendingJobs = null;
   skipPush = false;
+  applySharedJobs = null;
 }
 
 function markSharedReady() {
@@ -66,8 +67,20 @@ function writeMigratedFlag() {
   }
 }
 
+function sameJobRevisions(left: JobRecord[], right: JobRecord[]): boolean {
+  if (left.length !== right.length) return false;
+  const byId = new Map(left.map((job) => [job.id, job.updatedAt]));
+  return right.every((job) => byId.get(job.id) === job.updatedAt);
+}
+
+let applySharedJobs: ((jobs: JobRecord[]) => void | Promise<void>) | null = null;
+
+export function bindSharedJobsApply(fn: ((jobs: JobRecord[]) => void | Promise<void>) | null): void {
+  applySharedJobs = fn;
+}
+
 async function fetchSharedJobs(): Promise<SharedJobsApiResponse | null> {
-  const response = await fetch(SHARED_JOBS_API_PATH, { cache: "no-store" });
+  const response = await fetch(SHARED_JOBS_API_PATH, { cache: "no-store", credentials: "same-origin" });
   const body = (await response.json().catch(() => null)) as SharedJobsApiResponse | null;
   if (!body) return null;
   return body;
@@ -83,6 +96,7 @@ async function pushSharedJobs(
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       cache: "no-store",
+      credentials: "same-origin",
       body: JSON.stringify({ jobs, migrate }),
     });
     const body = (await response.json().catch(() => null)) as SharedJobsApiResponse | null;
@@ -91,7 +105,13 @@ async function pushSharedJobs(
       return null;
     }
     if (!response.ok || !body) return null;
-    return parseSharedJobsDocument(body);
+    const parsed = parseSharedJobsDocument(body);
+    if (parsed && applySharedJobs && !sameJobRevisions(jobs, parsed.jobs)) {
+      skipPush = true;
+      await applySharedJobs(parsed.jobs);
+      skipPush = false;
+    }
+    return parsed;
   } catch {
     return null;
   }

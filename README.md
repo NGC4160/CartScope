@@ -15,7 +15,7 @@ Step-by-step checks from the factory books: battery pack first, then codes (prog
 - Handheld Program + Log capture on programmer carts
 - Redacted shop-brain copy on report confirm (no last name, job number, phone, address, or email)
 
-Auth and Housecall Pro sync are **off**. Case files (customer last name, HCP job number, year/make/model, complaint, meter readings, code saves, Helper observations, Who checked it, pack type, stamps) are the shop memory. They live in a shared Vercel Blob store and cache on the tablet (`cartscope-jobs-v1`) so a flaky network does not wipe a bay session.
+Per-person accounts and Housecall Pro writes are **off**. A single shop lock (`SHOP_GATE_SECRET`) gates the job list so a public visitor cannot read last names or overwrite cases. Case files (customer last name, HCP job number, year/make/model, complaint, meter readings, code saves, Helper observations, Who checked it, pack type, stamps) are the shop memory. They live in a shared Vercel Blob store and cache on the tablet (`cartscope-jobs-v1`) so a flaky network does not wipe a bay session.
 
 ## Run it
 
@@ -37,10 +37,17 @@ npm run typecheck
 
 Set `XAI_API_KEY` in the environment for the diagnostic assistant. Shared case files need `BLOB_READ_WRITE_TOKEN` on Vercel (Storage → Blob → connect to **cart-scope**, Production + Preview). See `.env.example`. Until that token is present, each tablet keeps today’s per-browser `localStorage` behavior and `GET /api/jobs` reports the store as unconfigured.
 
+Shop lock (required before daily use):
+
+- `SHOP_GATE_SECRET` — one shared shop password. Ryan sets it on Vercel (Production + Preview). Do not put it in the repo. Until it is set, `/api/jobs` refuses every request.
+
 Optional shop-brain filing:
 
 - `BRAIN_WEBHOOK_URL` — POST the redacted markdown
 - `BRAIN_WEBHOOK_SECRET` — optional HMAC
+- Until the webhook is set, confirm still leaves a redacted file on the tablet (`Save shop file`)
+
+Controller PDFs still open from shop Drive. If a signed-out tablet stops at Google sign-in, stay signed into the shop Google account or set those Drive files to Anyone with the link (Viewer). Wiring JPEGs already in the app (Precedent IQ, Precedent gas, EZ-GO TXT, Curtis 1268 plates) stay local.
 
 Local `npm run dev` without Blob uses `.data/cartscope-jobs.json` (gitignored) so two browser profiles on one machine share the same file.
 
@@ -48,12 +55,13 @@ Do not put a GitHub token in the app. Do not commit secrets.
 
 ## Shared shop memory
 
-Same pattern as the shop board: one private JSON blob (`cartscope-jobs.json`) behind `GET` / `PUT /api/jobs`.
+Same pattern as the shop board: one private JSON blob (`cartscope-jobs.json`) behind a locked `GET` / `PUT /api/jobs`.
 
-1. Paint the tablet cache (`localStorage` / IndexedDB).
-2. `GET /api/jobs`. If a snapshot exists, replace the job list.
-3. If the store is empty and this tablet already has cases, upload that list **once** (`migrate: true`). The server ignores a second migrate so two tablets cannot overwrite each other.
-4. Saves write the tablet cache first, then write-through to the shared store (last write wins). A dropped network leaves the bay session on this tablet.
+1. Unlock the tablet with the shop password (httpOnly cookie).
+2. Paint the tablet cache (`localStorage` / IndexedDB).
+3. `GET /api/jobs`. If a snapshot exists, replace the job list.
+4. If the store is empty and this tablet already has cases, upload that list **once** (`migrate: true`). The server ignores a second migrate so two tablets cannot overwrite each other.
+5. Saves write the tablet cache first, then write-through to the shared store. The server merges by job id and `updatedAt`. A stale full-list PUT cannot drop a newer job it does not know about. A dropped network leaves the bay session on this tablet.
 
 Housecall Pro is not synced from CartScope. Who checked it / Helper / observation rules are unchanged.
 

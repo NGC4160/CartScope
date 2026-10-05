@@ -93,6 +93,55 @@ export function toSharedJobsDocument(
   };
 }
 
+export function jobUpdatedAtMs(job: Pick<JobRecord, "updatedAt" | "createdAt">): number {
+  const updated = Date.parse(job.updatedAt);
+  if (Number.isFinite(updated)) return updated;
+  const created = Date.parse(job.createdAt);
+  return Number.isFinite(created) ? created : 0;
+}
+
+/**
+ * Merge a tablet's full list into the shop store by job id.
+ * Newer updatedAt wins for the same id. Jobs only on the server stay —
+ * a stale tablet cannot drop a newer case by omitting it.
+ */
+export function mergeSharedJobs(
+  existing: SharedJobsDocument | null,
+  incoming: SharedJobsDocument,
+): SharedJobsDocument {
+  const incomingJobs = sanitizeLoadedJobs(incoming.jobs);
+  if (!existing) {
+    return {
+      version: SHARED_JOBS_VERSION,
+      updatedAt: Date.now(),
+      jobs: incomingJobs,
+    };
+  }
+
+  const existingById = new Map(existing.jobs.map((job) => [job.id, job]));
+  const seen = new Set<string>();
+  const jobs: JobRecord[] = [];
+
+  for (const job of incomingJobs) {
+    const current = existingById.get(job.id);
+    if (!current || jobUpdatedAtMs(job) >= jobUpdatedAtMs(current)) {
+      jobs.push(job);
+    } else {
+      jobs.push(current);
+    }
+    seen.add(job.id);
+  }
+  for (const job of existing.jobs) {
+    if (!seen.has(job.id)) jobs.push(job);
+  }
+
+  return {
+    version: SHARED_JOBS_VERSION,
+    updatedAt: Date.now(),
+    jobs,
+  };
+}
+
 /** True only when this browser already had case files before this session. */
 export function shouldMigrateLocalSnapshot(localJobCount: number): boolean {
   return localJobCount > 0;

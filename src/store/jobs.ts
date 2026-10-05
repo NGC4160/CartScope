@@ -36,6 +36,7 @@ import {
 import { commitMeterReading, observationSaveBlock } from "@/lib/meter-input";
 import { keepWhoCheckedIt } from "@/lib/job-header";
 import { applyJumpToStep } from "@/lib/jump-step";
+import { canConfirmComplete } from "@/lib/report-continuity";
 import { uid } from "@/lib/utils";
 
 export interface CreateJobInput {
@@ -84,7 +85,7 @@ interface JobState {
   deleteJob: (jobId: string) => void;
   appendAiTurn: (jobId: string, turn: Omit<AiTurn, "at"> & { at?: string }) => void;
   setIncludeAiInReport: (jobId: string, include: boolean) => void;
-  confirmReport: (jobId: string) => void;
+  confirmReport: (jobId: string) => boolean;
   jumpToStep: (jobId: string, stepId: string, reason: string) => void;
 }
 
@@ -369,6 +370,11 @@ export const useJobStore = create<JobState>()(
           );
         },
         confirmReport: (jobId) => {
+          const job = get().jobs.find((j) => j.id === jobId);
+          if (!job) return false;
+          if (job.reportConfirmed && job.status === "complete") return true;
+          const pack = getPack(job.modelId);
+          if (!pack || !canConfirmComplete(job, pack)) return false;
           commitJobs(
             get().jobs.map((j) =>
               j.id === jobId
@@ -380,6 +386,7 @@ export const useJobStore = create<JobState>()(
                 : j,
             ),
           );
+          return true;
         },
         jumpToStep: (jobId, stepId, reason) => {
           const job = get().jobs.find((j) => j.id === jobId);

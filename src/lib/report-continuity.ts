@@ -1,6 +1,7 @@
 import type { JobRecord, ModelPack } from "../data/types.ts";
 import { needsCodeGate, needsPackGate } from "./case-flow.ts";
 import { manualsOnFile, type ManualCandidate, type ManualCoverage } from "./manuals.ts";
+import { packRecordPass } from "./pack-rules.ts";
 
 export type ManualStatusSnapshot = {
   onFile: boolean;
@@ -54,6 +55,36 @@ export function partialReportGaps(job: JobRecord, pack: ModelPack): string[] {
 
 export function isPartialReport(job: JobRecord, pack: ModelPack): boolean {
   return partialReportGaps(job, pack).length > 0;
+}
+
+export function factoryChecksWereSkipped(job: JobRecord): boolean {
+  if (job.log.some((entry) => entry.result === "skip")) return true;
+  return Object.keys(job.skipReasons ?? {}).length > 0;
+}
+
+function packFailureStopsFactory(job: JobRecord, pack: ModelPack): boolean {
+  return (
+    needsPackGate(pack) &&
+    Boolean(job.packCheck) &&
+    !packRecordPass(job.packCheck) &&
+    !job.testBattery?.used
+  );
+}
+
+/** Reasons Review and confirm must not mark the case Complete. */
+export function completeBlockers(job: JobRecord, pack: ModelPack): string[] {
+  const blockers: string[] = [];
+  if (needsPackGate(pack) && !job.packCheck) {
+    blockers.push("Battery pack check was skipped. Save the pack numbers before you mark this complete.");
+  }
+  if (!packFailureStopsFactory(job, pack) && factoryChecksWereSkipped(job)) {
+    blockers.push("Required factory checks were skipped. Finish those checks before you mark this complete.");
+  }
+  return blockers;
+}
+
+export function canConfirmComplete(job: JobRecord, pack: ModelPack): boolean {
+  return completeBlockers(job, pack).length === 0;
 }
 
 export function manualsReportLines(

@@ -8,6 +8,7 @@ import { handleSharedJobsGet, handleSharedJobsPut } from "./shared-jobs-api.ts";
 import { setSharedJobsFilePathForTests, writeSharedJobs } from "./shared-jobs-backend.ts";
 import {
   SHARED_JOBS_VERSION,
+  mergeSharedJobs,
   parseSharedJobsDocument,
   sanitizeLoadedJob,
   sanitizeLoadedJobs,
@@ -127,6 +128,26 @@ describe("shared jobs document", () => {
     assert.equal(shouldMigrateLocalSnapshot(0), false);
     assert.equal(shouldMigrateLocalSnapshot(2), true);
   });
+
+  test("merge keeps a newer server job a stale tablet omitted", () => {
+    const older = sampleJob("job_a");
+    older.updatedAt = "2026-09-21T00:01:00.000Z";
+    older.lastName = "Old";
+    const newer = sampleJob("job_a");
+    newer.updatedAt = "2026-09-21T00:10:00.000Z";
+    newer.lastName = "New";
+    const other = sampleJob("job_b");
+    other.updatedAt = "2026-09-21T00:08:00.000Z";
+    other.lastName = "Kept";
+    const merged = mergeSharedJobs(
+      toSharedJobsDocument({ jobs: [newer, other] }),
+      toSharedJobsDocument({ jobs: [older] }),
+    );
+    assert.deepEqual(
+      merged.jobs.map((job) => `${job.id}:${job.lastName}`).sort(),
+      ["job_a:New", "job_b:Kept"],
+    );
+  });
 });
 
 describe("shared jobs API file store", () => {
@@ -161,7 +182,7 @@ describe("shared jobs API file store", () => {
     assert.equal(result.body.configured, true);
   });
 
-  test("PUT last-write replaces the shop list", async () => {
+  test("PUT merges by job id and does not drop a job the tablet omitted", async () => {
     const first = await handleSharedJobsPut({ jobs: [sampleJob("job_a")] });
     assert.equal(first.status, 200);
     assert.equal(first.body.wrote, true);
@@ -170,9 +191,24 @@ describe("shared jobs API file store", () => {
     const read = await handleSharedJobsGet();
     assert.equal(read.body.empty, false);
     assert.deepEqual(
-      (read.body.jobs as JobRecord[]).map((job) => job.id),
-      ["job_b"],
+      (read.body.jobs as JobRecord[]).map((job) => job.id).sort(),
+      ["job_a", "job_b"],
     );
+  });
+
+  test("stale older copy of a job cannot overwrite a newer one", async () => {
+    const fresh = sampleJob("job_a");
+    fresh.updatedAt = "2026-10-04T18:00:00.000Z";
+    fresh.lastName = "Fresh";
+    const stale = sampleJob("job_a");
+    stale.updatedAt = "2026-10-04T12:00:00.000Z";
+    stale.lastName = "Stale";
+    await handleSharedJobsPut({ jobs: [fresh] });
+    await handleSharedJobsPut({ jobs: [stale] });
+    const read = await handleSharedJobsGet();
+    const job = (read.body.jobs as JobRecord[])[0];
+    assert.equal(job?.lastName, "Fresh");
+    assert.equal(job?.updatedAt, "2026-10-04T18:00:00.000Z");
   });
 
   test("migrate writes only when the store is empty", async () => {
