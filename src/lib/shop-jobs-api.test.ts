@@ -87,6 +87,29 @@ describe("gated shared jobs API", () => {
     assert.equal((read.body.jobs as JobRecord[])[0]?.lastName, "SmokeTest");
   });
 
+  test("missing shop secret fails closed and never returns jobs", async () => {
+    delete process.env[SHOP_GATE_SECRET_ENV];
+    const read = await gatedSharedJobsGet(new Request("http://shop.test/api/jobs"));
+    assert.equal(read.status, 503);
+    assert.equal(read.body.ok, false);
+    assert.equal("jobs" in read.body, false);
+    assert.doesNotMatch(JSON.stringify(read.body), /SmokeTest|HCP-9999|lastName/);
+
+    const write = await gatedSharedJobsPut(new Request("http://shop.test/api/jobs", { method: "PUT" }), {
+      jobs: [],
+    });
+    assert.equal(write.status, 503);
+    process.env[SHOP_GATE_SECRET_ENV] = "unit-test-shop-secret";
+    const token = signShopSession();
+    const stillThere = await gatedSharedJobsGet(
+      new Request("http://shop.test/api/jobs", {
+        headers: { cookie: `${SHOP_GATE_COOKIE}=${token}` },
+      }),
+    );
+    assert.equal(stillThere.status, 200);
+    assert.equal((stillThere.body.jobs as JobRecord[])[0]?.lastName, "SmokeTest");
+  });
+
   test("unlocked GET returns the shop list", async () => {
     const token = signShopSession();
     const result = await gatedSharedJobsGet(
