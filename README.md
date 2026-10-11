@@ -39,7 +39,7 @@ Set `XAI_API_KEY` in the environment for the diagnostic assistant. Shared case f
 
 Shop lock (required before daily use):
 
-- `SHOP_GATE_SECRET` — one shared shop password. Ryan sets it on Vercel (Production + Preview). Do not put it in the repo. Until it is set, `/api/jobs` refuses every request.
+- `SHOP_GATE_SECRET` — one shared shop password. Ryan sets it on Vercel (Production + Preview). Do not put it in the repo. Until it is set, `/api/jobs` refuses every request. Vercel will not deploy this app on TanStack Start older than `1.168.60` (blocked XSS package).
 
 Optional shop-brain filing:
 

@@ -15,6 +15,11 @@ export const Route = createFileRoute("/api/jobs")({
         return json(result.body, result.status);
       },
       PUT: async ({ request }) => {
+        const { authorizeShopRequest } = await import("@/lib/shop-gate");
+        const gate = authorizeShopRequest(request);
+        if (!gate.body.ok) {
+          return json({ ok: false, error: gate.body.error }, gate.status);
+        }
         let body: unknown;
         try {
           body = await request.json();
