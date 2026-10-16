@@ -170,7 +170,7 @@ test("session mutation keeps this bay's jobs instead of a late cloud GET", async
   const prevLocal = Object.getOwnPropertyDescriptor(globalThis, "localStorage");
   const prevFetch = globalThis.fetch;
   installWindow(new Map());
-  let jobs = [sampleJob("job_this_tab")];
+  const jobs = [sampleJob("job_this_tab")];
   let setCount = 0;
   globalThis.fetch = (async () => {
     return new Response(

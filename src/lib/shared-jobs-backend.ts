@@ -27,6 +27,14 @@ function filePath() {
   return filePathOverride ?? path.join(process.cwd(), ".data", SHARED_JOBS_BLOB_PATH);
 }
 
+export function sharedJobsUseFileStore(): boolean {
+  return shouldUseFileStore();
+}
+
+export function sharedJobsFilePath(): string {
+  return filePath();
+}
+
 async function readFileStore(): Promise<SharedJobsDocument | null> {
   try {
     const raw = await readFile(filePath(), "utf8");
@@ -58,6 +66,42 @@ async function readBlobStore(): Promise<SharedJobsDocument | null> {
 async function writeBlobStore(doc: SharedJobsDocument): Promise<void> {
   const { put } = await import("@vercel/blob");
   await put(SHARED_JOBS_BLOB_PATH, JSON.stringify(doc), {
+    access: "private",
+    addRandomSuffix: false,
+    allowOverwrite: true,
+    contentType: "application/json",
+  });
+}
+
+export async function readSharedJobsRaw(): Promise<string | null> {
+  if (shouldUseFileStore()) {
+    try {
+      const raw = await readFile(filePath(), "utf8");
+      return raw.trim() ? raw : null;
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === "ENOENT") return null;
+      throw error;
+    }
+  }
+  const { get } = await import("@vercel/blob");
+  const result = await get(SHARED_JOBS_BLOB_PATH, {
+    access: "private",
+    useCache: false,
+  });
+  if (!result || result.statusCode !== 200 || !result.stream) return null;
+  const text = await new Response(result.stream).text();
+  return text.trim() ? text : null;
+}
+
+export async function writeSharedJobsRaw(raw: string): Promise<void> {
+  if (shouldUseFileStore()) {
+    const dest = filePath();
+    await mkdir(path.dirname(dest), { recursive: true });
+    await writeFile(dest, raw, "utf8");
+    return;
+  }
+  const { put } = await import("@vercel/blob");
+  await put(SHARED_JOBS_BLOB_PATH, raw, {
     access: "private",
     addRandomSuffix: false,
     allowOverwrite: true,
