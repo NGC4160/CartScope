@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { BRAIN_CASES_FOLDER, BRAIN_REPO } from "@/lib/brain-case";
 import { findPiiLeaks } from "@/lib/redact";
+import { logServer } from "@/lib/server-log";
 
 export type BrainFileStatus = "sent" | "queued" | "rejected";
 
@@ -89,7 +90,8 @@ export const fileBrainCase = createServerFn({ method: "POST" })
         status: "failed",
         error: `Shop filing path said ${res.status}. Try again.`,
       };
-    } catch {
+    } catch (error) {
+      logServer("error", "brain_file_send_failed", { error });
       return {
         ok: false,
         status: "failed",

@@ -1,3 +1,4 @@
+import { logServer } from "./server-log.ts";
 import { mergeSharedJobs, parseSharedJobsDocument, toSharedJobsDocument } from "./shared-jobs.ts";
 import {
   isSharedStoreConfigured,
@@ -32,7 +33,7 @@ export async function handleSharedJobsGet(): Promise<SharedJobsApiResult> {
     if (!doc) return { status: 200, body: { ok: true, empty: true, configured: true } };
     return { status: 200, body: { ok: true, empty: false, configured: true, ...doc } };
   } catch (error) {
-    console.error("Shared jobs read failed", error);
+    logServer("error", "shared_jobs_read_failed", { error });
     return {
       status: 502,
       body: {
@@ -96,7 +97,7 @@ export async function handleSharedJobsPut(body: unknown): Promise<SharedJobsApiR
       },
     };
   } catch (error) {
-    console.error("Shared jobs write failed", error);
+    logServer("error", "shared_jobs_write_failed", { error });
     return {
       status: 502,
       body: {
