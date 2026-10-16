@@ -1,5 +1,6 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { SHOP_GATE_API_PATH } from "./shop-gate-meta.ts";
+import { validateShopGateBody } from "./shop-input.ts";
 
 export { SHOP_GATE_API_PATH };
 export const SHOP_GATE_SECRET_ENV = "SHOP_GATE_SECRET";
@@ -155,8 +156,20 @@ export function handleShopGateGet(request: Request): ShopGateApiResult {
 }
 
 export function handleShopGatePost(request: Request, body: unknown): ShopGateApiResult {
+  const invalid = validateShopGateBody(body);
+  if (invalid) {
+    return {
+      status: 400,
+      body: {
+        ok: false,
+        unlocked: false,
+        configured: isShopGateConfigured(),
+        error: invalid,
+      },
+    };
+  }
   const secure = requestIsSecure(request);
-  const record = body && typeof body === "object" ? (body as Record<string, unknown>) : {};
+  const record = body as Record<string, unknown>;
   if (record.lock === true) {
     return {
       status: 200,

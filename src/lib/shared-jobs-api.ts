@@ -1,4 +1,5 @@
 import { logServer } from "./server-log.ts";
+import { validateSharedJobsWrite } from "./shop-input.ts";
 import { mergeSharedJobs, parseSharedJobsDocument, toSharedJobsDocument } from "./shared-jobs.ts";
 import {
   isSharedStoreConfigured,
@@ -58,6 +59,9 @@ export async function handleSharedJobsPut(body: unknown): Promise<SharedJobsApiR
       },
     };
   }
+
+  const invalid = validateSharedJobsWrite(body);
+  if (invalid) return { status: 400, body: { ok: false, error: invalid } };
 
   const parsed = parseSharedJobsDocument(body);
   if (!parsed) {
