@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { logServer } from "@/lib/server-log";
 
 const noStore = { "Cache-Control": "no-store" as const };
 
@@ -21,7 +22,8 @@ export const Route = createFileRoute("/api/shop-gate")({
         let body: unknown;
         try {
           body = await request.json();
-        } catch {
+        } catch (error) {
+          logServer("warn", "shop_gate_invalid_json", { error });
           return json({ ok: false, error: "Invalid JSON" }, 400);
         }
         const { handleShopGatePost } = await import("@/lib/shop-gate");

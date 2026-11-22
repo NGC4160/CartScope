@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+      # `/__app-env` is served only by the dev server (the plugin is
+      # apply: "serve"). Preview of the built bundle does not expose it, so
+      # probing preview would stay "could not observe" and would not compare
+      # the live flag to the build flag. This starts the same `npm run dev`
+      # wrapper the shop uses, then compares that live flag to the build flag.
+      - name: Start dev server
+        run: |
+          npm run dev > /tmp/cartscope-dev.log 2>&1 &
+          echo $! > /tmp/cartscope-dev.pid
+          for _ in $(seq 1 120); do
+            if curl -sf http://127.0.0.1:8080/__app-env >/dev/null; then
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "dev server did not serve /__app-env" >&2
+          cat /tmp/cartscope-dev.log >&2
+          exit 1
+      - run: node scripts/check-auth-invariant.mjs
+      - name: Stop dev server
+        if: always()
+        run: |
+          if [ -f /tmp/cartscope-dev.pid ]; then
+            kill "$(cat /tmp/cartscope-dev.pid)" || true
+          fi

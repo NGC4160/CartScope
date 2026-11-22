@@ -1,4 +1,5 @@
 import { pendingMigrations } from "../../scripts/migration-plan.mjs";
+import { logServer } from "./server-log.ts";
 
 /** Which database backend is active. */
 export type DbSource = "neon" | "pglite";
@@ -156,7 +157,11 @@ async function createPgliteSql(): Promise<Sql> {
     }
   };
   const pass = (globalRef.__pgliteMigrateChain__ ?? Promise.resolve())
-    .catch(() => undefined) // an earlier failed pass must not wedge the chain
+    .catch((err) => {
+      // an earlier failed pass must not wedge the chain
+      logServer("error", "pglite_migrate_chain_failed", { error: err });
+      return undefined;
+    })
     .then(migrate);
   globalRef.__pgliteMigrateChain__ = pass;
   await pass;
@@ -232,7 +237,7 @@ const globalBoot = globalThis as typeof globalThis & {
 if (typeof window === "undefined" && dbSource === "pglite") {
   globalBoot.__pgBootstrapPromise__ ??= ensureDbReady().catch((err) => {
     globalBoot.__pgBootstrapPromise__ = undefined;
-    console.error("[db] PGLite bootstrap failed:", err);
+    logServer("error", "pglite_bootstrap_failed", { error: err });
     throw err;
   });
 }
