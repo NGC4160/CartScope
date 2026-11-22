@@ -56,6 +56,16 @@ test("non-.sql entries are dropped (readdir also yields the auth/ directory)", (
   assert.deepEqual(pendingMigrations(["auth", "README.md"], []), []);
 });
 
+test("a down migration is never applied, even from the globbed directory", () => {
+  assert.equal(isMigrationFile("migrations/auth/0001_auth.down.sql"), false);
+  assert.equal(isMigrationFile("0001_auth.down.sql"), false);
+  assert.deepEqual(
+    pendingMigrations(["0001_auth.down.sql", "0001_auth.sql"], ["0001_auth.sql"]),
+    [],
+  );
+  assert.deepEqual(pendingMigrations(["/migrations/0001_auth.down.sql"], []), []);
+});
+
 test("the auth schema ships outside the globbed directory", () => {
   const migrationsDir = join(projectRoot(), "migrations");
   assert.deepEqual(pendingMigrations(readdirSync(migrationsDir), []), []);
