@@ -61,6 +61,17 @@ describe("shop write validation", () => {
     else process.env.VERCEL = prevVercel;
   });
 
+  test("a gas case with a blank battery type still saves", async () => {
+    const blank = await handleSharedJobsPut({
+      jobs: [{ ...sampleJob("job_gas_blank"), batteryType: "" }],
+    });
+    assert.equal(blank.status, 200);
+    const omitted = await handleSharedJobsPut({
+      jobs: [{ ...sampleJob("job_gas_omit"), batteryType: undefined }],
+    });
+    assert.equal(omitted.status, 200);
+  });
+
   test("a known pack still saves", async () => {
     const precedent = await handleSharedJobsPut({
       jobs: [{ ...sampleJob("job_prec"), modelId: "club-car-precedent-iq" }],
@@ -165,7 +176,7 @@ describe("assistant input validation", () => {
   });
 
   test("more than eight history turns are still accepted", () => {
-    const history = Array.from({ length: 9 }, (_, index) => ({
+    const history = Array.from({ length: 90 }, (_, index) => ({
       role: index % 2 === 0 ? "user" : "assistant",
       text: `turn ${index}`,
     }));

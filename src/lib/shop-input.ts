@@ -17,7 +17,9 @@ const KNOWN_PACKS = new Set<string>([
 ]);
 
 const MAX_PASSWORD = 200;
-const MAX_JOBS = 500;
+// One shop keeps finished cases. 500 was small enough to reject a normal list
+// and block every later save. 5000 still stops a runaway payload.
+const MAX_JOBS = 5_000;
 const MAX_ID = 80;
 const MAX_MODEL = 80;
 const MAX_STEP = 120;
@@ -136,7 +138,7 @@ function validateJob(job: unknown): string | null {
     if ((record[field.key] as string).length > field.max) return `${field.label} is too long.`;
   }
 
-  if ("batteryType" in record && record.batteryType !== undefined) {
+  if ("batteryType" in record && record.batteryType !== undefined && record.batteryType !== "") {
     if (typeof record.batteryType !== "string" || !BATTERY_TYPES.has(record.batteryType)) {
       return "A shop case battery type must be lead-acid or lithium.";
     }
@@ -200,7 +202,9 @@ function walkValue(value: unknown, depth: number): string | null {
 }
 
 const MAX_QUESTION = 800;
-const MAX_HISTORY = 80;
+// The model still sees only the last eight turns. A long case used to be
+// sliced; rejecting at 80 stopped the helper on a normal job.
+const MAX_HISTORY = 2_000;
 const MAX_TURN = 4_000;
 const MAX_MEASUREMENTS = 200;
 const MAX_MEASUREMENT_FIELD = 2_000;

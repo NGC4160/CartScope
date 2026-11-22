@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { execFile } from "node:child_process";
-import { mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { after, afterEach, beforeEach, describe, test } from "node:test";
@@ -61,6 +61,8 @@ describe("jobs backup", () => {
     const second = await backupSharedJobs(DAY);
     assert.equal(second.wrote, false);
     assert.equal(await readFile(backupPath, "utf8"), ORIGINAL);
+    const names = await readdir(path.join(dir, "backups"));
+    assert.deepEqual(names, ["2026-10-16.json"]);
   });
 
   test("a missing shop file does not create an empty backup", async () => {

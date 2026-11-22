@@ -22,9 +22,12 @@ export const UNTRUSTED_INPUT_RULE =
 
 const CLOSING_TAG = /<\/\s*untrusted-(?:question|history|case-notes)\s*>/gi;
 
-/** Stop a typed closing tag from ending the untrusted block early. */
+/** Stop typed markup from ending the untrusted block or opening a new one. */
 export function escapeUntrusted(text: string): string {
-  return text.replace(CLOSING_TAG, (match) => match.replaceAll("<", "&lt;").replaceAll(">", "&gt;"));
+  return text
+    .replace(CLOSING_TAG, (match) => match.replaceAll("<", "&lt;").replaceAll(">", "&gt;"))
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;");
 }
 
 export function wrapUntrusted(tag: UntrustedTag, text: string): string {

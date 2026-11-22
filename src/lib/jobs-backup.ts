@@ -1,5 +1,5 @@
 import { timingSafeEqual } from "node:crypto";
-import { access, mkdir, readFile, writeFile } from "node:fs/promises";
+import { access, link, mkdir, readFile, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { logServer } from "./server-log.ts";
 import {
@@ -69,6 +69,31 @@ async function fileExists(dest: string): Promise<boolean> {
   }
 }
 
+/**
+ * Publish the day's copy by linking a finished temp file into place.
+ * `rename` would replace an existing backup. `link` fails with EEXIST
+ * instead, and a crash before the link leaves no dated file to get stuck
+ * on a half-written copy.
+ */
+async function publishFileBackup(dest: string, raw: string): Promise<"wrote" | "exists"> {
+  if (await fileExists(dest)) return "exists";
+  await mkdir(path.dirname(dest), { recursive: true });
+  const tmp = `${dest}.${process.pid}.${Date.now()}.partial`;
+  let result: "wrote" | "exists" = "wrote";
+  try {
+    await writeFile(tmp, raw, "utf8");
+    try {
+      await link(tmp, dest);
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === "EEXIST") result = "exists";
+      else throw error;
+    }
+    return result;
+  } finally {
+    await unlink(tmp).catch(() => undefined);
+  }
+}
+
 async function blobExists(pathname: string): Promise<boolean> {
   const { head } = await import("@vercel/blob");
   try {
@@ -105,21 +130,28 @@ export async function backupSharedJobs(now = new Date()): Promise<JobsBackupResu
     if (await fileExists(dest)) return { ok: true, wrote: false, date, missing: false };
     const raw = await readSharedJobsRaw();
     if (!raw) return { ok: true, wrote: false, date, missing: true };
-    await mkdir(path.dirname(dest), { recursive: true });
-    await writeFile(dest, raw, "utf8");
-    return { ok: true, wrote: true, date, missing: false };
+    const published = await publishFileBackup(dest, raw);
+    return { ok: true, wrote: published === "wrote", date, missing: false };
   }
 
   if (await blobExists(pathname)) return { ok: true, wrote: false, date, missing: false };
   const raw = await readSharedJobsRaw();
   if (!raw) return { ok: true, wrote: false, date, missing: true };
-  const { put } = await import("@vercel/blob");
-  await put(pathname, raw, {
-    access: "private",
-    addRandomSuffix: false,
-    allowOverwrite: false,
-    contentType: "application/json",
-  });
+  const { put, BlobPreconditionFailedError } = await import("@vercel/blob");
+  try {
+    await put(pathname, raw, {
+      access: "private",
+      addRandomSuffix: false,
+      allowOverwrite: false,
+      contentType: "application/json",
+    });
+  } catch (error) {
+    // A second run that lost the exists check must not replace the day's copy.
+    if (error instanceof BlobPreconditionFailedError) {
+      return { ok: true, wrote: false, date, missing: false };
+    }
+    throw error;
+  }
   return { ok: true, wrote: true, date, missing: false };
 }
 
