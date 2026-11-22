@@ -26,7 +26,11 @@ export function migrationName(path) {
  * @returns {boolean}
  */
 export function isMigrationFile(path) {
-  return path.endsWith(".sql");
+  // A `.down.sql` sibling is a manual rollback, never a forward migration.
+  // Basename order would run `0001_auth.down.sql` before `0001_auth.sql`, and
+  // a later copy into `migrations/` would drop the auth tables on the next
+  // deploy after the up file was already recorded.
+  return path.endsWith(".sql") && !path.endsWith(".down.sql");
 }
 
 /**
